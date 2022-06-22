@@ -2,6 +2,7 @@ import { Grid } from "./grid";
 import { SymmetryHelper } from "./helpers/symmetry";
 import { Interpreter } from "./interpreter";
 import { MapNode } from "./map";
+import { WFCNode } from "./wfc";
 
 export abstract class Node {
     protected abstract load(elem: Element, symmetry: Uint8Array, grid: Grid);
