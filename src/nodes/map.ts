@@ -2,6 +2,7 @@ import { Grid } from "../grid";
 import { SymmetryHelper } from "../helpers/symmetry";
 import { Branch } from "./node";
 import { Rule } from "../rule";
+import { Helper } from "../helpers/helper";
 
 const readScale = (s: string): [number, number] => {
     if (!s.includes("/")) return [parseInt(s), 1];
@@ -54,9 +55,9 @@ export class MapNode extends Branch {
             parentSymmetry
         );
 
-        const rules = elem.getElementsByTagName("rule");
-        for (let i = 0; i < rules.length; i++) {
-            const rule = Rule.load(rules.item(i), grid, this.newgrid);
+        const rules = Helper.collectionToArr(elem.getElementsByTagName("rule"));
+        for (const e of rules) {
+            const rule = Rule.load(e, grid, this.newgrid);
             if (!rule) return false;
             rule.symmetries(symmetry, grid.MZ === 1).forEach((r) =>
                 this.rules.push(r)

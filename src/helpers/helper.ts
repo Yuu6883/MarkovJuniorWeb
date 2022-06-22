@@ -20,4 +20,12 @@ export class Helper {
         }
         return 0;
     }
+
+    public static collectionToArr<T extends Element>(c: HTMLCollectionOf<T>) {
+        const arr: T[] = [];
+        for (let i = 0; i < c.length; i++) {
+            arr.push(c.item(i));
+        }
+        return arr;
+    }
 }

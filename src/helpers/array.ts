@@ -1,3 +1,20 @@
+export class BoolArray2DRow {
+    private readonly ref: BoolArray2D;
+    private readonly y: number;
+    constructor(ref: BoolArray2D, y: number) {
+        this.ref = ref;
+        this.y = y;
+    }
+
+    get(x: number) {
+        return this.ref.get(x, this.y);
+    }
+
+    set(x: number, value: boolean) {
+        this.ref.set(x, this.y, value);
+    }
+}
+
 // when will google add a BitSet class sigh
 export class BoolArray2D {
     private buf: Uint8Array;
@@ -22,6 +39,10 @@ export class BoolArray2D {
         value
             ? (this.buf[~~(offset / 8)] |= mask) // set bit
             : (this.buf[~~(offset / 8)] &= 0xff ^ mask); // clear bit
+    }
+
+    row(y: number) {
+        return new BoolArray2DRow(this, y);
     }
 
     fill() {

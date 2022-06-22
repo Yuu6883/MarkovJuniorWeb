@@ -64,5 +64,8 @@ export class Grid {
         return sum;
     }
 
-    public matches(rule: Rule, x: number, y: number, z: number) {}
+    public matches(rule: Rule, x: number, y: number, z: number): boolean {
+        // TODO
+        return true;
+    }
 }
