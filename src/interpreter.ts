@@ -1,7 +1,7 @@
 import seedrandom, { PRNG } from "seedrandom";
 import { Grid } from "./grid";
 import { SymmetryHelper } from "./helpers/symmetry";
-import { Branch, MarkovNode, Node } from "./node";
+import { Branch, MarkovNode, Node } from "./nodes/node";
 
 export class Interpreter {
     public root: Branch;

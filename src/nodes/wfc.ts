@@ -1,8 +1,8 @@
-import { Grid } from "./grid";
-import { Array3D, BoolArray2D } from "./helpers/array";
+import { Grid } from "../grid";
+import { Array3D, BoolArray2D } from "../helpers/array";
 import { Branch, Node } from "./node";
 import seedrandom, { PRNG } from "seedrandom";
-import { Helper } from "./helpers/helper";
+import { Helper } from "../helpers/helper";
 
 export abstract class WFCNode extends Branch {
     protected wave: Wave;

@@ -1,7 +1,7 @@
-import { Grid } from "./grid";
-import { SymmetryHelper } from "./helpers/symmetry";
+import { Grid } from "../grid";
+import { SymmetryHelper } from "../helpers/symmetry";
 import { Branch } from "./node";
-import { Rule } from "./rule";
+import { Rule } from "../rule";
 
 const readScale = (s: string): [number, number] => {
     if (!s.includes("/")) return [parseInt(s), 1];

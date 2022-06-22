@@ -1,6 +1,6 @@
-import { Grid } from "./grid";
-import { SymmetryHelper } from "./helpers/symmetry";
-import { Interpreter } from "./interpreter";
+import { Grid } from "../grid";
+import { SymmetryHelper } from "../helpers/symmetry";
+import { Interpreter } from "../interpreter";
 import { MapNode } from "./map";
 import { WFCNode } from "./wfc";
 
@@ -24,8 +24,13 @@ export abstract class Node {
             return null;
         }
 
-        // TODO
-        const result: Node = {}[name]();
+        // TODO: implement all the nodes
+        const result: Node = {
+            markov: () => new MarkovNode(),
+            sequence: () => new SequenceNode(),
+            map: () => new MapNode(),
+            wfc: () => {},
+        }[name]();
 
         result.ip = ip;
         result.grid = grid;
@@ -107,12 +112,12 @@ export abstract class Branch extends Node {
 
 export class SequenceNode extends Branch {}
 export class MarkovNode extends Branch {
-    constructor(child: Node, ip: Interpreter) {
+    constructor(child?: Node, ip?: Interpreter) {
         super();
 
-        this.nodes = [child];
+        if (child) this.nodes = [child];
         this.ip = ip;
-        this.grid = ip.grid;
+        this.grid = ip?.grid;
     }
 
     public override run() {

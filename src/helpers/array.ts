@@ -33,6 +33,38 @@ export class BoolArray2D {
     }
 }
 
+export class Array2D<T extends ArrayBufferView> {
+    public readonly arr: T;
+    public readonly MX: number;
+    public readonly MY: number;
+
+    constructor(
+        ctor: (len: number) => T,
+        MX: number,
+        MY: number,
+        func?: (x: number, y: number) => number
+    ) {
+        this.arr = ctor(MX * MY);
+        if (func) {
+            for (let y = 0; y < MY; y++) {
+                for (let x = 0; x < MX; x++) {
+                    this.arr[y * MX + x] = func(x, y);
+                }
+            }
+        }
+        this.MX = MX;
+        this.MY = MY;
+    }
+
+    get(x: number, y: number) {
+        return this.arr[y * this.MX + x];
+    }
+
+    set(x: number, y: number, value: number) {
+        this.arr[y * this.MX + x] = value;
+    }
+}
+
 export class Array3D<T extends ArrayBufferView> {
     public readonly arr: T;
     public readonly MX: number;
