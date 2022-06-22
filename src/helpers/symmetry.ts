@@ -122,7 +122,7 @@ export class SymmetryHelper {
         return result;
     }
 
-    public static getSymmetry(d2: boolean, s: string, dflt: boolean[]) {
+    public static getSymmetry(d2: boolean, s: string, dflt: Uint8Array) {
         if (!s) return dflt;
         return d2 ? this.squareSubgroups.get(s) : this.cubeSubgroups.get(s);
     }

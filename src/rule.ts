@@ -350,4 +350,28 @@ export class Rule {
             p
         );
     }
+
+    get IMX() {
+        return this.IO_DIM[0];
+    }
+
+    get IMY() {
+        return this.IO_DIM[1];
+    }
+
+    get IMZ() {
+        return this.IO_DIM[2];
+    }
+
+    get OMX() {
+        return this.IO_DIM[3];
+    }
+
+    get OMY() {
+        return this.IO_DIM[4];
+    }
+
+    get OMZ() {
+        return this.IO_DIM[5];
+    }
 }
