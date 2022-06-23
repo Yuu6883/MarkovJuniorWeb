@@ -5,6 +5,11 @@ interface WritableArray<T> {
     [n: number]: T;
 }
 
+interface DOMCollection<T> {
+    readonly length: number;
+    item(index: number): T;
+}
+
 export class Helper {
     public static split2(s: string, s1: string, s2: string) {
         return s.split(s1).map((l) => l.split(s2));
@@ -28,7 +33,7 @@ export class Helper {
         return 0;
     }
 
-    public static collectionToArr<T extends Element>(c: HTMLCollectionOf<T>) {
+    public static collectionToArr<T>(c: DOMCollection<T>) {
         const arr: T[] = [];
         for (let i = 0; i < c.length; i++) {
             arr.push(c.item(i));
@@ -70,6 +75,43 @@ export class Helper {
         for (let i = 0; i < array.length; i++, power *= 2)
             if (array[i]) result += power;
         return result;
+    }
+
+    public static indexByteArr(p: Uint8Array, C: bigint) {
+        let result = 0n,
+            power = 1n;
+        for (let i = 0; i < p.length; i++, power *= C)
+            result += BigInt(p[p.length - 1 - i]) * power;
+        return result;
+    }
+
+    public static ords(
+        data: Int32Array,
+        uniques: number[] = []
+    ): [Uint8Array, number] {
+        const result = new Uint8Array(data.length);
+        for (let i = 0; i < data.length; i++) {
+            let d = data[i];
+            let ord = uniques.indexOf(d);
+            if (ord == -1) {
+                ord = uniques.length;
+                uniques.push(d);
+            }
+            result[i] = ord;
+        }
+        return [result, uniques.length];
+    }
+
+    public static intPower(a: number, n: number) {
+        let product = 1;
+        for (let i = 0; i < n; i++) product *= a;
+        return product;
+    }
+
+    public static compareArr<T extends ArrayLike<number>>(t1: T, t2: T) {
+        if (t1.length != t2.length) return false;
+        for (let i = 0; i < t1.length; i++) if (t1[i] !== t2[i]) return false;
+        return true;
     }
 }
 

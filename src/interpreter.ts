@@ -2,7 +2,7 @@ import seedrandom, { PRNG } from "seedrandom";
 import { Grid } from "./grid";
 import { vec3 } from "./helpers/helper";
 import { SymmetryHelper } from "./helpers/symmetry";
-import { Branch, MarkovNode, Node } from "./nodes/node";
+import { Branch, MarkovNode, Node } from "./nodes";
 
 export class Interpreter {
     public root: Branch;

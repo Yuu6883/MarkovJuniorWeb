@@ -1,7 +1,7 @@
 import { Grid } from "../grid";
 import { Array2D } from "../helpers/datastructures";
 import { Helper } from "../helpers/helper";
-import { Node } from "./node";
+import { Node } from ".";
 
 export class ConvolutionNode extends Node {
     private rules: ConvolutionRule[];
@@ -47,12 +47,7 @@ export class ConvolutionNode extends Node {
         ).map((x) => new ConvolutionRule(x, grid));
         this.steps = parseInt(elem.getAttribute("steps")) || -1;
         this.periodic = elem.getAttribute("periodic") === "True";
-        this.sumfield = new Array2D(
-            Int32Array,
-            grid.state.length,
-            grid.alphabet_size,
-            0
-        );
+        this.sumfield = new Array2D(Int32Array, grid.state.length, grid.C, 0);
 
         return true;
     }

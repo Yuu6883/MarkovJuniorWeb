@@ -1,6 +1,6 @@
 import { Grid } from "../grid";
 import { SymmetryHelper } from "../helpers/symmetry";
-import { Branch } from "./node";
+import { Branch } from ".";
 import { Rule } from "../rule";
 import { Helper } from "../helpers/helper";
 

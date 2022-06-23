@@ -1,12 +1,12 @@
 import { Grid } from "../grid";
 import { Array3D, BoolArray2D } from "../helpers/datastructures";
-import { Branch, Node } from "./node";
+import { Branch, Node } from ".";
 import seedrandom, { PRNG } from "seedrandom";
 import { Helper } from "../helpers/helper";
 
 export abstract class WFCNode extends Branch {
     protected wave: Wave;
-    protected propagator: number[][][];
+    protected propagator: Int32Array[][];
     protected P = 1;
     protected N = 1;
 
@@ -56,7 +56,7 @@ export abstract class WFCNode extends Branch {
             this.propagator.length,
             this.shannon
         );
-        this.stack = new Int32Array(this.wave.data.MY * this.P * 2);
+        this.stack = new Int32Array(this.wave.data.ROWS * this.P * 2);
 
         if (this.shannon) {
             this.weightLogWeights = new Float64Array(this.P);
@@ -95,7 +95,7 @@ export abstract class WFCNode extends Branch {
                 this.shannon
             );
 
-            for (let i = 0; i < this.wave.data.MY; i++) {
+            for (let i = 0; i < this.wave.data.ROWS; i++) {
                 const value = this.grid.state[i];
                 const startWave = this.map.get(value);
                 if (startWave) {
@@ -332,7 +332,7 @@ class Wave {
     }
 
     public init(
-        propagator: number[][][],
+        propagator: Int32Array[][],
         sumOfWeights: number,
         sumOfWeightLogWeights: number,
         startingEntropy: number,
@@ -340,8 +340,8 @@ class Wave {
     ) {
         this.data.fill();
 
-        const P = this.data.MX;
-        for (let i = 0; i < this.data.MY; i++) {
+        const P = this.data.COLS;
+        for (let i = 0; i < this.data.ROWS; i++) {
             for (let p = 0; p < P; p++) {
                 for (let d = 0; d < propagator.length; d++) {
                     // TODO: is this correct
@@ -363,8 +363,8 @@ class Wave {
     }
 
     public copyFrom(wave: Wave, D: number, shannon: boolean) {
-        for (let i = 0; i < this.data.MY; i++) {
-            for (let t = 0; t < this.data.MX; t++) {
+        for (let i = 0; i < this.data.ROWS; i++) {
+            for (let t = 0; t < this.data.COLS; t++) {
                 this.data.set(t, i, wave.data.get(t, i));
                 for (let d = 0; d < D; d++) {
                     this.compatible.set(d, t, i, wave.compatible.get(d, t, i));

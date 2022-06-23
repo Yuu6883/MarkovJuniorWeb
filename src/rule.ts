@@ -1,5 +1,5 @@
 import { Grid } from "./grid";
-import { AH } from "./helpers/datastructures";
+import { Array3Dflat } from "./helpers/datastructures";
 import { Helper, vec3 } from "./helpers/helper";
 import { SymmetryHelper } from "./helpers/symmetry";
 
@@ -293,16 +293,16 @@ export class Rule {
             IMY = OMY = FY;
             IMZ = OMZ = FZ;
 
-            inRect = AH.array3Dflat(
-                (l) => new Int8Array(l),
+            inRect = Array3Dflat(
+                Int8Array,
                 FX / 2,
                 FY,
                 FZ,
                 (x, y, z) => rect[x + y * FX + z * FX * FY]
             );
 
-            outRect = AH.array3Dflat(
-                (l) => new Int8Array(l),
+            outRect = Array3Dflat(
+                Int8Array,
                 FX / 2,
                 FY,
                 FZ,
@@ -343,7 +343,7 @@ export class Rule {
             input,
             output,
             new Int32Array([IMX, IMY, IMZ, OMX, OMY, OMZ]),
-            gin.alphabet_size,
+            gin.C,
             p
         );
     }

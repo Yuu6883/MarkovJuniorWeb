@@ -29,7 +29,7 @@ export class Grid {
         }
 
         g.characters = valueString;
-        for (let i = 0; i < g.alphabet_size; i++) {
+        for (let i = 0; i < g.C; i++) {
             const c = valueString.charCodeAt(i);
 
             if (g.values.has(c)) {
@@ -49,7 +49,7 @@ export class Grid {
         return g;
     }
 
-    get alphabet_size() {
+    get C() {
         return this.characters.length;
     }
 

@@ -11,7 +11,7 @@ import { Observation } from "../observation";
 import { Rule } from "../rule";
 import { Search } from "../search";
 import { AllNode } from "./all";
-import { Node } from "./node";
+import { Node } from ".";
 
 export abstract class RuleNode extends Node {
     public rules: Rule[];
@@ -85,14 +85,14 @@ export abstract class RuleNode extends Node {
             elem.getElementsByTagName("field")
         );
         if (efields.length) {
-            this.fields = Array.from({ length: grid.alphabet_size });
+            this.fields = Array.from({ length: grid.C });
             for (const efield of efields)
                 this.fields[
                     grid.values.get(parseInt(efield.getAttribute("for")))
                 ] = new Field(efield, grid);
             this.potentials = new Array2D(
                 Int32Array,
-                grid.alphabet_size,
+                grid.C,
                 grid.state.length
             );
             this.potentials.fill(0);
@@ -102,7 +102,7 @@ export abstract class RuleNode extends Node {
             elem.getElementsByTagName("observe")
         );
         if (eobs.length) {
-            this.observations = Array.from({ length: grid.alphabet_size });
+            this.observations = Array.from({ length: grid.C });
             for (const eob of eobs) {
                 const value = grid.values.get(
                     parseInt(eob.getAttribute("value"))
@@ -171,7 +171,7 @@ export abstract class RuleNode extends Node {
                             grid.MX,
                             grid.MY,
                             grid.MZ,
-                            grid.alphabet_size,
+                            grid.C,
                             this instanceof AllNode,
                             this.limit,
                             this.depthCoefficient,

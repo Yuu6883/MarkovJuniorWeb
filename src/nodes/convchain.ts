@@ -1,7 +1,8 @@
 import { Grid } from "../grid";
+import { Graphics } from "../helpers/graphics";
 import { Helper, range } from "../helpers/helper";
 import { SymmetryHelper } from "../helpers/symmetry";
-import { Node } from "./node";
+import { Node } from ".";
 
 export class ConvChainNode extends Node {
     private N: number;
@@ -28,9 +29,12 @@ export class ConvChainNode extends Node {
         const name = elem.getAttribute("sample");
         const filename = `resources/samples/${name}.png`;
 
-        // TODO: wire up
-        // const result = Graphics.LoadBitmap(filename);
-        const bitmap: Int32Array = null;
+        const result = Graphics.loadBitmap(filename);
+
+        const bitmap = result[0];
+        this.SMX = result[1];
+        this.SMY = result[2];
+
         if (!bitmap) {
             console.error(`Failed to load ConvChain sample ${filename}`);
             return false;

@@ -6,8 +6,10 @@ import { ConvChainNode } from "./convchain";
 import { ConvolutionNode } from "./convolution";
 import { MapNode } from "./map";
 import { OneNode } from "./one";
+import { OverlapNode } from "./overlap";
 import { ParallelNode } from "./parallel";
 import { PathNode } from "./path";
+import { TileNode } from "./tile";
 import { WFCNode } from "./wfc";
 
 export abstract class Node {
@@ -30,7 +32,6 @@ export abstract class Node {
             return null;
         }
 
-        // TODO: implement all the nodes
         const result: Node = {
             one: () => new OneNode(),
             all: () => new AllNode(),
@@ -41,15 +42,18 @@ export abstract class Node {
             map: () => new MapNode(),
             convolution: () => new ConvolutionNode(),
             convchain: () => new ConvChainNode(),
-            wfc: () => {},
+            wfc: () => {
+                if (elem.getAttribute("sample")) return new OverlapNode();
+                if (elem.getAttribute("tileset")) return new TileNode();
+                return null;
+            },
         }[name]();
 
         result.ip = ip;
         result.grid = grid;
         const success = result.load(elem, symmetry, grid);
 
-        if (!success) return null;
-        return result;
+        return success ? result : null;
     }
 
     protected static VALID_TAGS = [
