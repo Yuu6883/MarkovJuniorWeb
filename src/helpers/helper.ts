@@ -63,6 +63,14 @@ export class Helper {
     public static pick<E, T extends ArrayLike<E>>(array: T, rng: PRNG) {
         return array[range(rng, array.length)];
     }
+
+    public static indexBoolArr(array: Uint8Array) {
+        let result = 0,
+            power = 1;
+        for (let i = 0; i < array.length; i++, power *= 2)
+            if (array[i]) result += power;
+        return result;
+    }
 }
 
 // exclusive
