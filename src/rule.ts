@@ -161,16 +161,16 @@ export class Rule {
         return d2
             ? SymmetryHelper.squareSymmetries(
                   this,
-                  () => this.ZRotated(),
-                  () => this.reflected(),
+                  (r) => r.ZRotated(),
+                  (r) => r.reflected(),
                   Rule.same,
                   symmetry
               )
             : SymmetryHelper.cubeSymmetries(
                   this,
-                  () => this.ZRotated(),
-                  () => this.YRotated(),
-                  () => this.reflected(),
+                  (r) => r.ZRotated(),
+                  (r) => r.YRotated(),
+                  (r) => r.reflected(),
                   Rule.same,
                   symmetry
               );

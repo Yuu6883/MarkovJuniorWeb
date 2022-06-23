@@ -103,7 +103,9 @@ export class OneNode extends RuleNode {
                 let i = x + y * grid.MX + z * grid.MX * grid.MY;
                 if (!grid.matches(this.rules[r], x, y, z)) {
                     this.matchMask.set(i, r, false);
-                    this.matches[k] = this.matches[this.matchCount - 1];
+                    for (let j = 0; j < 4; j++)
+                        this.matches[k][j] =
+                            this.matches[this.matchCount - 1][j];
                     this.matchCount--;
                     k--;
                 } else {
@@ -146,10 +148,13 @@ export class OneNode extends RuleNode {
                 const matchIndex = range(rng, this.matchCount);
 
                 const [r, x, y, z] = this.matches[matchIndex];
-                let i = x + y * grid.MX + z * grid.MX * grid.MY;
+                const i = x + y * grid.MX + z * grid.MX * grid.MY;
 
                 this.matchMask.set(i, r, false);
-                this.matches[matchIndex] = this.matches[this.matchCount - 1];
+                // NEED TO DEEP COPY
+                for (let j = 0; j < 4; j++)
+                    this.matches[matchIndex][j] =
+                        this.matches[this.matchCount - 1][j];
                 this.matchCount--;
 
                 // console.log(

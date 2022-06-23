@@ -3,6 +3,7 @@ import { Graphics } from "./helpers/graphics";
 import { Helper } from "./helpers/helper";
 import { Loader } from "./helpers/loader";
 import { Interpreter } from "./interpreter";
+import { OneNode, RuleNode } from "./nodes";
 
 const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
 
@@ -32,7 +33,7 @@ export const Main = async () => {
             parseInt(emodel.getAttribute("height")) ||
             (dimension === 2 ? 1 : linearSize);
 
-        if (name !== "Growth") continue;
+        if (name !== "Backtracker") continue;
 
         console.log(`${name} >`);
         const path = `models/${name}.xml`;
@@ -46,7 +47,7 @@ export const Main = async () => {
         if (!interpreter) {
             console.error(`Interpreter.load failed ${path}`);
             continue;
-        }
+        } else console.log("Model loaded");
 
         let amount = parseInt(emodel.getAttribute("amount")) || 2;
         const pixelsize = parseInt(emodel.getAttribute("pixelsize")) || 4;
@@ -62,6 +63,9 @@ export const Main = async () => {
         // const gui = parseInt(emodel.getAttribute("gui")) || 0;
         const gui = true;
 
+        const speed = 100;
+        let rendered = 0;
+
         if (gif) amount = 1;
         for (let k = 0; k < amount; k++) {
             const seed = seeds?.[k] || meta.int32();
@@ -71,6 +75,8 @@ export const Main = async () => {
                 steps,
                 gif
             )) {
+                if (rendered++ % speed) continue;
+
                 const colors = legend.split("").map((c) => palette.get(c));
                 if (FZ === 1 || iso) {
                     await Graphics.renderBitmap(
@@ -78,7 +84,8 @@ export const Main = async () => {
                         FX,
                         FY,
                         colors,
-                        pixelsize
+                        pixelsize,
+                        interpreter.root.nodes[0] as RuleNode
                     );
                 } else {
                     // TODO: save VOX / render
@@ -87,7 +94,7 @@ export const Main = async () => {
                 await frame();
             }
 
-            console.log("DONE");
+            console.log(`DONE (steps = ${rendered})`);
         }
 
         break; // LET'S JUST LOAD ONE

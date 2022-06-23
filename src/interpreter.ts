@@ -85,7 +85,7 @@ export class Interpreter {
 
         while (this.current && (steps <= 0 || this.counter < steps)) {
             if (gif) {
-                console.log(`[${this.counter}/${steps}]`);
+                // console.log(`[${this.counter}/${steps}]`);
                 yield [grid.state, grid.characters, grid.MX, grid.MY, grid.MZ];
             }
 

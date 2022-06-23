@@ -1,3 +1,5 @@
+import { Rule } from "../rule";
+
 declare type Self<T> = (arg: T) => T;
 declare type IsSame<T> = (arg0: T, arg1: T) => boolean;
 
@@ -33,17 +35,16 @@ export class SymmetryHelper {
         things[7] = reflect(things[6]); // ba3
 
         const result: T[] = [];
-        console.log("Square Sym", subgroup);
         for (let i = 0; i < 8; i++) {
             if (
                 (!subgroup || subgroup[i]) &&
                 !result.some((t) => same(t, things[i]))
             ) {
-                console.log(`Selected index ${i}`);
                 result.push(things[i]);
             } else {
-                const idx = result.findIndex((t) => same(t, things[i]));
-                if (i === 6) console.log(idx, things[idx], 6, things[i]);
+                // const idx = result.findIndex((t) => same(t, things[i]));
+                // if (i === 6) console.log(idx, things[idx], 6, things[i]);
+                // if (i === 4) console.log(4, things[4]);
             }
         }
         return result;

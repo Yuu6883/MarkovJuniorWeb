@@ -59,7 +59,7 @@
   <model name="ForestFire" size="600" steps="80" pixelsize="1"/>
   <model name="ForestFireCA" size="600" steps="80" pixelsize="1"/>
   <model name="GameOfLife" size="120" steps="100"/>
-  <model name="Growth" size="359" steps="40000"/>
+  <model name="Growth" size="359" steps="128880" pixelsize="2" />
   <!-- <model name="Growth" size="29" d="3" steps="3000"/> -->
   <model name="GrowthCompetition" size="80" steps="30000"/>
   <model name="GrowthContraction" size="79" steps="10000"/>

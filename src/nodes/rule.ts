@@ -19,8 +19,8 @@ export abstract class RuleNode extends Node {
     public steps: number;
 
     // TODO: can be optimized to Int32Array
-    protected matches: [number, number, number, number][];
-    protected matchCount: number;
+    public matches: [number, number, number, number][];
+    public matchCount: number;
     protected lastMatchedTurn: number;
     protected matchMask: BoolArray2D;
 
@@ -76,19 +76,15 @@ export abstract class RuleNode extends Node {
             for (const r of rule.symmetries(ruleSymmetry, grid.MZ === 1))
                 ruleList.push(r);
 
-            ruleList.map((r) =>
-                console.log(
-                    `dim: ${r.IO_DIM.join(",")}, input: ${r.input.join(
-                        ","
-                    )}, output: ${r.output.join(",")}`
-                )
-            );
+            // ruleList.map((r) =>
+            //     console.log(
+            //         `dim: ${r.IO_DIM.join(",")}, input: ${r.input.join(
+            //             ","
+            //         )}, output: ${r.output.join(",")}`
+            //     )
+            // );
         }
         this.rules = ruleList.concat([]);
-        this.rules.forEach((r) => {
-            console.log("ishifts", JSON.stringify(r.ishifts));
-            console.log("oshifts", JSON.stringify(r.oshifts));
-        });
         this.last = new Uint8Array(rules.length);
 
         this.steps = parseInt(elem.getAttribute("steps")) || 0;
