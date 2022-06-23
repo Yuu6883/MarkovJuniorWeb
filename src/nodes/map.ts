@@ -95,7 +95,7 @@ export class MapNode extends Branch {
                         ];
                     if (
                         (inputWave &
-                            (1 << state[sx + sy * MX + sz * MX * MY])) ==
+                            (1 << state[sx + sy * MX + sz * MX * MY])) ===
                         0
                     )
                         return false;

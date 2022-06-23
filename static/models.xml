@@ -10,7 +10,7 @@
   
   <model name="Backtracker" size="89"/>
   <model name="BacktrackerCycle" size="59"/>
-  <model name="Basic" size="60" steps="1000"/>
+  <model name="Basic" size="60" steps="3600"/>
   <model name="BasicBrickWall" size="30"/>
   <model name="BasicDijkstraDungeon" size="60"/>
   <model name="BasicDijkstraFill" size="60"/>
@@ -60,7 +60,7 @@
   <model name="ForestFireCA" size="600" steps="80" pixelsize="1"/>
   <model name="GameOfLife" size="120" steps="100"/>
   <model name="Growth" size="359" steps="40000"/>
-  <model name="Growth" size="29" d="3" steps="3000"/>
+  <!-- <model name="Growth" size="29" d="3" steps="3000"/> -->
   <model name="GrowthCompetition" size="80" steps="30000"/>
   <model name="GrowthContraction" size="79" steps="10000"/>
   <model name="GrowthWalk" size="79" steps="5000"/>

@@ -6,7 +6,7 @@ import { SymmetryHelper } from "./helpers/symmetry";
 declare type Shift = vec3[][];
 
 export class Rule {
-    private IO_DIM: Int32Array;
+    public readonly IO_DIM: Int32Array;
 
     public input: Int32Array;
     public output: Uint8Array;
@@ -21,13 +21,13 @@ export class Rule {
     constructor(
         input: Int32Array,
         output: Uint8Array,
-        IO_DIM: Int32Array,
+        IO_DIM: ArrayLike<number>,
         C: number,
         p: number
     ) {
         this.input = input;
         this.output = output;
-        this.IO_DIM = IO_DIM.slice(); // copy
+        this.IO_DIM = new Int32Array(IO_DIM); // copy
         this.p = p;
 
         const lists = Array.from({ length: C }, (_) => [] as vec3[]);
@@ -78,7 +78,7 @@ export class Rule {
             for (let y = 0; y < IMX; y++)
                 for (let x = 0; x < IMY; x++)
                     newinput[x + y * IMY + z * IMX * IMY] =
-                        this.input[IMX - 1 - y - +x * IMX + z * IMX * IMY];
+                        this.input[IMX - 1 - y + x * IMX + z * IMX * IMY];
 
         const newoutput = new Uint8Array(this.output.length);
         for (let z = 0; z < OMZ; z++)
@@ -90,7 +90,7 @@ export class Rule {
         return new Rule(
             newinput,
             newoutput,
-            this.IO_DIM,
+            [IMY, IMX, IMZ, OMY, OMX, OMZ],
             this.ishifts.length,
             this.p
         );
@@ -100,6 +100,7 @@ export class Rule {
         const [IMX, IMY, IMZ, OMX, OMY, OMZ] = this.IO_DIM;
 
         const newinput = new Int32Array(this.input.length);
+
         for (let z = 0; z < IMX; z++)
             for (let y = 0; y < IMY; y++)
                 for (let x = 0; x < IMZ; x++)
@@ -107,7 +108,7 @@ export class Rule {
                         this.input[IMX - 1 - z + y * IMX + x * IMX * IMY];
 
         const newoutput = new Uint8Array(this.output.length);
-        for (let z = 0; z < OMZ; z++)
+        for (let z = 0; z < OMX; z++)
             for (let y = 0; y < OMY; y++)
                 for (let x = 0; x < OMZ; x++)
                     newoutput[x + y * OMZ + z * OMZ * OMY] =
@@ -116,7 +117,7 @@ export class Rule {
         return new Rule(
             newinput,
             newoutput,
-            this.IO_DIM,
+            [IMZ, IMY, IMX, OMZ, OMY, OMX],
             this.ishifts.length,
             this.p
         );
@@ -135,14 +136,14 @@ export class Rule {
         const newoutput = new Uint8Array(this.output.length);
         for (let z = 0; z < OMZ; z++)
             for (let y = 0; y < OMY; y++)
-                for (let x = 0; x < OMZ; x++)
+                for (let x = 0; x < OMX; x++)
                     newoutput[x + y * OMX + z * OMX * OMY] =
                         this.output[OMX - 1 - x + y * OMX + z * OMX * OMY];
 
         return new Rule(
             newinput,
             newoutput,
-            this.IO_DIM,
+            [IMX, IMY, IMZ, OMX, OMY, OMZ],
             this.ishifts.length,
             this.p
         );
@@ -150,9 +151,9 @@ export class Rule {
 
     public static same(a1: Rule, a2: Rule) {
         return (
-            a1.IO_DIM.every((v, i) => a2.IO_DIM[i] === v) &&
-            a1.input.every((v, i) => a2.input[i] === v) &&
-            a1.output.every((v, i) => a2.output[i] === v)
+            Helper.compareArr(a1.IO_DIM, a2.IO_DIM) &&
+            Helper.compareArr(a1.input, a2.input) &&
+            Helper.compareArr(a1.output, a2.output)
         );
     }
 
@@ -350,7 +351,7 @@ export class Rule {
         return new Rule(
             input,
             output,
-            new Int32Array([IMX, IMY, IMZ, OMX, OMY, OMZ]),
+            [IMX, IMY, IMZ, OMX, OMY, OMZ],
             gin.C,
             p
         );

@@ -18,6 +18,7 @@ export abstract class RuleNode extends Node {
     public counter: number;
     public steps: number;
 
+    // TODO: can be optimized to Int32Array
     protected matches: [number, number, number, number][];
     protected matchCount: number;
     protected lastMatchedTurn: number;
@@ -74,8 +75,20 @@ export abstract class RuleNode extends Node {
             }
             for (const r of rule.symmetries(ruleSymmetry, grid.MZ === 1))
                 ruleList.push(r);
+
+            ruleList.map((r) =>
+                console.log(
+                    `dim: ${r.IO_DIM.join(",")}, input: ${r.input.join(
+                        ","
+                    )}, output: ${r.output.join(",")}`
+                )
+            );
         }
         this.rules = ruleList.concat([]);
+        this.rules.forEach((r) => {
+            console.log("ishifts", JSON.stringify(r.ishifts));
+            console.log("oshifts", JSON.stringify(r.oshifts));
+        });
         this.last = new Uint8Array(rules.length);
 
         this.steps = parseInt(elem.getAttribute("steps")) || 0;
@@ -84,6 +97,7 @@ export abstract class RuleNode extends Node {
         const efields = Helper.collectionToArr(
             elem.getElementsByTagName("field")
         );
+
         if (efields.length) {
             this.fields = Array.from({ length: grid.C });
             for (const efield of efields)
@@ -116,6 +130,9 @@ export abstract class RuleNode extends Node {
             }
         }
 
+        console.log(`RuleNode has potentials = ${!!this.potentials}`);
+        console.log(`RuleNode has ${this.rules.length} rules`);
+
         return true;
     }
 
@@ -135,10 +152,12 @@ export abstract class RuleNode extends Node {
     ) {
         maskr.set(x + y * this.grid.MX + z * this.grid.MX * this.grid.MY, true);
 
-        const match: [number, number, number, number] = [r, x, y, z];
-        if (this.matchCount < this.matches.length)
-            this.matches[this.matchCount] = match;
-        else this.matches.push(match);
+        if (this.matchCount < this.matches.length) {
+            this.matches[this.matchCount][0] = r;
+            this.matches[this.matchCount][1] = x;
+            this.matches[this.matchCount][2] = y;
+            this.matches[this.matchCount][3] = z;
+        } else this.matches.push([r, x, y, z]);
         this.matchCount++;
     }
 
@@ -234,7 +253,7 @@ export abstract class RuleNode extends Node {
                 for (let z = rule.IMZ - 1; z < MZ; z += rule.IMZ)
                     for (let y = rule.IMY - 1; y < MY; y += rule.IMY)
                         for (let x = rule.IMX - 1; x < MX; x += rule.IMX) {
-                            var shifts =
+                            const shifts =
                                 rule.ishifts[
                                     grid.state[x + y * MX + z * MX * MY]
                                 ];

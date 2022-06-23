@@ -65,12 +65,13 @@ export class Interpreter {
         const grid = (this.grid = this.startgrid);
         grid.clear();
 
-        if (this.origin)
-            grid.state[
-                grid.MX / 2 +
-                    (grid.MY / 2) * grid.MX +
-                    (grid.MZ / 2) * grid.MX * grid.MY
-            ] = 1;
+        if (this.origin) {
+            const center =
+                ~~(grid.MX / 2) +
+                ~~(grid.MY / 2) * grid.MX +
+                ~~(grid.MZ / 2) * grid.MX * grid.MY;
+            grid.state[center] = 1;
+        }
 
         this.changes.splice(0, this.changes.length);
         this.first.splice(0, this.first.length);
@@ -84,7 +85,7 @@ export class Interpreter {
 
         while (this.current && (steps <= 0 || this.counter < steps)) {
             if (gif) {
-                console.log(`[${this.counter}]`);
+                console.log(`[${this.counter}/${steps}]`);
                 yield [grid.state, grid.characters, grid.MX, grid.MY, grid.MZ];
             }
 

@@ -21,8 +21,6 @@ export class Graphics {
         colors: Uint8ClampedArray[],
         pixelsize: number
     ) {
-        console.log(state);
-        console.log(`Rendering image (${MX}x${MY} pixels)`);
         const img = new ImageData(MX, MY);
 
         for (let y = 0; y < MY; y++)

@@ -109,7 +109,7 @@ export class Helper {
     }
 
     public static compareArr<T extends ArrayLike<number>>(t1: T, t2: T) {
-        if (t1.length != t2.length) return false;
+        if (t1.length !== t2.length) return false;
         for (let i = 0; i < t1.length; i++) if (t1[i] !== t2[i]) return false;
         return true;
     }

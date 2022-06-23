@@ -30,7 +30,10 @@ export class OneNode extends RuleNode {
     }
 
     public apply(rule: Rule, x: number, y: number, z: number) {
-        const { MX, MY } = this.grid;
+        // console.log(`Applying rule`);
+
+        const grid = this.grid;
+        const { MX, MY } = grid;
         const changes = this.ip.changes;
 
         for (let dz = 0; dz < rule.OMZ; dz++)
@@ -40,15 +43,16 @@ export class OneNode extends RuleNode {
                         rule.output[
                             dx + dy * rule.OMX + dz * rule.OMX * rule.OMY
                         ];
-                    if (newValue != 0xff) {
-                        let sx = x + dx;
-                        let sy = y + dy;
-                        let sz = z + dz;
-                        let si = sx + sy * MX + sz * MX * MY;
-                        const oldValue = this.grid.state[si];
-                        if (newValue != oldValue) {
-                            this.grid.state[si] = newValue;
+                    if (newValue !== 0xff) {
+                        const sx = x + dx;
+                        const sy = y + dy;
+                        const sz = z + dz;
+                        const si = sx + sy * MX + sz * MX * MY;
+                        const oldValue = grid.state[si];
+                        if (newValue !== oldValue) {
+                            grid.state[si] = newValue;
                             changes.push([sx, sy, sz]);
+                            // console.log(`[${[sx, sy, sz].join(", ")}]`);
                         }
                     }
                 }
@@ -59,6 +63,8 @@ export class OneNode extends RuleNode {
         this.lastMatchedTurn = this.ip.counter;
 
         if (this.trajectory) {
+            console.log(`OneNode.run [${this.ip.counter}]: trajectory = true`);
+
             if (this.counter >= this.trajectory.ROWS) return false;
             this.grid.state.set(this.trajectory.row(this.counter));
             this.counter++;
@@ -81,7 +87,7 @@ export class OneNode extends RuleNode {
         if (this.potentials) {
             if (
                 this.observations &&
-                Observation.IsGoalReached(this.grid.state, this.future)
+                Observation.IsGoalReached(grid.state, this.future)
             ) {
                 this.futureComputed = false;
                 return [-1, -1, -1, -1];
@@ -146,6 +152,9 @@ export class OneNode extends RuleNode {
                 this.matches[matchIndex] = this.matches[this.matchCount - 1];
                 this.matchCount--;
 
+                // console.log(
+                //     `Trying [${x}, ${y}, ${z}] matches: ${this.matchCount} index: ${matchIndex}`
+                // );
                 if (grid.matches(this.rules[r], x, y, z)) return [r, x, y, z];
             }
             return [-1, -1, -1, -1];

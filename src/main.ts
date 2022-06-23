@@ -53,10 +53,11 @@ export const Main = async () => {
         const seedString = emodel.getAttribute("seeds");
         const seeds = seedString?.split(" ").map((s) => parseInt(s));
 
-        const gif = emodel.getAttribute("gif") === "True";
+        // const gif = emodel.getAttribute("gif") === "True";
+        const gif = true;
         const iso = emodel.getAttribute("iso") === "True";
         const steps =
-            parseInt(emodel.getAttribute("steps")) || (gif ? 1000 : 50000);
+            parseInt(emodel.getAttribute("steps")) || (gif ? 5000 : 50000);
 
         // const gui = parseInt(emodel.getAttribute("gui")) || 0;
         const gui = true;
