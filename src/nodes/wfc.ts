@@ -1,5 +1,5 @@
 import { Grid } from "../grid";
-import { Array3D, BoolArray2D } from "../helpers/array";
+import { Array3D, BoolArray2D } from "../helpers/datastructures";
 import { Branch, Node } from "./node";
 import seedrandom, { PRNG } from "seedrandom";
 import { Helper } from "../helpers/helper";
@@ -228,8 +228,8 @@ export abstract class WFCNode extends Branch {
 
             // TODO: make sure this part is actually correct
             const x1 = i1 % MX,
-                y1 = (i1 % (MX * MY)) / MX,
-                z1 = i1 / (MX * MY);
+                y1 = ~~((i1 % (MX * MY)) / MX),
+                z1 = ~~(i1 / (MX * MY));
 
             for (let d = 0; d < this.propagator.length; d++) {
                 const dx = WFCNode.DX[d],

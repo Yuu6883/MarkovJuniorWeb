@@ -1,3 +1,5 @@
+import { Rule } from "../rule";
+
 export class Helper {
     public static split2(s: string, s1: string, s2: string) {
         return s.split(s1).map((l) => l.split(s2));
@@ -27,5 +29,18 @@ export class Helper {
             arr.push(c.item(i));
         }
         return arr;
+    }
+
+    public static maxPositiveIndex<T extends ArrayLike<number>>(amounts: T) {
+        let max = -1,
+            argmax = -1;
+        for (let i = 0; i < amounts.length; i++) {
+            let amount = amounts[i];
+            if (amount > 0 && amount > max) {
+                max = amount;
+                argmax = i;
+            }
+        }
+        return argmax;
     }
 }

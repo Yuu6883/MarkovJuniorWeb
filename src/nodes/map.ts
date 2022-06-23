@@ -42,9 +42,9 @@ export class MapNode extends Branch {
 
         this.newgrid = Grid.load(
             elem,
-            (NX * grid.MX) / DX,
-            (NY * grid.MY) / DY,
-            (NZ * grid.MZ) / DZ
+            ~~((NX * grid.MX) / DX),
+            ~~((NY * grid.MY) / DY),
+            ~~((NZ * grid.MZ) / DZ)
         );
         if (!this.newgrid) return false;
 
@@ -159,9 +159,9 @@ export class MapNode extends Branch {
                         )
                             MapNode.apply(
                                 rule,
-                                (x * NX) / DX,
-                                (y * NY) / DY,
-                                (z * NZ) / DZ,
+                                ~~((x * NX) / DX),
+                                ~~((y * NY) / DY),
+                                ~~((z * NZ) / DZ),
                                 newgrid.state,
                                 newgrid.MX,
                                 newgrid.MY,

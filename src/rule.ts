@@ -1,5 +1,5 @@
 import { Grid } from "./grid";
-import { AH } from "./helpers/array";
+import { AH } from "./helpers/datastructures";
 import { Helper } from "./helpers/helper";
 import { SymmetryHelper } from "./helpers/symmetry";
 

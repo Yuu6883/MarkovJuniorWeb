@@ -1,5 +1,5 @@
 import { Grid } from "./grid";
-import { Array2D } from "./helpers/array";
+import { Array2D } from "./helpers/datastructures";
 import { Rule } from "./rule";
 
 export class Field {

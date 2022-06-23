@@ -1,6 +1,10 @@
 import { Field } from "../field";
 import { Grid } from "../grid";
-import { Array2D, BoolArray2D, BoolArray2DRow } from "../helpers/array";
+import {
+    Array2D,
+    BoolArray2D,
+    BoolArray2DRow,
+} from "../helpers/datastructures";
 import { Helper } from "../helpers/helper";
 import { SymmetryHelper } from "../helpers/symmetry";
 import { Observation } from "../observation";
@@ -85,11 +89,11 @@ export abstract class RuleNode extends Node {
                     grid.values.get(parseInt(efield.getAttribute("for")))
                 ] = new Field(efield, grid);
             this.potentials = new Array2D(
-                (l) => new Int32Array(l),
+                Int32Array,
                 grid.alphabet_size,
                 grid.state.length
             );
-            this.potentials.arr.fill(0);
+            this.potentials.fill(0);
         }
 
         const eobs = Helper.collectionToArr(
@@ -248,14 +252,7 @@ export abstract class RuleNode extends Node {
                 const field = this.fields[c];
                 if (field && (this.counter === 0 || field.recompute)) {
                     // TODO: make sure this is right
-                    const offset = c * this.potentials.MY;
-                    const success = field.compute(
-                        this.potentials.arr.subarray(
-                            offset,
-                            offset + this.potentials.MY
-                        ),
-                        grid
-                    );
+                    const success = field.compute(this.potentials.row(c), grid);
                     if (!success && field.essential) return false;
                     anysuccess ||= success;
                     anycomputation = true;

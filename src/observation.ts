@@ -1,5 +1,5 @@
 import { Grid } from "./grid";
-import { Array2D, BoolArray2D } from "./helpers/array";
+import { Array2D, BoolArray2D } from "./helpers/datastructures";
 import { Rule } from "./rule";
 
 export class Observation {
@@ -42,7 +42,7 @@ export class Observation {
         MZ: number,
         rules: Rule[]
     ) {
-        potentials.arr.fill(-1);
+        potentials.fill(-1);
         for (let i = 0; i < state.length; i++) potentials.set(i, state[i], 0);
         this.computePotentials(potentials, MX, MY, MZ, rules, false);
     }
@@ -78,8 +78,8 @@ export class Observation {
                     queue.push([
                         c,
                         i % MX,
-                        (i % (MX * MY)) / MX,
-                        i / (MX * MY),
+                        ~~((i % (MX * MY)) / MX),
+                        ~~(i / (MX * MY)),
                     ]);
         }
         const matchMask = new BoolArray2D(rules.length, potentials.MX);
