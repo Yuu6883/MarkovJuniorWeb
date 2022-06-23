@@ -9,6 +9,8 @@ import { Helper } from "../helpers/helper";
 import { SymmetryHelper } from "../helpers/symmetry";
 import { Observation } from "../observation";
 import { Rule } from "../rule";
+import { Search } from "../search";
+import { AllNode } from "./all";
 import { Node } from "./node";
 
 export abstract class RuleNode extends Node {
@@ -162,10 +164,22 @@ export abstract class RuleNode extends Node {
                     this.trajectory = null;
                     const TRIES = this.limit < 0 ? 1 : 20;
                     for (let k = 0; k < TRIES && !this.trajectory; k++) {
-                        // TODO: Search
-                        // this.trajectory = Search.Run(grid.state, future, rules, grid.MX, grid.MY, grid.MZ, grid.C, this is AllNode, limit, depthCoefficient, ip.random.Next());
+                        const result = Search.run(
+                            grid.state,
+                            this.future,
+                            this.rules,
+                            grid.MX,
+                            grid.MY,
+                            grid.MZ,
+                            grid.alphabet_size,
+                            this instanceof AllNode,
+                            this.limit,
+                            this.depthCoefficient,
+                            this.ip.rng.int32()
+                        );
+                        this.trajectory = Array2D.from(Uint8Array, result);
                     }
-                    if (!this.trajectory) console.warn("SEARCH RETURNED NULL");
+                    if (!this.trajectory) console.error("SEARCH RETURNED NULL");
                 } else
                     Observation.computeBackwardPotentials(
                         this.potentials,

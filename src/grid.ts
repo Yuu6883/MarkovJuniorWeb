@@ -65,7 +65,32 @@ export class Grid {
     }
 
     public matches(rule: Rule, x: number, y: number, z: number): boolean {
-        // TODO
+        const { MX, MY } = this;
+
+        let dz = 0,
+            dy = 0,
+            dx = 0;
+        for (let di = 0; di < rule.input.length; di++) {
+            if (
+                (rule.input[di] &
+                    (1 <<
+                        this.state[
+                            x + dx + (y + dy) * MX + (z + dz) * MX * MY
+                        ])) ==
+                0
+            )
+                return false;
+
+            dx++;
+            if (dx == rule.IMX) {
+                dx = 0;
+                dy++;
+                if (dy == rule.IMY) {
+                    dy = 0;
+                    dz++;
+                }
+            }
+        }
         return true;
     }
 }

@@ -1,9 +1,9 @@
 import { Grid } from "./grid";
 import { AH } from "./helpers/datastructures";
-import { Helper } from "./helpers/helper";
+import { Helper, vec3 } from "./helpers/helper";
 import { SymmetryHelper } from "./helpers/symmetry";
 
-declare type Shift = [number, number, number][][];
+declare type Shift = vec3[][];
 
 export class Rule {
     private IO_DIM: Int32Array;
@@ -30,10 +30,7 @@ export class Rule {
         this.IO_DIM = IO_DIM.slice(); // copy
         this.p = p;
 
-        const lists = Array.from(
-            { length: C },
-            (_) => [] as [number, number, number][]
-        );
+        const lists = Array.from({ length: C }, (_) => [] as vec3[]);
 
         const [IMX, IMY, IMZ, OMX, OMY, OMZ] = this.IO_DIM;
 

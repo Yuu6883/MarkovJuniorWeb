@@ -1,7 +1,11 @@
 import { Grid } from "../grid";
 import { SymmetryHelper } from "../helpers/symmetry";
 import { Interpreter } from "../interpreter";
+import { AllNode } from "./all";
 import { MapNode } from "./map";
+import { OneNode } from "./one";
+import { ParallelNode } from "./parallel";
+import { PathNode } from "./path";
 import { WFCNode } from "./wfc";
 
 export abstract class Node {
@@ -26,8 +30,12 @@ export abstract class Node {
 
         // TODO: implement all the nodes
         const result: Node = {
+            one: () => new OneNode(),
+            all: () => new AllNode(),
+            prl: () => new ParallelNode(),
             markov: () => new MarkovNode(),
             sequence: () => new SequenceNode(),
+            path: () => new PathNode(),
             map: () => new MapNode(),
             wfc: () => {},
         }[name]();

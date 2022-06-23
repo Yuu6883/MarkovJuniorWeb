@@ -55,7 +55,7 @@ export class Observation {
         MZ: number,
         rules: Rule[]
     ) {
-        for (let c = 0; c < potentials.MY; c++) {
+        for (let c = 0; c < potentials.ROWS; c++) {
             for (let i = 0; i < future.length; i++)
                 potentials.set(i, c, (future[i] & (1 << c)) != 0 ? 0 : -1);
         }
@@ -72,8 +72,8 @@ export class Observation {
     ) {
         const queue: [number, number, number, number][] = [];
 
-        for (let c = 0; c < potentials.MY; c++) {
-            for (let i = 0; i < potentials.MX; i++)
+        for (let c = 0; c < potentials.ROWS; c++) {
+            for (let i = 0; i < potentials.COLS; i++)
                 if (!potentials.get(i, c))
                     queue.push([
                         c,
@@ -82,7 +82,7 @@ export class Observation {
                         ~~(i / (MX * MY)),
                     ]);
         }
-        const matchMask = new BoolArray2D(rules.length, potentials.MX);
+        const matchMask = new BoolArray2D(rules.length, potentials.COLS);
 
         while (queue.length) {
             const [value, x, y, z] = queue.shift();
@@ -224,7 +224,7 @@ export class Observation {
             let f = future[i];
             let min = 1000,
                 argmin = -1;
-            for (let c = 0; c < potentials.MY; c++, f >>= 1) {
+            for (let c = 0; c < potentials.ROWS; c++, f >>= 1) {
                 const potential = potentials.get(i, c);
                 if ((f & 1) == 1 && potential >= 0 && potential < min) {
                     min = potential;

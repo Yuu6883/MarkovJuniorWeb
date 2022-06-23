@@ -70,8 +70,16 @@ export class BoolArray2D {
 
 export class Array2D<T extends TypedArray> {
     private readonly arr: T;
-    public readonly MX: number;
-    public readonly MY: number;
+    private readonly MX: number;
+    private readonly MY: number;
+
+    public get ROWS() {
+        return this.MY;
+    }
+
+    public get COLS() {
+        return this.MX;
+    }
 
     constructor(
         type: TypedArrayConstructor<T>,
@@ -108,6 +116,17 @@ export class Array2D<T extends TypedArray> {
 
     row(y: number) {
         return <T>this.arr.subarray(y * this.MX, (y + 1) * this.MX);
+    }
+
+    static from<T2 extends TypedArray>(
+        type: TypedArrayConstructor<T2>,
+        arr: T2[]
+    ) {
+        const mat = new Array2D(type, arr[0].length, arr.length);
+        for (let y = 0; y < arr.length; y++) {
+            mat.row(y).set(arr[y]);
+        }
+        return mat;
     }
 }
 

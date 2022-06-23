@@ -1,5 +1,6 @@
 import { Grid } from "./grid";
 import { Array2D } from "./helpers/datastructures";
+import { vec3 } from "./helpers/helper";
 import { Rule } from "./rule";
 
 export class Field {
@@ -76,7 +77,7 @@ export class Field {
         MY: number,
         MZ: number
     ) {
-        const result: [number, number, number][] = [];
+        const result: vec3[] = [];
 
         if (x > 0) result.push([x - 1, y, z]);
         if (x < MX - 1) result.push([x + 1, y, z]);

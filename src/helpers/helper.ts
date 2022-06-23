@@ -1,4 +1,9 @@
-import { Rule } from "../rule";
+import { PRNG } from "seedrandom";
+
+interface WritableArray<T> {
+    readonly length: number;
+    [n: number]: T;
+}
 
 export class Helper {
     public static split2(s: string, s1: string, s2: string) {
@@ -43,4 +48,24 @@ export class Helper {
         }
         return argmax;
     }
+
+    public static shuffleFill<T extends WritableArray<number>>(
+        array: T,
+        rng: PRNG
+    ) {
+        for (let i = 0; i < array.length; i++) {
+            const j = range(rng, i + 1);
+            array[i] = array[j];
+            array[j] = i;
+        }
+    }
+
+    public static pick<E, T extends ArrayLike<E>>(array: T, rng: PRNG) {
+        return array[range(rng, array.length)];
+    }
 }
+
+// exclusive
+export const range = (rng: PRNG, upper: number) => Math.floor(rng() * upper);
+
+export type vec3 = [number, number, number];

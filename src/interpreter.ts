@@ -1,5 +1,6 @@
 import seedrandom, { PRNG } from "seedrandom";
 import { Grid } from "./grid";
+import { vec3 } from "./helpers/helper";
 import { SymmetryHelper } from "./helpers/symmetry";
 import { Branch, MarkovNode, Node } from "./nodes/node";
 
@@ -13,7 +14,7 @@ export class Interpreter {
     origin: boolean;
     public rng: PRNG;
 
-    public readonly changes: [number, number, number][] = [];
+    public readonly changes: vec3[] = [];
     public readonly first: number[] = [];
     public counter = 0;
     public gif: boolean;
