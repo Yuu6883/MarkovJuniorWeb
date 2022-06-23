@@ -9,11 +9,11 @@ import { WFCNode } from "./wfc";
 export class OverlapNode extends WFCNode {
     private patterns: Uint8Array[];
 
-    protected override load(
+    protected override async load(
         elem: Element,
         parentSymmetry: Uint8Array,
         grid: Grid
-    ): boolean {
+    ) {
         if (grid.MZ !== 1) {
             console.error("overlapping model currently works only for 2d");
             return false;

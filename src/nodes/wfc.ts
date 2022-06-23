@@ -35,11 +35,11 @@ export abstract class WFCNode extends Branch {
     private firstgo = true;
     private rng: PRNG;
 
-    protected override load(
+    protected override async load(
         elem: Element,
         parentSymmetry: Uint8Array,
         grid: Grid
-    ): boolean {
+    ) {
         this.shannon = elem.getAttribute("shannon") === "True";
         this.tries = parseInt(elem.getAttribute("tries")) || 1000;
 

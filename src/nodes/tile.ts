@@ -14,11 +14,11 @@ export class TileNode extends WFCNode {
     private overlap: number;
     private overlapz: number;
 
-    protected override load(
+    protected override async load(
         elem: Element,
         parentSymmetry: Uint8Array,
         grid: Grid
-    ): boolean {
+    ) {
         this.periodic = elem.getAttribute("periodic") === "True";
         this.name = elem.getAttribute("tileset");
         const tilesname = elem.getAttribute("tiles") || this.name;

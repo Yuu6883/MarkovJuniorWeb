@@ -13,7 +13,11 @@ export class PathNode extends Node {
     public edges: boolean;
     public vertices: boolean;
 
-    protected override load(elem: Element, symmetry: Uint8Array, grid: Grid) {
+    protected override async load(
+        elem: Element,
+        symmetry: Uint8Array,
+        grid: Grid
+    ) {
         const startSymbols = elem.getAttribute("from");
         this.start = grid.wave(startSymbols);
         this.value = grid.values.get(

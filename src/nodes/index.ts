@@ -13,9 +13,13 @@ import { TileNode } from "./tile";
 import { WFCNode } from "./wfc";
 
 export abstract class Node {
-    protected abstract load(elem: Element, symmetry: Uint8Array, grid: Grid);
-    public abstract reset();
-    public abstract run();
+    protected abstract load(
+        elem: Element,
+        symmetry: Uint8Array,
+        grid: Grid
+    ): Promise<boolean>;
+    public abstract reset(): void;
+    public abstract run(): boolean;
 
     protected ip: Interpreter;
     public grid: Grid;
@@ -75,7 +79,7 @@ export abstract class Branch extends Node {
     public nodes: Node[];
     public n: number;
 
-    protected override load(
+    protected override async load(
         elem: Element,
         parentSymmetry: Uint8Array,
         grid: Grid

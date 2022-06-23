@@ -38,7 +38,7 @@ export abstract class RuleNode extends Node {
 
     public last: Uint8Array;
 
-    protected override load(
+    protected override async load(
         elem: Element,
         parentSymmetry: Uint8Array,
         grid: Grid

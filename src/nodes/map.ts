@@ -15,11 +15,11 @@ export class MapNode extends Branch {
     private rules: Rule[] = [];
     private ND = new Int32Array(6);
 
-    protected override load(
+    protected override async load(
         elem: Element,
         parentSymmetry: Uint8Array,
         grid: Grid
-    ): boolean {
+    ) {
         const scalestring = elem.getAttribute("scale");
         if (!scalestring) {
             console.error(elem, "scale should be specified in map node");

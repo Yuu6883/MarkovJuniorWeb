@@ -20,7 +20,7 @@ export class ConvChainNode extends Node {
     public SMX: number;
     public SMY: number;
 
-    protected override load(elem: Element, symmetry: Uint8Array, grid: Grid) {
+    protected override async load(elem: Element, _: Uint8Array, grid: Grid) {
         if (grid.MZ !== 1) {
             console.error("convchain currently works only for 2d");
             return false;

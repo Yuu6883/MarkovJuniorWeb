@@ -5,11 +5,11 @@ import { RuleNode } from "./rule";
 export class ParallelNode extends RuleNode {
     private newstate: Uint8Array;
 
-    protected override load(
+    protected override async load(
         elem: Element,
         parentSymmetry: Uint8Array,
         grid: Grid
-    ): boolean {
+    ) {
         if (!super.load(elem, parentSymmetry, grid)) return false;
         this.newstate = new Uint8Array(grid.state.length);
         return true;

@@ -34,7 +34,7 @@ export class ConvolutionNode extends Node {
         ],
     ]);
 
-    protected override load(elem: Element, symmetry: Uint8Array, grid: Grid) {
+    protected override async load(elem: Element, _: Uint8Array, grid: Grid) {
         const neighborhood = elem.getAttribute("neighborhood");
         this.kernel = (
             grid.MZ === 1

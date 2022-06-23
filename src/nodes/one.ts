@@ -8,11 +8,11 @@ import { Rule } from "../rule";
 import { RuleNode } from "./rule";
 
 export class OneNode extends RuleNode {
-    protected override load(
+    protected override async load(
         elem: Element,
         parentSymmetry: Uint8Array,
         grid: Grid
-    ): boolean {
+    ) {
         if (!super.load(elem, parentSymmetry, grid)) return false;
         this.matches = [];
         this.matchMask = new BoolArray2D(this.rules.length, grid.state.length);
