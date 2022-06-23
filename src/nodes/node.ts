@@ -2,6 +2,7 @@ import { Grid } from "../grid";
 import { SymmetryHelper } from "../helpers/symmetry";
 import { Interpreter } from "../interpreter";
 import { AllNode } from "./all";
+import { ConvolutionNode } from "./convolution";
 import { MapNode } from "./map";
 import { OneNode } from "./one";
 import { ParallelNode } from "./parallel";
@@ -37,6 +38,8 @@ export abstract class Node {
             sequence: () => new SequenceNode(),
             path: () => new PathNode(),
             map: () => new MapNode(),
+            convolution: () => new ConvolutionNode(),
+            convchain: () => null,
             wfc: () => {},
         }[name]();
 
