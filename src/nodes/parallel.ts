@@ -1,6 +1,7 @@
 import { Grid } from "../grid";
 import { BoolArray2DRow } from "../helpers/datastructures";
-import { RuleNode } from "./rule";
+
+import { RuleNode } from "./";
 
 export class ParallelNode extends RuleNode {
     private newstate: Uint8Array;
@@ -10,7 +11,7 @@ export class ParallelNode extends RuleNode {
         parentSymmetry: Uint8Array,
         grid: Grid
     ) {
-        if (!super.load(elem, parentSymmetry, grid)) return false;
+        if (!(await super.load(elem, parentSymmetry, grid))) return false;
         this.newstate = new Uint8Array(grid.state.length);
         return true;
     }

@@ -5,7 +5,8 @@ import { BoolArray2D } from "../helpers/datastructures";
 import { range } from "../helpers/helper";
 import { Observation } from "../observation";
 import { Rule } from "../rule";
-import { RuleNode } from "./rule";
+
+import { RuleNode } from "./";
 
 export class OneNode extends RuleNode {
     protected override async load(
@@ -13,7 +14,7 @@ export class OneNode extends RuleNode {
         parentSymmetry: Uint8Array,
         grid: Grid
     ) {
-        if (!super.load(elem, parentSymmetry, grid)) return false;
+        if (!(await super.load(elem, parentSymmetry, grid))) return false;
         this.matches = [];
         this.matchMask = new BoolArray2D(this.rules.length, grid.state.length);
         this.matchMask.clear();

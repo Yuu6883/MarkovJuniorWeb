@@ -10,8 +10,8 @@ import { SymmetryHelper } from "../helpers/symmetry";
 import { Observation } from "../observation";
 import { Rule } from "../rule";
 import { Search } from "../search";
-import { AllNode } from "./all";
-import { Node } from ".";
+
+import { Node, AllNode } from "./";
 
 export abstract class RuleNode extends Node {
     public rules: Rule[];
@@ -58,7 +58,7 @@ export abstract class RuleNode extends Node {
         const rules = Helper.collectionToArr(elem.getElementsByTagName("rule"));
         const ruleElements = rules.length > 0 ? rules : [elem];
         for (const e of ruleElements) {
-            const rule = Rule.load(e, grid, grid);
+            const rule = await Rule.load(e, grid, grid);
             if (!rule) return false;
             rule.original = true;
 

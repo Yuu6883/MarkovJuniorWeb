@@ -1,7 +1,8 @@
 import seedrandom, { PRNG } from "seedrandom";
 import { Grid } from "../grid";
 import { Helper, vec3 } from "../helpers/helper";
-import { Node } from ".";
+
+import { Node } from "./";
 
 export class PathNode extends Node {
     public start: number;
@@ -13,11 +14,7 @@ export class PathNode extends Node {
     public edges: boolean;
     public vertices: boolean;
 
-    protected override async load(
-        elem: Element,
-        symmetry: Uint8Array,
-        grid: Grid
-    ) {
+    protected override async load(elem: Element, _: Uint8Array, grid: Grid) {
         const startSymbols = elem.getAttribute("from");
         this.start = grid.wave(startSymbols);
         this.value = grid.values.get(

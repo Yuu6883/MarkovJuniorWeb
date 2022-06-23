@@ -16,7 +16,7 @@ export class Grid {
     private transparent: number;
     private statebuffer: Uint8Array;
 
-    public static load(elem: Element, MX: number, MY: number, MZ: number) {
+    public static build(elem: Element, MX: number, MY: number, MZ: number) {
         const g = new Grid();
         g.MX = MX;
         g.MY = MY;

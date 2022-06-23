@@ -4,7 +4,8 @@ import { Array2D } from "../helpers/datastructures";
 import { Graphics } from "../helpers/graphics";
 import { Helper } from "../helpers/helper";
 import { SymmetryHelper } from "../helpers/symmetry";
-import { WFCNode } from "./wfc";
+
+import { WFCNode } from "./";
 
 export class OverlapNode extends WFCNode {
     private patterns: Uint8Array[];
@@ -34,7 +35,7 @@ export class OverlapNode extends WFCNode {
 
         const periodicInput = elem.getAttribute("periodicInput") === "True";
 
-        this.newgrid = Grid.load(elem, grid.MX, grid.MY, grid.MZ);
+        this.newgrid = Grid.build(elem, grid.MX, grid.MY, grid.MZ);
         if (!this.newgrid) return false;
         this.periodic = true;
 
@@ -189,7 +190,7 @@ export class OverlapNode extends WFCNode {
             this.map.set(0, new Uint8Array(new Array(P).fill(1)));
         }
 
-        return super.load(elem, parentSymmetry, grid);
+        return await super.load(elem, parentSymmetry, grid);
     }
 
     protected override updateState() {

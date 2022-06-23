@@ -2,9 +2,11 @@ import seedrandom from "seedrandom";
 import { Grid } from "../grid";
 import { Array2D, Array3Dflat, BoolArray3D } from "../helpers/datastructures";
 import { Helper } from "../helpers/helper";
+import { Loader } from "../helpers/loader";
 import { SymmetryHelper } from "../helpers/symmetry";
 import { VoxHelper } from "../helpers/vox";
-import { WFCNode } from "./wfc";
+
+import { WFCNode } from "./";
 
 export class TileNode extends WFCNode {
     private tiledata: Uint8Array[];
@@ -25,15 +27,14 @@ export class TileNode extends WFCNode {
         this.overlap = parseInt(elem.getAttribute("overlap")) || 0;
         this.overlapz = parseInt(elem.getAttribute("overlapz")) || 0;
 
-        const filepath = `resources/tileset/${this.name}.xml`;
-        // TODO:
-        const root: Element = null;
+        const filepath = `resources/tilesets/${this.name}.xml`;
+        const root = await Loader.xml(filepath);
         const fullSymmetry = root.getAttribute("fullSymmetry") === "True";
         const eFirstTile = root.querySelector("tiles tile");
         const firstFileName = `${tilesname}/${eFirstTile.getAttribute(
             "name"
         )}.vox`;
-        const [firstData, S, SY, SZ] = VoxHelper.load(
+        const [firstData, S, SY, SZ] = await VoxHelper.load(
             `resources/tilesets/${firstFileName}`
         );
 
@@ -56,7 +57,7 @@ export class TileNode extends WFCNode {
         this.SZ = SZ;
 
         const { overlap, overlapz } = this;
-        this.newgrid = Grid.load(
+        this.newgrid = Grid.build(
             elem,
             (S - overlap) * grid.MX + overlap,
             (S - overlap) * grid.MY + overlap,
@@ -95,7 +96,7 @@ export class TileNode extends WFCNode {
             const weight = parseFloat(etile.getAttribute("weight")) || 1;
 
             const filename = `resources/tilesets/${tilesname}/${tilename}.vox`;
-            const [vox] = VoxHelper.load(filename);
+            const [vox] = await VoxHelper.load(filename);
             if (!vox) {
                 console.error(`Failed to load tile ${filename}`);
                 return false;
@@ -404,7 +405,7 @@ export class TileNode extends WFCNode {
             })
         );
 
-        return super.load(elem, parentSymmetry, grid);
+        return await super.load(elem, parentSymmetry, grid);
     }
 
     protected override updateState() {

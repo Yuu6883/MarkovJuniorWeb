@@ -2,7 +2,7 @@ import seedrandom, { PRNG } from "seedrandom";
 import { Grid } from "./grid";
 import { vec3 } from "./helpers/helper";
 import { SymmetryHelper } from "./helpers/symmetry";
-import { Branch, MarkovNode, Node } from "./nodes";
+import { Node, Branch, MarkovNode } from "./nodes/";
 
 export class Interpreter {
     public root: Branch;
@@ -19,10 +19,15 @@ export class Interpreter {
     public counter = 0;
     public gif: boolean;
 
-    public static load(elem: Element, MX: number, MY: number, MZ: number) {
+    public static async load(
+        elem: Element,
+        MX: number,
+        MY: number,
+        MZ: number
+    ) {
         const ip = new Interpreter();
         ip.origin = elem.getAttribute("origin") === "True";
-        ip.grid = Grid.load(elem, MX, MY, MZ);
+        ip.grid = Grid.build(elem, MX, MY, MZ);
         if (!ip.grid) {
             console.error("Failed to load grid");
             return null;
@@ -44,7 +49,7 @@ export class Interpreter {
             return null;
         }
 
-        const topnode = Node.factory(elem, symmetry, ip, ip.grid);
+        const topnode = await Node.factory(elem, symmetry, ip, ip.grid);
         if (!topnode) return null;
         ip.root =
             topnode instanceof Branch ? topnode : new MarkovNode(topnode, ip);

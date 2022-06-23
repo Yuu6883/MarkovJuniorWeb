@@ -175,11 +175,11 @@ export class Rule {
               );
     }
 
-    public static loadResource(
+    public static async loadResource(
         path: string,
         legend: string,
         d2: boolean
-    ): [Int8Array, number, number, number] {
+    ): Promise<[Int8Array, number, number, number]> {
         // TODO
 
         return [null, -1, -1, -1];
@@ -217,7 +217,7 @@ export class Rule {
         return [result, MX, MY, MZ];
     }
 
-    public static load(elem: Element, gin: Grid, gout: Grid) {
+    public static async load(elem: Element, gin: Grid, gout: Grid) {
         const filepath = (name: string) => {
             return "TODO";
         };
@@ -250,7 +250,11 @@ export class Rule {
 
             [inRect, IMX, IMY, IMZ] = inString
                 ? this.parse(inString)
-                : this.loadResource(filepath(finString), legend, gin.MZ === 1);
+                : await this.loadResource(
+                      filepath(finString),
+                      legend,
+                      gin.MZ === 1
+                  );
             if (!inRect) {
                 console.error(elem, "failed to load input");
                 return null;
@@ -259,7 +263,11 @@ export class Rule {
             // TODO: gout or gin (source has gin)
             [outRect, OMX, OMY, OMZ] = outString
                 ? this.parse(outString)
-                : this.loadResource(filepath(finString), legend, gout.MZ === 1);
+                : await this.loadResource(
+                      filepath(finString),
+                      legend,
+                      gout.MZ === 1
+                  );
             if (!outRect) {
                 console.error(elem, "failed to load input");
                 return null;
@@ -275,7 +283,7 @@ export class Rule {
                 return null;
             }
 
-            const [rect, FX, FY, FZ] = this.loadResource(
+            const [rect, FX, FY, FZ] = await this.loadResource(
                 filepath(fileString),
                 legend,
                 gin.MZ === 1

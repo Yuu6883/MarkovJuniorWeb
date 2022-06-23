@@ -113,6 +113,17 @@ export class Helper {
         for (let i = 0; i < t1.length; i++) if (t1[i] !== t2[i]) return false;
         return true;
     }
+
+    public static hex2rgba(hex: string, alpha = 255) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        if (result) {
+            var r = parseInt(result[1], 16);
+            var g = parseInt(result[2], 16);
+            var b = parseInt(result[3], 16);
+            return new Uint8ClampedArray([r, g, b, alpha]);
+        }
+        return null;
+    }
 }
 
 // exclusive

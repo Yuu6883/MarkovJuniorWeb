@@ -1,4 +1,5 @@
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const CopyPlugin = require("copy-webpack-plugin");
 const path = require("path");
 
 module.exports = (_, argv) => ({
@@ -67,6 +68,13 @@ module.exports = (_, argv) => ({
         new HtmlWebpackPlugin({
             template: path.resolve(__dirname, "src", "ui", "index.html"),
             filename: "index.html",
+        }),
+        new CopyPlugin({
+            patterns: [
+                {
+                    from: "static",
+                },
+            ],
         }),
     ],
 });

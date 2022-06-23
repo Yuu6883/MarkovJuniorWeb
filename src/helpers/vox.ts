@@ -1,6 +1,8 @@
 export class VoxHelper {
-    static load(path: string): [Int32Array, number, number, number] {
+    static async load(
+        path: string
+    ): Promise<[Int32Array, number, number, number]> {
         // TODO: implement
-        return null;
+        return [null, -1, -1, -1];
     }
 }

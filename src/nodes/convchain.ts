@@ -2,7 +2,7 @@ import { Grid } from "../grid";
 import { Graphics } from "../helpers/graphics";
 import { Helper, range } from "../helpers/helper";
 import { SymmetryHelper } from "../helpers/symmetry";
-import { Node } from ".";
+import { Node } from "./";
 
 export class ConvChainNode extends Node {
     private N: number;

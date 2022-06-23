@@ -1,8 +1,9 @@
+import seedrandom, { PRNG } from "seedrandom";
 import { Grid } from "../grid";
 import { Array3D, BoolArray2D } from "../helpers/datastructures";
-import { Branch, Node } from ".";
-import seedrandom, { PRNG } from "seedrandom";
 import { Helper } from "../helpers/helper";
+
+import { Branch } from "./";
 
 export abstract class WFCNode extends Branch {
     protected wave: Wave;
@@ -74,7 +75,7 @@ export abstract class WFCNode extends Branch {
         }
 
         this.distribution = new Float64Array(this.P);
-        return super.load(elem, parentSymmetry, this.newgrid);
+        return await super.load(elem, parentSymmetry, this.newgrid);
     }
 
     public override reset(): void {

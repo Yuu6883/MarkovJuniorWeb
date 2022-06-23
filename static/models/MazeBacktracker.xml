@@ -1,0 +1,4 @@
+<markov values="BRGW" origin="True">
+  <one in="RBB" out="GGR"/>
+  <one in="RGG" out="WWR"/>
+</markov>

@@ -1,7 +1,7 @@
 import { Grid } from "../grid";
 import { Array2D } from "../helpers/datastructures";
 import { Helper } from "../helpers/helper";
-import { Node } from ".";
+import { Node } from "./";
 
 export class ConvolutionNode extends Node {
     private rules: ConvolutionRule[];

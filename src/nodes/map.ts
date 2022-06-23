@@ -1,6 +1,6 @@
 import { Grid } from "../grid";
 import { SymmetryHelper } from "../helpers/symmetry";
-import { Branch } from ".";
+import { Branch } from "./";
 import { Rule } from "../rule";
 import { Helper } from "../helpers/helper";
 
@@ -40,7 +40,7 @@ export class MapNode extends Branch {
 
         this.ND.set([NX, NY, NZ, DX, DY, DZ]);
 
-        this.newgrid = Grid.load(
+        this.newgrid = Grid.build(
             elem,
             ~~((NX * grid.MX) / DX),
             ~~((NY * grid.MY) / DY),
@@ -48,7 +48,8 @@ export class MapNode extends Branch {
         );
         if (!this.newgrid) return false;
 
-        if (!super.load(elem, parentSymmetry, this.newgrid)) return false;
+        if (!(await super.load(elem, parentSymmetry, this.newgrid)))
+            return false;
         const symmetry = SymmetryHelper.getSymmetry(
             grid.MZ === 1,
             elem.getAttribute("symmetry"),
@@ -57,7 +58,7 @@ export class MapNode extends Branch {
 
         const rules = Helper.collectionToArr(elem.getElementsByTagName("rule"));
         for (const e of rules) {
-            const rule = Rule.load(e, grid, this.newgrid);
+            const rule = await Rule.load(e, grid, this.newgrid);
             if (!rule) return false;
             rule.symmetries(symmetry, grid.MZ === 1).forEach((r) =>
                 this.rules.push(r)
