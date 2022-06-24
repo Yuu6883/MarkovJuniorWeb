@@ -157,9 +157,6 @@ export class OneNode extends RuleNode {
                         this.matches[this.matchCount - 1][j];
                 this.matchCount--;
 
-                // console.log(
-                //     `Trying [${x}, ${y}, ${z}] matches: ${this.matchCount} index: ${matchIndex}`
-                // );
                 if (grid.matches(this.rules[r], x, y, z)) return [r, x, y, z];
             }
             return [-1, -1, -1, -1];

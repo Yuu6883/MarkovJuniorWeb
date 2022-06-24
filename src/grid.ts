@@ -1,3 +1,4 @@
+import { Helper } from "./helpers/helper";
 import { Rule } from "./rule";
 
 export class Grid {
@@ -41,6 +42,28 @@ export class Grid {
             g.waves.set(c, 1 << i);
         }
 
+        const transparentString = elem.getAttribute("transparent");
+        if (transparentString) g.transparent = g.wave(transparentString);
+
+        const unions = [
+            ...Helper.matchTags(elem, "markov", "sequence", "union"),
+        ].filter((x) => x.tagName === "union");
+        g.waves.set("*".charCodeAt(0), (1 << g.C) - 1);
+
+        for (const union of unions) {
+            const symbol = union.getAttribute("symbol").charCodeAt(0);
+            if (g.waves.has(symbol)) {
+                console.error(
+                    union,
+                    `pepeating union type "${String.fromCharCode(symbol)}"`
+                );
+                return null;
+            } else {
+                const w = g.wave(union.getAttribute("values"));
+                g.waves.set(symbol, w);
+            }
+        }
+
         g.state = new Uint8Array(MX * MY * MZ);
         g.statebuffer = new Uint8Array(MX * MY * MZ);
         g.mask = new Uint8Array(MX * MY * MZ);
@@ -65,27 +88,27 @@ export class Grid {
     }
 
     public matches(rule: Rule, x: number, y: number, z: number): boolean {
-        const { MX, MY } = this;
+        const { MX, MY, state } = this;
+        const { input, IMX, IMY } = rule;
 
         let dz = 0,
             dy = 0,
             dx = 0;
-        for (let di = 0; di < rule.input.length; di++) {
+
+        for (let di = 0; di < input.length; di++) {
             if (
-                (rule.input[di] &
+                (input[di] &
                     (1 <<
-                        this.state[
-                            x + dx + (y + dy) * MX + (z + dz) * MX * MY
-                        ])) ==
+                        state[x + dx + (y + dy) * MX + (z + dz) * MX * MY])) ===
                 0
             )
                 return false;
 
             dx++;
-            if (dx == rule.IMX) {
+            if (dx === IMX) {
                 dx = 0;
                 dy++;
-                if (dy == rule.IMY) {
+                if (dy === IMY) {
                     dy = 0;
                     dz++;
                 }

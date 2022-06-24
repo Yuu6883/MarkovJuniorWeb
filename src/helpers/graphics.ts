@@ -13,9 +13,11 @@ export class Graphics {
         });
     }
 
-    static loadBitmap(path: string): [Int32Array, number, number] {
+    static async loadBitmap(
+        path: string
+    ): Promise<[Int32Array, number, number]> {
         // TODO:
-        return null;
+        return [null, -1, -1];
     }
 
     // TODO: use wasm to speed up? or just color it on GPU w shaders

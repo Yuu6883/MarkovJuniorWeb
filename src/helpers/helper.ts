@@ -41,6 +41,24 @@ export class Helper {
         return arr;
     }
 
+    public static *collectionIter<T>(c: DOMCollection<T>) {
+        for (let i = 0; i < c.length; i++) {
+            yield c.item(i);
+        }
+    }
+
+    public static *matchTags(elem: Element, ...tags: string[]) {
+        const t = tags.join(", ");
+        const queue = [elem];
+
+        while (queue.length) {
+            const e = queue.shift();
+            if (e !== elem) yield e;
+            for (const x of this.collectionIter(e.querySelectorAll(t)))
+                queue.push(x);
+        }
+    }
+
     public static maxPositiveIndex<T extends ArrayLike<number>>(amounts: T) {
         let max = -1,
             argmax = -1;

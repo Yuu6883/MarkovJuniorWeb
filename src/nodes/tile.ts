@@ -91,7 +91,7 @@ export class TileNode extends WFCNode {
         const etiles = root.querySelectorAll("tiles tile");
         let ind = 0;
 
-        for (const etile of Helper.collectionToArr(etiles)) {
+        for (const etile of Helper.collectionIter(etiles)) {
             const tilename = etile.getAttribute("name");
             const weight = parseFloat(etile.getAttribute("weight")) || 1;
 
@@ -192,7 +192,7 @@ export class TileNode extends WFCNode {
         );
         tilenames.push(null);
 
-        for (const en of Helper.collectionToArr(
+        for (const en of Helper.collectionIter(
             root.querySelectorAll("neighbors neighbor")
         )) {
             if (fullSymmetry) {

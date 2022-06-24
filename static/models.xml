@@ -151,7 +151,7 @@
   
   gifs
   <!--<model name="Wilson" size="59" steps="1000" gui="150" gif="True"/>-->
-  <!--<model name="BasicSnake" size="23" steps="100" gif="True"/>-->
+  <model name="BasicSnake" size="50" steps="1000" pixelsize="10" />
   <!--<model name="Chase" size="60" steps="200" gif="True"/>-->
 
   <!--<model name="MultiSokoban9" size="9" amount="1" pixelsize="20" gif="True"/>-->

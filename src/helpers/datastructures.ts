@@ -15,6 +15,7 @@ interface TypedArrayConstructor<T> {
 export class BoolArray2DRow {
     private readonly ref: BoolArray2D;
     private readonly y: number;
+
     constructor(ref: BoolArray2D, y: number) {
         this.ref = ref;
         this.y = y;
@@ -57,10 +58,10 @@ export class BoolArray2D {
 
     set(x: number, y: number, value: boolean) {
         const offset = y * this.MX + x;
-        const mask = 1 << offset % 8;
+        const mask = (1 << offset) % 8;
         value
-            ? (this.buf[~~(offset / 8)] |= mask) // set bit
-            : (this.buf[~~(offset / 8)] &= 0xff ^ mask); // clear bit
+            ? (this.buf[offset >>> 3] |= mask) // set bit
+            : (this.buf[offset >>> 3] &= 0xff ^ mask); // clear bit
     }
 
     row(y: number) {
@@ -98,7 +99,7 @@ export class BoolArray3D {
 
     set(x: number, y: number, z: number, value: boolean) {
         const offset = z * this.MY * this.MX + y * this.MX + x;
-        const mask = 1 << offset % 8;
+        const mask = (1 << offset) % 8;
         value
             ? (this.buf[~~(offset / 8)] |= mask) // set bit
             : (this.buf[~~(offset / 8)] &= 0xff ^ mask); // clear bit

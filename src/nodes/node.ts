@@ -119,7 +119,7 @@ export abstract class Branch extends Node {
     public override run() {
         for (; this.n < this.nodes.length; this.n++) {
             const node = this.nodes[this.n];
-            if (node instanceof Branch) this.ip.current = this;
+            if (node instanceof Branch) this.ip.current = node;
             if (node.run()) return true;
         }
         this.ip.current = this.ip.current.parent;

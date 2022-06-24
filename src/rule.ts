@@ -1,7 +1,9 @@
 import { Grid } from "./grid";
 import { Array3Dflat } from "./helpers/datastructures";
+import { Graphics } from "./helpers/graphics";
 import { Helper, vec3 } from "./helpers/helper";
 import { SymmetryHelper } from "./helpers/symmetry";
+import { VoxHelper } from "./helpers/vox";
 
 declare type Shift = vec3[][];
 
@@ -177,13 +179,34 @@ export class Rule {
     }
 
     public static async loadResource(
-        path: string,
+        filename: string,
         legend: string,
         d2: boolean
     ): Promise<[Int8Array, number, number, number]> {
-        // TODO
+        if (!legend) {
+            console.error(`no legend for ${filename}`);
+            return [null, -1, -1, -1];
+        }
+        const [data, MX, MY, MZ] = d2
+            ? await Graphics.loadBitmap(filename)
+            : await VoxHelper.load(filename);
+        if (data == null) {
+            console.error(`failed to load ${filename}`);
+            return [null, MX, MY, MZ];
+        }
+        const [ords, amount] = Helper.ords(data);
+        if (amount > legend.length) {
+            console.error(
+                `the amount of colors ${amount} in ${filename} is more than ${legend.length}`
+            );
+            return [null, MX, MY, MZ];
+        }
 
-        return [null, -1, -1, -1];
+        const mapped = new Int8Array(ords.length);
+        for (let i = 0; i < ords.length; i++) {
+            mapped[i] = legend.charCodeAt(ords[i]);
+        }
+        return [mapped, MX, MY, MZ];
     }
 
     public static parse(s: string): [Int8Array, number, number, number] {
@@ -220,7 +243,11 @@ export class Rule {
 
     public static async load(elem: Element, gin: Grid, gout: Grid) {
         const filepath = (name: string) => {
-            return "TODO";
+            let result = "resources/rules/";
+            if (gout.folder != null) result += gout.folder + "/";
+            result += name;
+            result += gin.MZ == 1 ? ".png" : ".vox";
+            return result;
         };
 
         const inString = elem.getAttribute("in");

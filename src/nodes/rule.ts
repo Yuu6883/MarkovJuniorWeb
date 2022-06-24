@@ -126,8 +126,8 @@ export abstract class RuleNode extends Node {
             }
         }
 
-        console.log(`RuleNode has potentials = ${!!this.potentials}`);
-        console.log(`RuleNode has ${this.rules.length} rules`);
+        // console.log(`RuleNode has potentials = ${!!this.potentials}`);
+        // console.log(`RuleNode has ${this.rules.length} rules`);
 
         return true;
     }
@@ -148,6 +148,7 @@ export abstract class RuleNode extends Node {
     ) {
         maskr.set(x + y * this.grid.MX + z * this.grid.MX * this.grid.MY, true);
 
+        // Reuse array
         if (this.matchCount < this.matches.length) {
             this.matches[this.matchCount][0] = r;
             this.matches[this.matchCount][1] = x;
