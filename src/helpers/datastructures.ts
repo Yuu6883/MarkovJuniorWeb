@@ -168,7 +168,7 @@ export class Array2D<T extends TypedArray> {
         type: TypedArrayConstructor<T2>,
         arr: T2[]
     ) {
-        if (!arr.length) return null;
+        if (!arr?.length) return null;
 
         const mat = new Array2D(type, arr[0].length, arr.length);
         for (let y = 0; y < arr.length; y++) {
