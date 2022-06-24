@@ -1,0 +1,9 @@
+<sequence values="BRW">
+  <one in="B" out="R" steps="1"/>
+  <one in="RB" out="WW"/>
+  <one in="BBB/BWB" out="*W*/***" steps="5"/>
+  <all>
+    <rule in="WB" out="*W"/>
+    <rule in="BB/WB" out="*W/**"/>
+  </all>
+</sequence>

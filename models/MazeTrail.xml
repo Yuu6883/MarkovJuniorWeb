@@ -1,0 +1,10 @@
+<one values="BRW" origin="True">
+  <rule in="RBB" out="WWR"/>
+  <rule in="R*W" out="W*R"/>
+</one>
+
+<!--
+Also known as Aldous-Broder algorithm.
+
+Like Wilson's algorithm, generates each maze with equal probability (samples mazes uniformly). Though very slowly.
+-->

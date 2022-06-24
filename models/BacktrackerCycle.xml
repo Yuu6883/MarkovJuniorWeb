@@ -1,0 +1,15 @@
+<sequence values="BRGWA" origin="True">
+  <union symbol="?" values="WA"/>
+  <markov>
+    <one in="RBB" out="GGR"/>
+    <one in="RGG" out="WAR"/>
+  </markov>
+  <one in="R" out="W"/>
+  <one in="WBW" out="WAW" steps="1"/>
+  <all in="BBB/B?B" out="***/*B*"/>
+  <all in="A" out="W"/>
+</sequence>
+
+<!--
+Generates a random cycle.
+-->
