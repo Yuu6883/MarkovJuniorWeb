@@ -71,6 +71,7 @@ export const Main = async () => {
 
         if (gif) amount = 1;
         for (let k = 0; k < amount; k++) {
+            const start = performance.now();
             const seed = seeds?.[k] || meta.int32();
 
             for (const [result, legend, FX, FY, FZ] of interpreter.run(
@@ -111,7 +112,12 @@ export const Main = async () => {
             } else {
             }
 
-            console.log(`DONE (steps = ${rendered})`);
+            const end = performance.now();
+            console.log(
+                `DONE (steps = ${rendered}, time = ${(end - start).toFixed(
+                    2
+                )}ms)`
+            );
         }
 
         break; // LET'S JUST LOAD ONE
