@@ -56,8 +56,9 @@ export class Observation {
         rules: Rule[]
     ) {
         for (let c = 0; c < potentials.ROWS; c++) {
+            const potential = potentials.row(c);
             for (let i = 0; i < future.length; i++)
-                potentials.set(i, c, (future[i] & (1 << c)) != 0 ? 0 : -1);
+                potential[i] = (future[i] & (1 << c)) !== 0 ? 0 : -1;
         }
         this.computePotentials(potentials, MX, MY, MZ, rules, true);
     }
@@ -73,8 +74,9 @@ export class Observation {
         const queue: [number, number, number, number][] = [];
 
         for (let c = 0; c < potentials.ROWS; c++) {
-            for (let i = 0; i < potentials.COLS; i++)
-                if (!potentials.get(i, c))
+            const potential = potentials.row(c);
+            for (let i = 0; i < potential.length; i++)
+                if (!potential[i])
                     queue.push([
                         c,
                         i % MX,
@@ -86,8 +88,8 @@ export class Observation {
 
         while (queue.length) {
             const [value, x, y, z] = queue.shift();
-            let i = x + y * MX + z * MX * MY;
-            let t = potentials[value][i];
+            const i = x + y * MX + z * MX * MY;
+            const t = potentials.get(i, value);
             for (let r = 0; r < rules.length; r++) {
                 const rule = rules[r];
                 const shifts = backwards

@@ -87,6 +87,8 @@ export abstract class RuleNode extends Node {
         this.rules = ruleList.concat([]);
         this.last = new Uint8Array(rules.length);
 
+        console.log(`RuleNode has ${this.rules.length} rules`);
+
         this.steps = parseInt(elem.getAttribute("steps")) || 0;
         this.temperature = parseFloat(elem.getAttribute("temperature")) || 0;
 
@@ -106,6 +108,8 @@ export abstract class RuleNode extends Node {
                 grid.state.length
             );
             this.potentials.fill(0);
+
+            console.log(`RuleNode has ${this.fields.length} fields`);
         }
 
         const eobs = Helper.collectionToArr(
@@ -124,10 +128,11 @@ export abstract class RuleNode extends Node {
                     grid
                 );
             }
-        }
 
-        // console.log(`RuleNode has potentials = ${!!this.potentials}`);
-        // console.log(`RuleNode has ${this.rules.length} rules`);
+            console.log(
+                `RuleNode has ${this.observations.length} observations`
+            );
+        }
 
         return true;
     }
@@ -159,7 +164,7 @@ export abstract class RuleNode extends Node {
     }
 
     public override run() {
-        for (let r = 0; r < this.last.length; r++) this.last[r] = 0;
+        this.last.fill(0);
 
         if (this.steps > 0 && this.counter >= this.steps) return false;
 
@@ -172,9 +177,9 @@ export abstract class RuleNode extends Node {
                     grid.state,
                     this.observations
                 )
-            )
+            ) {
                 return false;
-            else {
+            } else {
                 this.futureComputed = true;
                 if (this.search) {
                     this.trajectory = null;
@@ -250,10 +255,12 @@ export abstract class RuleNode extends Node {
                 for (let z = rule.IMZ - 1; z < MZ; z += rule.IMZ)
                     for (let y = rule.IMY - 1; y < MY; y += rule.IMY)
                         for (let x = rule.IMX - 1; x < MX; x += rule.IMX) {
-                            const shifts =
-                                rule.ishifts[
-                                    grid.state[x + y * MX + z * MX * MY]
-                                ];
+                            const offset = x + y * MX + z * MX * MY;
+                            const value = grid.state[offset];
+                            if (isNaN(value)) {
+                                debugger;
+                            }
+                            const shifts = rule.ishifts[value];
                             for (const [shiftx, shifty, shiftz] of shifts) {
                                 const sx = x - shiftx;
                                 const sy = y - shifty;

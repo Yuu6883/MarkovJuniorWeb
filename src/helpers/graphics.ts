@@ -14,10 +14,34 @@ export class Graphics {
     }
 
     static async loadBitmap(
-        path: string
-    ): Promise<[Int32Array, number, number]> {
-        // TODO:
-        return [null, -1, -1];
+        url: string
+    ): Promise<[Int32Array, number, number, number]> {
+        try {
+            const response = await fetch(url);
+            const fileBlob = await response.blob();
+            const bitmap = await createImageBitmap(fileBlob);
+
+            const canvas = document.createElement("canvas");
+
+            canvas.width = bitmap.width;
+            canvas.height = bitmap.height;
+
+            const context = canvas.getContext("2d");
+            context.drawImage(bitmap, 0, 0);
+            bitmap.close();
+
+            const { data, width, height } = context.getImageData(
+                0,
+                0,
+                canvas.width,
+                canvas.height
+            );
+
+            return [new Int32Array(data.buffer), width, height, 1];
+        } catch (e) {
+            console.error(e);
+            return [null, -1, -1, -1];
+        }
     }
 
     // TODO: use wasm to speed up? or just color it on GPU w shaders

@@ -130,7 +130,7 @@ export class PathNode extends Node {
         peny += diry;
         penz += dirz;
 
-        while (generations[penx + peny * MX + penz * MX * MY] != 0) {
+        while (generations[penx + peny * MX + penz * MX * MY]) {
             grid.state[penx + peny * MX + penz * MX * MY] = this.value;
             this.ip.changes.push([penx, peny, penz]);
             [dirx, diry, dirz] = this.direction(

@@ -46,7 +46,7 @@ export const Main = async () => {
         if (!mdoc) {
             console.error(`Failed to load ${path}`);
             continue;
-        }
+        } else console.log("Loading model...");
 
         const interpreter = await Interpreter.load(mdoc, MX, MY, MZ);
         if (!interpreter) {
@@ -62,8 +62,7 @@ export const Main = async () => {
         // const gif = emodel.getAttribute("gif") === "True";
         const gif = true;
         const iso = emodel.getAttribute("iso") === "True";
-        const steps =
-            parseInt(emodel.getAttribute("steps")) || (gif ? 5000 : 50000);
+        const steps = parseInt(emodel.getAttribute("steps")) || 50000;
 
         // const gui = parseInt(emodel.getAttribute("gui")) || 0;
         const gui = true;

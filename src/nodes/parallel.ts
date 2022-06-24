@@ -49,6 +49,7 @@ export class ParallelNode extends RuleNode {
 
     public override run(): boolean {
         if (!super.run()) return false;
+
         const { ip, grid, newstate } = this;
 
         for (let n = ip.first[ip.counter]; n < ip.changes.length; n++) {

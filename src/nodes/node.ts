@@ -1,4 +1,5 @@
 import { Grid } from "../grid";
+import { Helper } from "../helpers/helper";
 import { SymmetryHelper } from "../helpers/symmetry";
 import { Interpreter } from "../interpreter";
 
@@ -21,6 +22,7 @@ export abstract class Node {
         symmetry: Uint8Array,
         grid: Grid
     ): Promise<boolean>;
+
     public abstract reset(): void;
     public abstract run(): boolean;
 
@@ -39,7 +41,7 @@ export abstract class Node {
             return null;
         }
 
-        const result: Node = {
+        const node: Node = {
             one: () => new OneNode(),
             all: () => new AllNode(),
             prl: () => new ParallelNode(),
@@ -56,11 +58,12 @@ export abstract class Node {
             },
         }[name]();
 
-        result.ip = ip;
-        result.grid = grid;
-        const success = await result.load(elem, symmetry, grid);
+        node.ip = ip;
+        node.grid = grid;
 
-        return success ? result : null;
+        const success = await node.load(elem, symmetry, grid);
+
+        return success ? node : null;
     }
 
     protected static VALID_TAGS = [
@@ -93,25 +96,23 @@ export abstract class Branch extends Node {
             symmetryString,
             parentSymmetry
         );
+
         if (!symmetry) {
             console.error(elem, `unknown symmetry ${symmetryString}`);
             return false;
         }
 
-        for (let i = 0; i < elem.children.length; i++) {
-            const child = await Node.factory(
-                elem.children.item(i),
-                symmetry,
-                this.ip,
-                grid
-            );
-            if (!child) return false;
-            if (child instanceof Branch)
-                child.parent =
-                    child instanceof MapNode || child instanceof WFCNode
+        for (const child of Helper.collectionIter(elem.children)) {
+            if (!Node.VALID_TAGS.includes(child.tagName)) continue;
+
+            const node = await Node.factory(child, symmetry, this.ip, grid);
+            if (!node) return false;
+            if (node instanceof Branch)
+                node.parent =
+                    node instanceof MapNode || node instanceof WFCNode
                         ? null
                         : this;
-            this.nodes.push(child);
+            this.nodes.push(node);
         }
         return true;
     }

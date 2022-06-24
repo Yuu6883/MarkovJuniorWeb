@@ -110,7 +110,7 @@
   <model name="Push" size="40" steps="8000"/>
   <model name="PutColoredLs" size="30"/>
   <model name="PutLs" size="50"/>
-  <model name="RainbowGrowth" size="59" steps="1600"/>
+  <model name="RainbowGrowth" size="59" steps="3481"/>
   <model name="RegularPath" size="79"/>
   <model name="RegularSAW" size="39"/>
   <model name="RegularSAW" size="19" d="3"/>
@@ -156,7 +156,7 @@
 
   <!--<model name="MultiSokoban9" size="9" amount="1" pixelsize="20" gif="True"/>-->
   <!--<model name="MultiSokoban8" size="8" amount="1" pixelsize="20" gif="True"/>-->
-  <!--<model name="SokobanLevel1" length="14" width="9" amount="1" pixelsize="21" gif="True"/>-->
+  <!-- <model name="SokobanLevel1" length="14" width="9" amount="1" pixelsize="21" /> -->
   <!--<model name="SokobanLevel2" length="5" width="4" amount="1" pixelsize="21" gif="True"/>-->
   <!--<model name="SequentialSokoban" size="20" gif="True"/>-->
 
