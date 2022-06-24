@@ -87,6 +87,7 @@ export class Grid {
         return sum;
     }
 
+    // Wasm optimizable?
     public matches(rule: Rule, x: number, y: number, z: number): boolean {
         const { MX, MY, state } = this;
         const { input, IMX, IMY } = rule;

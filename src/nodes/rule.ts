@@ -102,10 +102,11 @@ export abstract class RuleNode extends Node {
                 this.fields[
                     grid.values.get(parseInt(efield.getAttribute("for")))
                 ] = new Field(efield, grid);
+
             this.potentials = new Array2D(
                 Int32Array,
-                grid.C,
-                grid.state.length
+                grid.state.length,
+                grid.C
             );
             this.potentials.fill(0);
 
@@ -119,15 +120,29 @@ export abstract class RuleNode extends Node {
             this.observations = Array.from({ length: grid.C });
             for (const eob of eobs) {
                 const value = grid.values.get(
-                    parseInt(eob.getAttribute("value"))
+                    eob.getAttribute("value").charCodeAt(0)
                 );
                 this.observations[value] = new Observation(
-                    parseInt(eob.getAttribute("from")) ||
+                    eob.getAttribute("from")?.charCodeAt(0) ||
                         grid.characters.charCodeAt(value),
                     eob.getAttribute("to"),
                     grid
                 );
             }
+
+            this.search = elem.getAttribute("search") === "True";
+            if (this.search) {
+                this.limit = parseInt(elem.getAttribute("limit")) || -1;
+                this.depthCoefficient =
+                    parseFloat(elem.getAttribute("depthCoefficient")) || 0.5;
+            } else if (!this.potentials) {
+                this.potentials = new Array2D(
+                    Int32Array,
+                    grid.state.length,
+                    grid.C
+                );
+            }
+            this.future = new Int32Array(grid.state.length);
 
             console.log(
                 `RuleNode has ${this.observations.length} observations`
@@ -170,6 +185,7 @@ export abstract class RuleNode extends Node {
 
         const grid = this.grid;
         const { MX, MY, MZ } = grid;
+
         if (this.observations && !this.futureComputed) {
             if (
                 !Observation.computeFutureSetPresent(
@@ -257,9 +273,6 @@ export abstract class RuleNode extends Node {
                         for (let x = rule.IMX - 1; x < MX; x += rule.IMX) {
                             const offset = x + y * MX + z * MX * MY;
                             const value = grid.state[offset];
-                            if (isNaN(value)) {
-                                debugger;
-                            }
                             const shifts = rule.ishifts[value];
                             for (const [shiftx, shifty, shiftz] of shifts) {
                                 const sx = x - shiftx;

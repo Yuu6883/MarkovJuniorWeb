@@ -19,8 +19,9 @@ export class Search {
         seed: number
     ): Uint8Array[] {
         const PL = present.length;
-        const bpotentials = new Array2D(Int32Array, C, PL, -1);
-        const fpotentials = new Array2D(Int32Array, C, PL, -1);
+
+        const bpotentials = new Array2D(Int32Array, PL, C, -1);
+        const fpotentials = new Array2D(Int32Array, PL, C, -1);
 
         Observation.computeBackwardPotentials(
             bpotentials,
@@ -159,10 +160,11 @@ export class Search {
                         ) {
                             record =
                                 childBackwardEstimate + childForwardEstimate;
+
                             console.log(
                                 `Found a state of record estimate ${record} = ${childBackwardEstimate} + ${childForwardEstimate}`
                             );
-                            PrintState(childState, MX, MY);
+                            // PrintState(childState, MX, MY);
                         }
 
                         frontier.enqueue({

@@ -63,8 +63,6 @@ export class OneNode extends RuleNode {
         this.lastMatchedTurn = this.ip.counter;
 
         if (this.trajectory) {
-            console.log(`OneNode.run [${this.ip.counter}]: trajectory = true`);
-
             if (this.counter >= this.trajectory.ROWS) return false;
             this.grid.state.set(this.trajectory.row(this.counter));
             this.counter++;

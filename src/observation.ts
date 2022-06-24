@@ -18,13 +18,14 @@ export class Observation {
     ) {
         const mask = new Uint8Array(observations.length);
         for (let k = 0; k < observations.length; k++)
-            if (observations[k] == null) mask[k] = 1;
+            if (!observations[k]) mask[k] = 1;
 
         for (let i = 0; i < state.length; i++) {
             const value = state[i];
             const obs = observations[value];
             mask[value] = 1;
-            if (obs != null) {
+
+            if (obs) {
                 future[i] = obs.to;
                 state[i] = obs.from;
             } else future[i] = 1 << value;
@@ -75,16 +76,19 @@ export class Observation {
 
         for (let c = 0; c < potentials.ROWS; c++) {
             const potential = potentials.row(c);
-            for (let i = 0; i < potential.length; i++)
-                if (!potential[i])
+            for (let i = 0; i < potential.length; i++) {
+                if (!potential[i]) {
                     queue.push([
                         c,
                         i % MX,
                         ~~((i % (MX * MY)) / MX),
                         ~~(i / (MX * MY)),
                     ]);
+                }
+            }
         }
-        const matchMask = new BoolArray2D(rules.length, potentials.COLS);
+
+        const matchMask = new BoolArray2D(potentials.COLS, rules.length);
 
         while (queue.length) {
             const [value, x, y, z] = queue.shift();
@@ -161,11 +165,11 @@ export class Observation {
         for (let di = 0; di < a.length; di++) {
             const value = a[di];
             if (value != 0xff) {
-                let current = potentials.get(
+                const current = potentials.get(
                     x + dx + (y + dy) * MX + (z + dz) * MX * MY,
                     value
                 );
-                if (current > t || current == -1) return false;
+                if (current > t || current === -1) return false;
             }
             dx++;
             if (dx == rule.IMX) {
@@ -202,7 +206,7 @@ export class Observation {
                     const idi = xdx + ydy * MX + zdz * MX * MY;
                     const di = dx + dy * rule.IMX + dz * rule.IMX * rule.IMY;
                     const o = a[di];
-                    if (o != 0xff && potentials.get(idi, o) == -1) {
+                    if (o !== 0xff && potentials.get(idi, o) === -1) {
                         potentials.set(idi, o, t + 1);
                         q.push([o, xdx, ydy, zdz]);
                     }

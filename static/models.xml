@@ -56,7 +56,7 @@
   <model name="FindLongCycle" size="27" pixelsize="10"/>
   <model name="FireNoise" size="300"/>
   <model name="Flowers" size="60"/>
-  <model name="ForestFire" size="600" steps="80" pixelsize="1"/>
+  <model name="ForestFire" size="600" steps="1000" pixelsize="1"/>
   <model name="ForestFireCA" size="600" steps="80" pixelsize="1"/>
   <model name="GameOfLife" size="120" steps="100"/>
   <model name="Growth" size="359" steps="128880" pixelsize="2" />
@@ -156,8 +156,8 @@
 
   <!--<model name="MultiSokoban9" size="9" amount="1" pixelsize="20" gif="True"/>-->
   <!--<model name="MultiSokoban8" size="8" amount="1" pixelsize="20" gif="True"/>-->
-  <!-- <model name="SokobanLevel1" length="14" width="9" amount="1" pixelsize="21" /> -->
-  <!--<model name="SokobanLevel2" length="5" width="4" amount="1" pixelsize="21" gif="True"/>-->
+  <model name="SokobanLevel1" length="14" width="9" amount="1" pixelsize="21" />
+  <model name="SokobanLevel2" length="5" width="4" amount="1" pixelsize="21" gif="True"/>
   <!--<model name="SequentialSokoban" size="20" gif="True"/>-->
 
   benchmarks
