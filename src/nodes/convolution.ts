@@ -42,12 +42,18 @@ export class ConvolutionNode extends Node {
                 : ConvolutionNode.kernels3d
         ).get(neighborhood);
 
+        if (!this.kernel) {
+            console.error(elem, "unknown kernel");
+            return false;
+        }
+
         this.rules = Helper.collectionToArr(
             elem.getElementsByTagName("rule")
         ).map((x) => new ConvolutionRule(x, grid));
+
         this.steps = parseInt(elem.getAttribute("steps")) || -1;
         this.periodic = elem.getAttribute("periodic") === "True";
-        this.sumfield = new Array2D(Int32Array, grid.state.length, grid.C, 0);
+        this.sumfield = new Array2D(Int32Array, grid.C, grid.state.length, 0);
 
         return true;
     }
