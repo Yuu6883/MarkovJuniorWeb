@@ -1,5 +1,6 @@
 import { Grid } from "./grid";
 import { Array2D, BoolArray2D } from "./helpers/datastructures";
+import { vec4 } from "./helpers/helper";
 import { Rule } from "./rule";
 
 export class Observation {
@@ -72,7 +73,7 @@ export class Observation {
         rules: Rule[],
         backwards: boolean
     ) {
-        const queue: [number, number, number, number][] = [];
+        const queue: vec4[] = [];
 
         for (let c = 0; c < potentials.ROWS; c++) {
             const potential = potentials.row(c);
@@ -193,7 +194,7 @@ export class Observation {
         t: number,
         MX: number,
         MY: number,
-        q: [number, number, number, number][],
+        q: vec4[],
         backwards: boolean
     ) {
         const a = backwards ? rule.binput : rule.output;
@@ -217,7 +218,7 @@ export class Observation {
 
     public static IsGoalReached(present: Uint8Array, future: Int32Array) {
         for (let i = 0; i < present.length; i++)
-            if (((1 << present[i]) & future[i]) == 0) return false;
+            if (((1 << present[i]) & future[i]) === 0) return false;
         return true;
     }
 

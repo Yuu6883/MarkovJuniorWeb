@@ -1,15 +1,15 @@
 import { Grid } from "./grid";
 import { Array2D } from "./helpers/datastructures";
-import { vec3 } from "./helpers/helper";
+import { vec3, vec4 } from "./helpers/helper";
 import { Rule } from "./rule";
 
 export class Field {
-    public recompute: boolean;
-    public inversed: boolean;
-    public essential: boolean;
+    public readonly recompute: boolean;
+    public readonly inversed: boolean;
+    public readonly essential: boolean;
 
-    public zero: number;
-    public substrate: number;
+    public readonly zero: number;
+    public readonly substrate: number;
 
     constructor(elem: Element, grid: Grid) {
         this.recompute = elem.getAttribute("recompute") === "True";
@@ -18,22 +18,26 @@ export class Field {
         this.substrate = grid.wave(on);
 
         let zeroSymbols = elem.getAttribute("from");
-        if (zeroSymbols) this.inversed = true;
-        else zeroSymbols = elem.getAttribute("to");
+        if (zeroSymbols) {
+            this.inversed = true;
+        } else {
+            this.inversed = false;
+            zeroSymbols = elem.getAttribute("to");
+        }
         this.zero = grid.wave(zeroSymbols);
     }
 
     public compute(potential: Int32Array, grid: Grid) {
-        const { MX, MY, MZ } = grid;
-        const queue: [number, number, number, number][] = [];
+        const { MX, MY, MZ, state } = grid;
+        const queue: vec4[] = [];
 
         let ix = 0,
             iy = 0,
             iz = 0;
-        for (let i = 0; i < grid.state.length; i++) {
+        for (let i = 0; i < state.length; i++) {
             potential[i] = -1;
-            const value = grid.state[i];
-            if ((this.zero & (1 << value)) !== 0) {
+            const value = state[i];
+            if (this.zero & (1 << value)) {
                 potential[i] = 0;
                 queue.push([0, ix, iy, iz]);
             }
@@ -52,14 +56,10 @@ export class Field {
         if (!queue.length) return false;
         while (queue.length) {
             const [t, x, y, z] = queue.shift();
-            const neighbors = Field.neighbors(x, y, z, MX, MY, MZ);
-            for (const [nx, ny, nz] of neighbors) {
+            for (const [nx, ny, nz] of Field.neighbors(x, y, z, MX, MY, MZ)) {
                 const i = nx + ny * MX + nz * MX * MY;
-                const value = grid.state[i];
-                if (
-                    potential[value] === -1 &&
-                    (this.substrate & (1 << value)) !== 0
-                ) {
+                const value = state[i];
+                if (potential[i] === -1 && this.substrate & (1 << value)) {
                     queue.push([t + 1, nx, ny, nz]);
                     potential[i] = t + 1;
                 }
@@ -69,7 +69,7 @@ export class Field {
         return true;
     }
 
-    static neighbors(
+    static *neighbors(
         x: number,
         y: number,
         z: number,
@@ -77,16 +77,12 @@ export class Field {
         MY: number,
         MZ: number
     ) {
-        const result: vec3[] = [];
-
-        if (x > 0) result.push([x - 1, y, z]);
-        if (x < MX - 1) result.push([x + 1, y, z]);
-        if (y > 0) result.push([x, y - 1, z]);
-        if (y < MY - 1) result.push([x, y + 1, z]);
-        if (z > 0) result.push([x, y, z - 1]);
-        if (z < MZ - 1) result.push([x, y, z + 1]);
-
-        return result;
+        if (x > 0) yield [x - 1, y, z];
+        if (x < MX - 1) yield [x + 1, y, z];
+        if (y > 0) yield [x, y - 1, z];
+        if (y < MY - 1) yield [x, y + 1, z];
+        if (z > 0) yield [x, y, z - 1];
+        if (z < MZ - 1) yield [x, y, z + 1];
     }
 
     static deltaPointwise(
@@ -115,13 +111,11 @@ export class Field {
                 let oldPotential = potentials.get(i, oldValue);
                 sum += newPotential - oldPotential;
 
-                if (fields != null) {
+                if (fields) {
                     const oldField = fields[oldValue];
-                    if (oldField != null && oldField.inversed)
-                        sum += 2 * oldPotential;
+                    if (oldField && oldField.inversed) sum += 2 * oldPotential;
                     const newField = fields[newValue];
-                    if (newField != null && newField.inversed)
-                        sum -= 2 * newPotential;
+                    if (newField && newField.inversed) sum -= 2 * newPotential;
                 }
             }
 

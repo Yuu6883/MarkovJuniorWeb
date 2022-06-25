@@ -99,7 +99,7 @@ export abstract class RuleNode extends Node {
             this.fields = Array.from({ length: grid.C });
             for (const efield of efields)
                 this.fields[
-                    grid.values.get(parseInt(efield.getAttribute("for")))
+                    grid.values.get(efield.getAttribute("for").charCodeAt(0))
                 ] = new Field(efield, grid);
 
             this.potentials = new Array2D(
@@ -108,7 +108,6 @@ export abstract class RuleNode extends Node {
                 grid.C
             );
             this.potentials.fill(0);
-
             console.log(`RuleNode has ${this.fields.length} fields`);
         }
 
@@ -305,11 +304,12 @@ export abstract class RuleNode extends Node {
         }
 
         if (this.fields) {
-            let anysuccess = false,
-                anycomputation = false;
+            let anysuccess = false;
+            let anycomputation = false;
+
             for (let c = 0; c < this.fields.length; c++) {
                 const field = this.fields[c];
-                if (field && (this.counter === 0 || field.recompute)) {
+                if (field && (!this.counter || field.recompute)) {
                     // TODO: make sure this is right
                     const success = field.compute(this.potentials.row(c), grid);
                     if (!success && field.essential) return false;
