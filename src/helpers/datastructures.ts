@@ -58,7 +58,7 @@ export class BoolArray2D {
 
     set(x: number, y: number, value: boolean) {
         const offset = y * this.MX + x;
-        const mask = (1 << offset) % 8;
+        const mask = 1 << offset % 8;
         value
             ? (this.buf[offset >>> 3] |= mask) // set bit
             : (this.buf[offset >>> 3] &= 0xff ^ mask); // clear bit
@@ -74,6 +74,12 @@ export class BoolArray2D {
 
     clear() {
         this.buf.fill(0);
+    }
+
+    copy(other: BoolArray2D) {
+        if (this.MX !== other.MX || this.MY !== other.MY)
+            throw Error("Mismatched dimention");
+        this.buf.set(other.buf);
     }
 }
 
@@ -115,7 +121,7 @@ export class BoolArray3D {
 }
 
 export class Array2D<T extends TypedArray> {
-    private readonly arr: T;
+    public readonly arr: T;
     private readonly MX: number;
     private readonly MY: number;
 
@@ -164,6 +170,10 @@ export class Array2D<T extends TypedArray> {
         return <T>this.arr.subarray(y * this.MX, (y + 1) * this.MX);
     }
 
+    incre(x: number, y: number) {
+        this.arr[y * this.MX + x]++;
+    }
+
     static from<T2 extends TypedArray>(
         type: TypedArrayConstructor<T2>,
         arr: T2[]
@@ -176,22 +186,28 @@ export class Array2D<T extends TypedArray> {
         }
         return mat;
     }
+
+    copy(other: Array3D<T>) {
+        if (this.MX !== other.MX || this.MY !== other.MY)
+            throw Error("Mismatched dimention");
+        this.arr.set(other.arr);
+    }
 }
 
-export class Array3D<T extends ArrayBufferView> {
+export class Array3D<T extends TypedArray> {
     public readonly arr: T;
     public readonly MX: number;
     public readonly MY: number;
     public readonly MZ: number;
 
     constructor(
-        ctor: (len: number) => T,
+        type: TypedArrayConstructor<T>,
         MX: number,
         MY: number,
         MZ: number,
         func?: (x: number, y: number, z: number) => number
     ) {
-        this.arr = ctor(MX * MY * MZ);
+        this.arr = new type(MX * MY * MZ);
         if (func) {
             for (let z = 0; z < MZ; z++) {
                 for (let y = 0; y < MY; y++) {
@@ -212,6 +228,16 @@ export class Array3D<T extends ArrayBufferView> {
 
     set(x: number, y: number, z: number, value: number) {
         this.arr[z * this.MX * this.MY + y * this.MX + x] = value;
+    }
+
+    copy(other: Array3D<T>) {
+        if (
+            this.MX !== other.MX ||
+            this.MY !== other.MY ||
+            this.MZ !== other.MZ
+        )
+            throw Error("Mismatched dimention");
+        this.arr.set(other.arr);
     }
 }
 

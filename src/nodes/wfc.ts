@@ -57,6 +57,7 @@ export abstract class WFCNode extends Branch {
             this.propagator.length,
             this.shannon
         );
+
         this.stack = new Int32Array(this.wave.data.ROWS * this.P * 2);
 
         if (this.shannon) {
@@ -101,7 +102,9 @@ export abstract class WFCNode extends Branch {
                 const startWave = this.map.get(value);
                 if (startWave) {
                     for (let t = 0; t < this.P; t++)
-                        if (!startWave[t]) this.ban(i, t);
+                        if (!startWave[t]) {
+                            this.ban(i, t);
+                        }
                 }
             }
 
@@ -110,21 +113,13 @@ export abstract class WFCNode extends Branch {
                 console.error("WFC initial conditions are contradictive");
                 return false;
             }
-            this.startwave.copyFrom(
-                this.wave,
-                this.propagator.length,
-                this.shannon
-            );
+            this.startwave.copyFrom(this.wave, this.shannon);
             const goodseed = this.goodSeed();
             if (goodseed === null) return false;
 
             this.rng = seedrandom(goodseed.toString());
             this.stacksize = 0;
-            this.wave.copyFrom(
-                this.startwave,
-                this.propagator.length,
-                this.shannon
-            );
+            this.wave.copyFrom(this.startwave, this.shannon);
             this.firstgo = false;
 
             this.newgrid.clear();
@@ -148,11 +143,7 @@ export abstract class WFCNode extends Branch {
             const seed = this.ip.rng.int32();
             this.rng = seedrandom(seed.toString());
             this.stacksize = 0;
-            this.wave.copyFrom(
-                this.startwave,
-                this.propagator.length,
-                this.shannon
-            );
+            this.wave.copyFrom(this.startwave, this.shannon);
 
             while (true) {
                 const node = this.nextUnobservedNode(this.rng);
@@ -210,17 +201,17 @@ export abstract class WFCNode extends Branch {
     }
 
     observe(node: number, rng: PRNG) {
-        const w = this.wave.data;
+        const w = this.wave.data.row(node);
         for (let t = 0; t < this.P; t++)
-            this.distribution[t] = w.get(t, node) ? this.weights[t] : 0;
-        let r = Helper.sampleWeights(this.distribution, rng.double());
+            this.distribution[t] = w.get(t) ? this.weights[t] : 0;
+        const r = Helper.sampleWeights(this.distribution, rng.double());
         for (let t = 0; t < this.P; t++)
-            if (w.get(t, node) !== (t === r)) this.ban(node, t);
+            if (w.get(t) !== (t === r)) this.ban(node, t);
     }
 
     propagate(): boolean {
-        const N = this.N;
-        const { MX, MY, MZ } = this.grid;
+        const { N, grid, periodic, propagator } = this;
+        const { MX, MY, MZ } = grid;
 
         while (this.stacksize > 0) {
             const i1 = this.stack[this.stacksize - 2];
@@ -232,7 +223,7 @@ export abstract class WFCNode extends Branch {
                 y1 = ~~((i1 % (MX * MY)) / MX),
                 z1 = ~~(i1 / (MX * MY));
 
-            for (let d = 0; d < this.propagator.length; d++) {
+            for (let d = 0; d < propagator.length; d++) {
                 const dx = WFCNode.DX[d],
                     dy = WFCNode.DY[d],
                     dz = WFCNode.DZ[d];
@@ -240,7 +231,7 @@ export abstract class WFCNode extends Branch {
                     y2 = y1 + dy,
                     z2 = z1 + dz;
                 if (
-                    !this.periodic &&
+                    !periodic &&
                     (x2 < 0 ||
                         y2 < 0 ||
                         z2 < 0 ||
@@ -258,7 +249,7 @@ export abstract class WFCNode extends Branch {
                 else if (z2 >= MZ) z2 -= MZ;
 
                 const i2 = x2 + y2 * MX + z2 * MX * MY;
-                const p = this.propagator[d][p1];
+                const p = propagator[d][p1];
 
                 for (let l = 0; l < p.length; l++) {
                     const t2 = p[l];
@@ -287,7 +278,6 @@ export abstract class WFCNode extends Branch {
         wave.sumsOfOnes[i] -= 1;
         if (this.shannon) {
             let sum = wave.sumsOfWeights[i];
-
             wave.entropies[i] +=
                 wave.sumsOfWeightLogWeights[i] / sum - Math.log(sum);
 
@@ -317,10 +307,10 @@ class Wave {
     readonly entropies: Float64Array;
 
     constructor(length: number, P: number, D: number, shannon: boolean) {
-        this.data = new BoolArray2D(length, P);
+        this.data = new BoolArray2D(P, length);
         this.data.fill();
 
-        this.compatible = new Array3D((l) => new Int32Array(l), length, P, D);
+        this.compatible = new Array3D(Int32Array, D, P, length);
         this.compatible.arr.fill(-1);
 
         this.sumsOfOnes = new Int32Array(length);
@@ -345,7 +335,6 @@ class Wave {
         for (let i = 0; i < this.data.ROWS; i++) {
             for (let p = 0; p < P; p++) {
                 for (let d = 0; d < propagator.length; d++) {
-                    // TODO: is this correct
                     this.compatible.set(
                         d,
                         p,
@@ -354,31 +343,24 @@ class Wave {
                     );
                 }
             }
+        }
 
-            if (shannon) {
-                this.sumsOfWeights[i] = sumOfWeights;
-                this.sumsOfWeightLogWeights[i] = sumOfWeightLogWeights;
-                this.entropies[i] = startingEntropy;
-            }
+        this.sumsOfOnes.fill(P);
+        if (shannon) {
+            this.sumsOfWeights.fill(sumOfWeights);
+            this.sumsOfWeightLogWeights.fill(sumOfWeightLogWeights);
+            this.entropies.fill(startingEntropy);
         }
     }
 
-    public copyFrom(wave: Wave, D: number, shannon: boolean) {
-        for (let i = 0; i < this.data.ROWS; i++) {
-            for (let t = 0; t < this.data.COLS; t++) {
-                this.data.set(t, i, wave.data.get(t, i));
-                for (let d = 0; d < D; d++) {
-                    this.compatible.set(d, t, i, wave.compatible.get(d, t, i));
-                }
-            }
-
-            this.sumsOfOnes[i] = wave.sumsOfOnes[i];
-
-            if (shannon) {
-                this.sumsOfWeights[i] = wave.sumsOfWeights[i];
-                this.sumsOfWeightLogWeights[i] = wave.sumsOfWeightLogWeights[i];
-                this.entropies[i] = wave.entropies[i];
-            }
+    public copyFrom(other: Wave, shannon: boolean) {
+        this.data.copy(other.data);
+        this.compatible.copy(other.compatible);
+        this.sumsOfOnes.set(other.sumsOfOnes);
+        if (shannon) {
+            this.sumsOfWeights.set(other.sumsOfWeights);
+            this.sumsOfWeightLogWeights.set(other.sumsOfWeightLogWeights);
+            this.entropies.set(other.entropies);
         }
     }
 

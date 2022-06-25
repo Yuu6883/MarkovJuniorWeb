@@ -1,4 +1,4 @@
-import seedrandom from "seedrandom";
+import { alea } from "seedrandom";
 import { Grid } from "../grid";
 import { Array2D } from "../helpers/datastructures";
 import { Graphics } from "../helpers/graphics";
@@ -8,7 +8,8 @@ import { SymmetryHelper } from "../helpers/symmetry";
 import { WFCNode } from "./";
 
 export class OverlapNode extends WFCNode {
-    private patterns: Uint8Array[];
+    private patterns: Array2D<Uint8Array>;
+    private votes: Array2D<Int32Array>;
 
     protected override async load(
         elem: Element,
@@ -33,14 +34,15 @@ export class OverlapNode extends WFCNode {
             return false;
         }
 
-        const periodicInput = elem.getAttribute("periodicInput") === "True";
+        // Default to true
+        const periodicInput = !(elem.getAttribute("periodicInput") === "False");
 
         this.newgrid = Grid.build(elem, grid.MX, grid.MY, grid.MZ);
         if (!this.newgrid) return false;
         this.periodic = true;
 
         this.name = elem.getAttribute("sample");
-        const [bitmap, SMX, SMY] = Graphics.loadBitmap(
+        const [bitmap, SMX, SMY] = await Graphics.loadBitmap(
             `resources/samples/${this.name}.png`
         );
         if (!bitmap) {
@@ -73,10 +75,12 @@ export class OverlapNode extends WFCNode {
             pattern((x, y) => p[N - 1 - x + y * N]);
 
         const CLong = BigInt(C);
-        const patternFromIndex = (ind: bigint) => {
+        const patternFromIndex = (
+            ind: bigint,
+            result = new Uint8Array(N * N)
+        ) => {
             let residue = ind,
                 power = BigInt(W);
-            const result = new Uint8Array(N * N);
             for (let i = 0; i < result.length; i++) {
                 power /= CLong;
                 let count = 0;
@@ -92,12 +96,13 @@ export class OverlapNode extends WFCNode {
         const weights: Map<bigint, number> = new Map();
         const ordering: bigint[] = [];
 
-        let ymax = periodicInput ? grid.MY : grid.MY - N + 1;
-        let xmax = periodicInput ? grid.MX : grid.MX - N + 1;
+        const ymax = periodicInput ? grid.MY : grid.MY - N + 1;
+        const xmax = periodicInput ? grid.MX : grid.MX - N + 1;
+
+        const ps: Uint8Array[] = Array.from({ length: 8 });
+
         for (let y = 0; y < ymax; y++)
             for (let x = 0; x < xmax; x++) {
-                const ps: Uint8Array[] = Array.from({ length: 8 });
-
                 ps[0] = patternFromSample(x, y);
                 ps[1] = reflect(ps[0]);
                 ps[2] = rotate(ps[0]);
@@ -112,8 +117,9 @@ export class OverlapNode extends WFCNode {
                         const ind = Helper.indexByteArr(ps[k], CLong);
 
                         const w = weights.get(ind);
-                        if (w !== null) weights.set(ind, w + 1);
-                        else {
+                        if (w !== undefined) {
+                            weights.set(ind, w + 1);
+                        } else {
                             weights.set(ind, 1);
                             ordering.push(ind);
                         }
@@ -123,13 +129,13 @@ export class OverlapNode extends WFCNode {
         const P = (this.P = weights.size);
         console.log(`number of patterns P = ${P}`);
 
-        this.patterns = new Array(P);
-        super.weights = new Float64Array(P);
+        this.patterns = new Array2D(Uint8Array, N * N, P);
+        this.weights = new Float64Array(P);
         let counter = 0;
 
         for (const w of ordering) {
-            this.patterns[counter] = patternFromIndex(w);
-            super.weights[counter] = weights[Number(w)];
+            patternFromIndex(w, this.patterns.row(counter));
+            this.weights[counter] = weights.get(w);
             counter++;
         }
 
@@ -158,8 +164,8 @@ export class OverlapNode extends WFCNode {
                 for (let t2 = 0; t2 < P; t2++)
                     if (
                         agrees(
-                            this.patterns[t],
-                            this.patterns[t2],
+                            this.patterns.row(t),
+                            this.patterns.row(t2),
                             OverlapNode.DX[d],
                             OverlapNode.DY[d]
                         )
@@ -180,7 +186,7 @@ export class OverlapNode extends WFCNode {
                 .map((s) => this.newgrid.values.get(s.charCodeAt(0)));
             const position = new Uint8Array(
                 Array.from({ length: P }, (_, k) =>
-                    outputs.includes(this.patterns[k][0]) ? 1 : 0
+                    outputs.includes(this.patterns.get(0, k)) ? 1 : 0
                 )
             );
             this.map.set(grid.values.get(input), position);
@@ -190,26 +196,34 @@ export class OverlapNode extends WFCNode {
             this.map.set(0, new Uint8Array(new Array(P).fill(1)));
         }
 
-        return await super.load(elem, parentSymmetry, grid);
-    }
-
-    protected override updateState() {
-        const { newgrid, wave, patterns, P, N } = this;
-        const { MX, MY } = newgrid;
-        const votes = new Array2D(
+        this.votes = new Array2D(
             Int32Array,
-            newgrid.state.length,
-            newgrid.C,
+            this.newgrid.C,
+            this.newgrid.state.length,
             0
         );
 
-        for (let i = 0; i < wave.data.ROWS; i++) {
-            const w = wave.data[i];
-            let x = i % MX,
-                y = i / MX;
-            for (let p = 0; p < P; p++)
-                if (w[p]) {
-                    const pattern = patterns[p];
+        return await super.load(elem, parentSymmetry, grid);
+    }
+
+    // No idea why this is x20 slower than C# (2000ms vs 100ms, WaveFlower)
+    protected override updateState() {
+        const { newgrid, wave, patterns, P, N, votes } = this;
+        const { MX, MY } = newgrid;
+
+        const buf = votes.arr;
+        const rows = votes.ROWS;
+        const cols = votes.COLS;
+
+        buf.fill(0);
+
+        const drows = wave.data.ROWS;
+        for (let p = 0; p < P; p++) {
+            const pattern = patterns.row(p);
+            for (let i = 0; i < drows; i++) {
+                const x = i % MX,
+                    y = ~~(i / MX);
+                if (wave.data.get(p, i)) {
                     for (let dy = 0; dy < N; dy++) {
                         let ydy = y + dy;
                         if (ydy >= MY) ydy -= MY;
@@ -217,19 +231,23 @@ export class OverlapNode extends WFCNode {
                             let xdx = x + dx;
                             if (xdx >= MX) xdx -= MX;
                             const value = pattern[dx + dy * N];
-                            votes.row(value)[xdx + ydy * MX]++;
+                            buf[value + (xdx + ydy * MX) * cols]++;
                         }
                     }
                 }
+            }
         }
 
-        const rng = seedrandom();
-        for (let i = 0; i < votes.ROWS; i++) {
+        const rng = alea();
+
+        for (let i = 0; i < rows; i++) {
             let max = -1.0;
             let argmax = 0xff;
-            const v = votes.row(i);
-            for (let c = 0; c < v.length; c++) {
-                let value = v[c] + 0.1 * rng.double();
+
+            const offset = i * cols;
+
+            for (let c = 0; c < cols; c++) {
+                const value = buf[offset + c] + 0.1 * rng.double();
                 if (value > max) {
                     argmax = c;
                     max = value;
