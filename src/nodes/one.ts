@@ -8,6 +8,8 @@ import { Rule } from "../rule";
 
 import { RuleNode } from "./";
 
+const INVALID: [number, number, number, number] = [-1, -1, -1, -1];
+
 export class OneNode extends RuleNode {
     protected override async load(
         elem: Element,
@@ -15,7 +17,7 @@ export class OneNode extends RuleNode {
         grid: Grid
     ) {
         if (!(await super.load(elem, parentSymmetry, grid))) return false;
-        this.matches = [];
+        this.matches = new Uint32Array(1024);
         this.matchMask = new BoolArray2D(this.rules.length, grid.state.length);
         this.matchMask.clear();
         return true;
@@ -52,7 +54,6 @@ export class OneNode extends RuleNode {
                         if (newValue !== oldValue) {
                             grid.state[si] = newValue;
                             changes.push([sx, sy, sz]);
-                            // console.log(`[${[sx, sy, sz].join(", ")}]`);
                         }
                     }
                 }
@@ -79,8 +80,8 @@ export class OneNode extends RuleNode {
         }
     }
 
-    randomMatch(rng: PRNG): [number, number, number, number] {
-        const grid = this.grid;
+    randomMatch(rng: PRNG): Uint32Array | [number, number, number, number] {
+        const { grid, matchMask, matches } = this;
 
         if (this.potentials) {
             if (
@@ -88,7 +89,7 @@ export class OneNode extends RuleNode {
                 Observation.IsGoalReached(grid.state, this.future)
             ) {
                 this.futureComputed = false;
-                return [-1, -1, -1, -1];
+                return INVALID;
             }
             let max = -1000;
             let argmax = -1;
@@ -97,14 +98,19 @@ export class OneNode extends RuleNode {
             let firstHeuristicComputed = false;
 
             for (let k = 0; k < this.matchCount; k++) {
-                const [r, x, y, z] = this.matches[k];
+                const offset0 = k << 2;
+                const [r, x, y, z] = this.matches.subarray(
+                    offset0,
+                    offset0 + 4
+                );
                 let i = x + y * grid.MX + z * grid.MX * grid.MY;
                 if (!grid.matches(this.rules[r], x, y, z)) {
                     this.matchMask.set(i, r, false);
-                    for (let j = 0; j < 4; j++)
-                        this.matches[k][j] =
-                            this.matches[this.matchCount - 1][j];
                     this.matchCount--;
+
+                    const offset1 = this.matchCount << 2;
+                    this.matches.copyWithin(offset0, offset1, offset1 + 4);
+
                     k--;
                 } else {
                     const heuristic = Field.deltaPointwise(
@@ -140,24 +146,26 @@ export class OneNode extends RuleNode {
                     }
                 }
             }
-            return argmax >= 0 ? this.matches[argmax] : [-1, -1, -1, -1];
+            return argmax >= 0
+                ? this.matches.subarray(argmax << 2, (argmax << 2) + 4)
+                : INVALID;
         } else {
             while (this.matchCount > 0) {
                 const matchIndex = range(rng, this.matchCount);
+                const offset0 = matchIndex << 2;
 
-                const [r, x, y, z] = this.matches[matchIndex];
+                const [r, x, y, z] = matches.subarray(offset0, offset0 + 4);
                 const i = x + y * grid.MX + z * grid.MX * grid.MY;
 
-                this.matchMask.set(i, r, false);
-                // NEED TO DEEP COPY
-                for (let j = 0; j < 4; j++)
-                    this.matches[matchIndex][j] =
-                        this.matches[this.matchCount - 1][j];
+                matchMask.set(i, r, false);
                 this.matchCount--;
+
+                const offset1 = this.matchCount << 2;
+                this.matches.copyWithin(offset0, offset1, offset1 + 4);
 
                 if (grid.matches(this.rules[r], x, y, z)) return [r, x, y, z];
             }
-            return [-1, -1, -1, -1];
+            return INVALID;
         }
     }
 }

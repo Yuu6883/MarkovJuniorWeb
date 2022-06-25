@@ -11,7 +11,7 @@ export class AllNode extends RuleNode {
         grid: Grid
     ) {
         if (!(await super.load(elem, parentSymmetry, grid))) return false;
-        this.matches = [];
+        this.matches = new Uint32Array(1024);
         this.matchMask = new BoolArray2D(this.rules.length, grid.state.length);
         this.matchMask.clear();
         return true;
@@ -82,7 +82,8 @@ export class AllNode extends RuleNode {
 
             const list: [number, number][] = [];
             for (let m = 0; m < this.matchCount; m++) {
-                const [r, x, y, z] = this.matches[m];
+                const o = m << 2;
+                const [r, x, y, z] = this.matches.subarray(o, o + 4);
                 const heuristic = Field.deltaPointwise(
                     grid.state,
                     this.rules[r],
@@ -116,7 +117,8 @@ export class AllNode extends RuleNode {
             }
             list.sort(([, a], [, b]) => b - a);
             for (const [k, _] of list) {
-                const [r, x, y, z] = this.matches[k];
+                const o = k << 2;
+                const [r, x, y, z] = this.matches.subarray(o, o + 4);
                 this.matchMask.set(x + y * MX + z * MX * MY, r, false);
                 this.fit(r, x, y, z, grid.mask, MX, MY);
             }
@@ -124,7 +126,8 @@ export class AllNode extends RuleNode {
             const shuffle = new Int32Array(this.matchCount);
             Helper.shuffleFill(shuffle, this.ip.rng);
             for (const k of shuffle) {
-                const [r, x, y, z] = this.matches[k];
+                const o = k << 2;
+                const [r, x, y, z] = this.matches.subarray(o, o + 4);
                 this.matchMask.set(x + y * MX + z * MX * MY, r, false);
                 this.fit(r, x, y, z, grid.mask, MX, MY);
             }

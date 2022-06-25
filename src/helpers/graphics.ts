@@ -55,18 +55,15 @@ export class Graphics {
     ) {
         const img = new ImageData(MX, MY);
 
-        for (let y = 0; y < MY; y++)
-            for (let x = 0; x < MX; x++) {
-                const offset = x + y * MX;
-                const color = colors[state[offset]];
-                img.data.set(color, offset << 2);
-            }
+        const total = MX * MY;
+        for (let offset = 0; offset < total; offset++) {
+            img.data.set(colors[state[offset]], offset << 2);
+        }
 
         if (debugNode) {
-            for (const [, x, y] of debugNode.matches.slice(
-                0,
-                debugNode.matchCount
-            )) {
+            for (let i = 0; i < debugNode.matchCount; i++) {
+                const o = i << 2;
+                const [x, y] = debugNode.matches.subarray(o + 1, o + 3);
                 const offset = x + y * MX;
                 img.data.set(RED, offset << 2);
             }

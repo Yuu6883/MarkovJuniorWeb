@@ -18,8 +18,7 @@ export abstract class RuleNode extends Node {
     public counter: number;
     public steps: number;
 
-    // TODO: can be optimized to Int32Array
-    public matches: [number, number, number, number][];
+    public matches: Uint32Array;
     public matchCount: number;
     protected lastMatchedTurn: number;
     protected matchMask: BoolArray2D;
@@ -169,12 +168,22 @@ export abstract class RuleNode extends Node {
         maskr.set(x + y * this.grid.MX + z * this.grid.MX * this.grid.MY, true);
 
         // Reuse array
-        if (this.matchCount < this.matches.length) {
-            this.matches[this.matchCount][0] = r;
-            this.matches[this.matchCount][1] = x;
-            this.matches[this.matchCount][2] = y;
-            this.matches[this.matchCount][3] = z;
-        } else this.matches.push([r, x, y, z]);
+        const offset = this.matchCount << 2;
+        if (offset + 4 < this.matches.length) {
+            this.matches[offset + 0] = r;
+            this.matches[offset + 1] = x;
+            this.matches[offset + 2] = y;
+            this.matches[offset + 3] = z;
+        } else {
+            // Realloc
+            const old = this.matches;
+            this.matches = new Uint32Array((old.length + 4) << 1);
+            this.matches.set(old);
+            this.matches[offset + 0] = r;
+            this.matches[offset + 1] = x;
+            this.matches[offset + 2] = y;
+            this.matches[offset + 3] = z;
+        }
         this.matchCount++;
     }
 
