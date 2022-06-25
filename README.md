@@ -1,5 +1,6 @@
 # WIP
-Very few models work for now, due to my buggy port of 5,000 lines of code in 3 days.
+Most 2D models should work now; only **wfc** node with tileset (TileNode class) is still being implemented.
+Not sure about 3D models since **VoxHelper.save** is not implemented yet.
 
 **Contribution would be appreciated** 🙏
 
