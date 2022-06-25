@@ -2,13 +2,13 @@ import { PRNG } from "seedrandom";
 import { Field } from "../field";
 import { Grid } from "../grid";
 import { BoolArray2D } from "../helpers/datastructures";
-import { range } from "../helpers/helper";
+import { range, vec4 } from "../helpers/helper";
 import { Observation } from "../observation";
 import { Rule } from "../rule";
 
 import { RuleNode } from "./";
 
-const INVALID: [number, number, number, number] = [-1, -1, -1, -1];
+const INVALID: vec4 = [-1, -1, -1, -1];
 
 export class OneNode extends RuleNode {
     protected override async load(
@@ -80,7 +80,7 @@ export class OneNode extends RuleNode {
         }
     }
 
-    randomMatch(rng: PRNG): Uint32Array | [number, number, number, number] {
+    randomMatch(rng: PRNG): Uint32Array | vec4 {
         const { grid, matchMask, matches } = this;
 
         if (this.potentials) {

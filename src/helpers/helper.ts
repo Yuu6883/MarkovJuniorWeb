@@ -148,3 +148,4 @@ export class Helper {
 export const range = (rng: PRNG, upper: number) => Math.floor(rng() * upper);
 
 export type vec3 = [number, number, number];
+export type vec4 = [number, number, number, number];

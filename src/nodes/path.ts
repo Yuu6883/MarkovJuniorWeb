@@ -1,6 +1,6 @@
 import seedrandom, { PRNG } from "seedrandom";
 import { Grid } from "../grid";
-import { Helper, vec3 } from "../helpers/helper";
+import { Helper, vec3, vec4 } from "../helpers/helper";
 
 import { Node } from "./";
 
@@ -35,7 +35,7 @@ export class PathNode extends Node {
     public override run() {
         const { grid, substrate, start, finish, edges, vertices } = this;
 
-        const queue: [number, number, number, number][] = [];
+        const queue: vec4[] = [];
         const startPositions: vec3[] = [];
         const generations = new Int32Array(grid.state.length);
         generations.fill(-1);
