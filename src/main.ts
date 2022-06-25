@@ -126,6 +126,16 @@ export class Program {
                 parseInt(emodel.getAttribute("steps")) ||
                 50000;
 
+            const customPalette = new Map(Program.palette.entries());
+            for (const ec of Helper.collectionIter(
+                emodel.getElementsByTagName("color")
+            )) {
+                customPalette.set(
+                    ec.getAttribute("symbol").charAt(0),
+                    Helper.hex2rgba(ec.getAttribute("value"))
+                );
+            }
+
             let rendered = 0;
 
             const start = performance.now();
@@ -144,7 +154,7 @@ export class Program {
 
                 const colors = legend
                     .split("")
-                    .map((c) => Program.palette.get(c));
+                    .map((c) => customPalette.get(c));
                 if (FZ === 1 || iso) {
                     await Graphics.renderBitmap(
                         result,
@@ -162,7 +172,7 @@ export class Program {
             }
 
             const [result, legend, FX, FY, FZ] = interpreter.final();
-            const colors = legend.split("").map((c) => Program.palette.get(c));
+            const colors = legend.split("").map((c) => customPalette.get(c));
             if (FZ === 1) {
                 await Graphics.renderBitmap(
                     result,
