@@ -16,6 +16,8 @@ export class TileNode extends WFCNode {
     private overlap: number;
     private overlapz: number;
 
+    private votes: Array2D<Uint32Array>;
+
     protected override async load(
         elem: Element,
         parentSymmetry: Uint8Array,
@@ -64,6 +66,8 @@ export class TileNode extends WFCNode {
             (SZ - overlapz) * grid.MZ + overlapz
         );
         if (!this.newgrid) return false;
+
+        this.votes = new Array2D(Uint32Array, S * S * SZ, this.newgrid.C, 0);
 
         this.tiledata = [];
         const positions: Map<string, Uint8Array> = new Map();
@@ -161,7 +165,7 @@ export class TileNode extends WFCNode {
             this.map.set(0, new Uint8Array(new Array(P).fill(1)));
         }
 
-        const tempPropagator = new BoolArray3D(6, P, P, false);
+        const tempPropagator = new BoolArray3D(P, P, 6, false);
 
         const index = (p: Uint8Array) => {
             for (let i = 0; i < this.tiledata.length; i++)
@@ -398,9 +402,9 @@ export class TileNode extends WFCNode {
         this.propagator = Array.from({ length: 6 }, (_, d) =>
             Array.from({ length: P }, (_, p1) => {
                 const sp = sparsePropagator[d][p1];
-                const tp = tempPropagator[d][p1];
 
-                for (let p2 = 0; p2 < P; p2++) if (tp[p2]) sp.push(p2);
+                for (let p2 = 0; p2 < P; p2++)
+                    if (tempPropagator.get(sp.length, p1, d)) sp.push(p2);
                 return new Int32Array(sp);
             })
         );
@@ -410,10 +414,18 @@ export class TileNode extends WFCNode {
 
     protected override updateState() {
         const rng = seedrandom();
-        const { newgrid, grid, wave, S, SZ, P, tiledata, overlap, overlapz } =
-            this;
-
-        const votes = new Array2D(Int32Array, S * S * SZ, newgrid.C, 0);
+        const {
+            newgrid,
+            grid,
+            wave,
+            S,
+            SZ,
+            P,
+            tiledata,
+            overlap,
+            overlapz,
+            votes,
+        } = this;
 
         for (let z = 0; z < grid.MZ; z++)
             for (let y = 0; y < grid.MY; y++)
@@ -430,12 +442,8 @@ export class TileNode extends WFCNode {
                             for (let dz = 0; dz < SZ; dz++)
                                 for (let dy = 0; dy < S; dy++)
                                     for (let dx = 0; dx < S; dx++) {
-                                        let di = dx + dy * S + dz * S * S;
-                                        votes.set(
-                                            tile[di],
-                                            di,
-                                            votes.get(tile[di], di) + 1
-                                        );
+                                        const di = dx + dy * S + dz * S * S;
+                                        votes.incre(tile[di], di);
                                     }
                         }
 
@@ -444,11 +452,9 @@ export class TileNode extends WFCNode {
                             for (let dx = 0; dx < S; dx++) {
                                 const v = votes.row(dx + dy * S + dz * S * S);
                                 let max = -1.0;
-                                //let max = -1;
                                 let argmax = 0xff;
                                 for (let c = 0; c < v.length; c++) {
-                                    //let vote = v[c];
-                                    let vote = v[c] + 0.1 * rng.double();
+                                    const vote = v[c] + 0.1 * rng.double();
                                     if (vote > max) {
                                         argmax = c;
                                         max = vote;
