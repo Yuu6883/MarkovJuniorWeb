@@ -28,6 +28,7 @@ export class Field {
     }
 
     public compute(potential: Int32Array, grid: Grid) {
+        const { zero, substrate } = this;
         const { MX, MY, MZ, state } = grid;
         const queue: vec4[] = [];
 
@@ -37,7 +38,7 @@ export class Field {
         for (let i = 0; i < state.length; i++) {
             potential[i] = -1;
             const value = state[i];
-            if (this.zero & (1 << value)) {
+            if (zero & (1 << value)) {
                 potential[i] = 0;
                 queue.push([0, ix, iy, iz]);
             }
@@ -59,7 +60,7 @@ export class Field {
             Field.neighbors(x, y, z, MX, MY, MZ, (nx, ny, nz) => {
                 const i = nx + ny * MX + nz * MX * MY;
                 const value = state[i];
-                if (potential[i] === -1 && this.substrate & (1 << value)) {
+                if (potential[i] === -1 && substrate & (1 << value)) {
                     queue.push([t + 1, nx, ny, nz]);
                     potential[i] = t + 1;
                 }
