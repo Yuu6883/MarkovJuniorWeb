@@ -25,8 +25,9 @@ export const Main = async () => {
 
     const qs = new URLSearchParams(location.search);
     const modelStr = qs.get("model") || "Growth";
-    const speed = parseInt(qs.get("speed")) || 100;
+    const speed = parseInt(qs.get("speed")) || 1;
     const delay = parseInt(qs.get("delay")) || 0;
+    const overwriteSteps = parseInt(qs.get("steps")) || 0;
 
     for (const emodel of Helper.collectionIter(doc.querySelectorAll("model"))) {
         const name = emodel.getAttribute("name");
@@ -62,7 +63,8 @@ export const Main = async () => {
         // const gif = emodel.getAttribute("gif") === "True";
         const gif = true;
         const iso = emodel.getAttribute("iso") === "True";
-        const steps = parseInt(emodel.getAttribute("steps")) || 50000;
+        const steps =
+            overwriteSteps || parseInt(emodel.getAttribute("steps")) || 50000;
 
         // const gui = parseInt(emodel.getAttribute("gui")) || 0;
         const gui = true;
