@@ -56,33 +56,34 @@ export class Field {
         if (!queue.length) return false;
         while (queue.length) {
             const [t, x, y, z] = queue.shift();
-            for (const [nx, ny, nz] of Field.neighbors(x, y, z, MX, MY, MZ)) {
+            Field.neighbors(x, y, z, MX, MY, MZ, (nx, ny, nz) => {
                 const i = nx + ny * MX + nz * MX * MY;
                 const value = state[i];
                 if (potential[i] === -1 && this.substrate & (1 << value)) {
                     queue.push([t + 1, nx, ny, nz]);
                     potential[i] = t + 1;
                 }
-            }
+            });
         }
 
         return true;
     }
 
-    static *neighbors(
+    static neighbors(
         x: number,
         y: number,
         z: number,
         MX: number,
         MY: number,
-        MZ: number
+        MZ: number,
+        cb: (nx: number, ny: number, nz: number) => void
     ) {
-        if (x > 0) yield [x - 1, y, z];
-        if (x < MX - 1) yield [x + 1, y, z];
-        if (y > 0) yield [x, y - 1, z];
-        if (y < MY - 1) yield [x, y + 1, z];
-        if (z > 0) yield [x, y, z - 1];
-        if (z < MZ - 1) yield [x, y, z + 1];
+        if (x > 0) cb(x - 1, y, z);
+        if (x < MX - 1) cb(x + 1, y, z);
+        if (y > 0) cb(x, y - 1, z);
+        if (y < MY - 1) cb(x, y + 1, z);
+        if (z > 0) cb(x, y, z - 1);
+        if (z < MZ - 1) cb(x, y, z + 1);
     }
 
     static deltaPointwise(
