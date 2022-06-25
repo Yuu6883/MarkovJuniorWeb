@@ -14,7 +14,6 @@ const ControlPanel = ({
 }) => {
     const [prog, setProg] = useState(Program.init(null));
     const [speed, setSpeed] = useState(0);
-    const [params, setParams] = useState<ProgramParams>({});
     const [running, setRunning] = useState(false);
 
     useEffect(() => {
@@ -63,7 +62,7 @@ const ControlPanel = ({
                             disabled={prog.dimension === 3}
                             onClick={() => (
                                 prog
-                                    .start(params)
+                                    .start({ speed })
                                     .then(
                                         (result) => result && setRunning(false)
                                     ),

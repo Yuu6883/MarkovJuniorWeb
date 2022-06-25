@@ -11,6 +11,7 @@ const frame = (n = 0) =>
 
 export interface ProgramParams {
     steps?: number;
+    speed?: number;
 }
 
 export class Program {
@@ -97,6 +98,7 @@ export class Program {
 
         const start = async (params: ProgramParams) => {
             stop = false;
+            setSpeed(params.speed);
 
             const overwriteSteps = params.steps || 0;
 
