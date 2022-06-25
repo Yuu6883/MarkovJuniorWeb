@@ -10,8 +10,6 @@ const frame = (n = 0) =>
     );
 
 export interface ProgramParams {
-    speed?: number;
-    delay?: number;
     steps?: number;
 }
 
@@ -84,11 +82,22 @@ export class Program {
             return abortPromise;
         };
 
+        let speed = 1;
+        let delay = 0;
+
+        const setSpeed = (n: number) => {
+            if (n <= 0) {
+                speed = 0;
+                delay = Math.abs(n);
+            } else {
+                speed = ~~n;
+                delay = 0;
+            }
+        };
+
         const start = async (params: ProgramParams) => {
             stop = false;
 
-            const speed = params.speed || 1;
-            const delay = params.delay || 0;
             const overwriteSteps = params.steps || 0;
 
             const path = `models/${name}.xml`;
@@ -176,6 +185,6 @@ export class Program {
             return { time: end - start };
         };
 
-        return { name, dimension, MX, MY, MZ, abort, start };
+        return { name, dimension, MX, MY, MZ, abort, start, setSpeed };
     }
 }
