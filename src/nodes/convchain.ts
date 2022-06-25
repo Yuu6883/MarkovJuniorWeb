@@ -29,7 +29,7 @@ export class ConvChainNode extends Node {
         const name = elem.getAttribute("sample");
         const filename = `resources/samples/${name}.png`;
 
-        const result = Graphics.loadBitmap(filename);
+        const result = await Graphics.loadBitmap(filename);
 
         const bitmap = result[0];
         this.SMX = result[1];
