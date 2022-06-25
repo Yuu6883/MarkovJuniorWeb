@@ -36,6 +36,7 @@ const ControlPanel = ({
                         ? `${prog.MX}x${prog.MY}x${prog.MZ}`
                         : `${prog.MX}x${prog.MY}`}
                 </p>
+                {prog.dimension === 3 && <p>3D models not implemented yet</p>}
                 {running ? (
                     <button
                         onClick={() =>
