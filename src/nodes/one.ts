@@ -18,7 +18,7 @@ export class OneNode extends RuleNode {
     ) {
         if (!(await super.load(elem, parentSymmetry, grid))) return false;
         this.matches = new Uint32Array(1024);
-        this.matchMask = new BoolArray2D(this.rules.length, grid.state.length);
+        this.matchMask = new BoolArray2D(grid.state.length, this.rules.length);
         this.matchMask.clear();
         return true;
     }

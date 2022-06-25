@@ -53,7 +53,8 @@ export class BoolArray2D {
 
     get(x: number, y: number) {
         const offset = y * this.MX + x;
-        return ((this.buf[~~(offset / 8)] >>> offset % 8) & 1) === 1;
+        const mask = 1 << offset % 8;
+        return Boolean(this.buf[offset >>> 3] & mask);
     }
 
     set(x: number, y: number, value: boolean) {
