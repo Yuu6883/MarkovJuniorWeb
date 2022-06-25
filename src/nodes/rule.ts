@@ -86,7 +86,7 @@ export abstract class RuleNode extends Node {
         this.rules = ruleList.concat([]);
         this.last = new Uint8Array(rules.length);
 
-        console.log(`RuleNode has ${this.rules.length} rules`);
+        // console.log(`RuleNode has ${this.rules.length} rules`);
 
         this.steps = parseInt(elem.getAttribute("steps")) || 0;
         this.temperature = parseFloat(elem.getAttribute("temperature")) || 0;
@@ -108,7 +108,7 @@ export abstract class RuleNode extends Node {
                 grid.C
             );
             this.potentials.fill(0);
-            console.log(`RuleNode has ${this.fields.length} fields`);
+            // console.log(`RuleNode has ${this.fields.length} fields`);
         }
 
         const eobs = Helper.collectionToArr(
@@ -142,9 +142,9 @@ export abstract class RuleNode extends Node {
             }
             this.future = new Int32Array(grid.state.length);
 
-            console.log(
-                `RuleNode has ${this.observations.length} observations`
-            );
+            // console.log(
+            //     `RuleNode has ${this.observations.length} observations`
+            // );
         }
 
         return true;

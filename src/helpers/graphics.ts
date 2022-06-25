@@ -4,13 +4,11 @@ const RED = new Uint8ClampedArray([255, 0, 0]);
 
 export class Graphics {
     private static canvas: HTMLCanvasElement;
-    private static ctx: ImageBitmapRenderingContext;
+    private static ctx: CanvasRenderingContext2D;
 
     static init(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
-        this.ctx = canvas.getContext("bitmaprenderer", {
-            alpha: false,
-        });
+        this.ctx = canvas.getContext("2d", {});
     }
 
     static async loadBitmap(
@@ -78,13 +76,19 @@ export class Graphics {
 
             this.canvas.style.width = `${w}px`;
             this.canvas.style.height = `${h}px`;
-            this.ctx?.transferFromImageBitmap(
+            this.ctx?.drawImage(
                 await createImageBitmap(img, {
                     resizeWidth: w,
                     resizeHeight: h,
                     resizeQuality: "pixelated",
-                })
+                }),
+                0,
+                0
             );
         }
+    }
+
+    static clear() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
 }
