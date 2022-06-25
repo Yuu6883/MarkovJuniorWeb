@@ -86,13 +86,23 @@ export class ConvChainNode extends Node {
     public override run() {
         if (this.steps > 0 && this.counter >= this.steps) return false;
 
-        const { grid, c0, c1, substrate, ip, N, weights, temperature } = this;
+        const {
+            grid,
+            c0,
+            c1,
+            substrate,
+            ip,
+            N,
+            weights,
+            temperature,
+            substrateColor,
+        } = this;
         const { MX, MY, state } = grid;
 
         if (!this.counter) {
             let anySubstrate = false;
             for (let i = 0; i < substrate.length; i++)
-                if (state[i] == this.substrateColor) {
+                if (state[i] === substrateColor) {
                     state[i] = range(ip.rng, 2) == 0 ? c0 : c1;
                     substrate[i] = 1;
                     anySubstrate = true;
@@ -105,8 +115,8 @@ export class ConvChainNode extends Node {
             let r = range(ip.rng, state.length);
             if (!substrate[r]) continue;
 
-            let x = r % MX,
-                y = r / MX;
+            const x = r % MX,
+                y = ~~(r / MX);
             let q = 1;
 
             for (let sy = y - N + 1; sy <= y + N - 1; sy++)
