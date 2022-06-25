@@ -2,8 +2,8 @@ import { Grid } from "./grid";
 import { Array3Dflat } from "./helpers/datastructures";
 import { Graphics } from "./helpers/graphics";
 import { Helper, vec3 } from "./helpers/helper";
+import { Loader } from "./helpers/loader";
 import { SymmetryHelper } from "./helpers/symmetry";
-import { VoxHelper } from "./helpers/vox";
 
 declare type Shift = vec3[][];
 
@@ -189,7 +189,7 @@ export class Rule {
         }
         const [data, MX, MY, MZ] = d2
             ? await Graphics.loadBitmap(filename)
-            : await VoxHelper.load(filename);
+            : await Loader.vox(filename);
         if (data == null) {
             console.error(`failed to load ${filename}`);
             return [null, MX, MY, MZ];

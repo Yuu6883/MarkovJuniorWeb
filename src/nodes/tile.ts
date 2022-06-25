@@ -4,7 +4,6 @@ import { Array2D, Array3Dflat, BoolArray3D } from "../helpers/datastructures";
 import { Helper } from "../helpers/helper";
 import { Loader } from "../helpers/loader";
 import { SymmetryHelper } from "../helpers/symmetry";
-import { VoxHelper } from "../helpers/vox";
 
 import { WFCNode } from "./";
 
@@ -36,7 +35,7 @@ export class TileNode extends WFCNode {
         const firstFileName = `${tilesname}/${eFirstTile.getAttribute(
             "name"
         )}.vox`;
-        const [firstData, S, SY, SZ] = await VoxHelper.load(
+        const [firstData, S, SY, SZ] = await Loader.vox(
             `resources/tilesets/${firstFileName}`
         );
 
@@ -100,7 +99,7 @@ export class TileNode extends WFCNode {
             const weight = parseFloat(etile.getAttribute("weight")) || 1;
 
             const filename = `resources/tilesets/${tilesname}/${tilename}.vox`;
-            const [vox] = await VoxHelper.load(filename);
+            const [vox] = await Loader.vox(filename);
             if (!vox) {
                 console.error(`Failed to load tile ${filename}`);
                 return false;
