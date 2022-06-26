@@ -104,7 +104,7 @@ export class VoxHelper {
 
         w.buf(voxelBuf.subarray(0, voxels * 4));
 
-        w.utf8("RGBA");
+        w.utf8("RGBA", false, false);
         w.i32(1024);
         w.i32(0);
 
