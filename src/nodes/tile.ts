@@ -145,7 +145,7 @@ export class TileNode extends WFCNode {
             positions.set(tilename, position);
         }
 
-        console.log([...positions.keys()]);
+        // console.log([...positions.keys()]);
 
         const P = (this.P = this.tiledata.length);
         console.log(`P = ${this.P}`);
@@ -153,7 +153,7 @@ export class TileNode extends WFCNode {
 
         this.map = new Map();
         for (const erule of Helper.childrenByTag(elem, "rule")) {
-            console.log(erule);
+            // console.log(erule);
 
             const input = erule.getAttribute("in").charCodeAt(0);
             const outputs = erule.getAttribute("out").split("|");
@@ -201,7 +201,7 @@ export class TileNode extends WFCNode {
 
         const tilenames = etiles.map((x) => x.getAttribute("name"));
         tilenames.push(null);
-        console.log(tilenames);
+        // console.log(tilenames);
 
         for (const en of Helper.matchTags(
             Helper.matchTag(root, "neighbors"),
