@@ -1,12 +1,12 @@
 <models>
-  <!-- <model name="Apartemazements" size="8" d="3" amount="4"/>
+  <model name="Apartemazements" size="8" d="3" amount="4"/>
   <model name="Apartemazements" size="8" d="3" iso="True" pixelsize="6" gui="150"/>
   <model name="CarmaTower" length="12" width="12" height="18"/>
   <model name="CarmaTower" length="12" width="12" height="18" iso="True" amount="1"/>
   <model name="ModernHouse" length="9" width="9" height="4" amount="4"/>
   <model name="ModernHouse" length="9" width="9" height="4" iso="True"/>
   <model name="SeaVilla" length="10" width="10" height="4" amount="4"/>
-  <model name="SeaVilla" length="10" width="10" height="4" iso="True"/> -->
+  <model name="SeaVilla" length="10" width="10" height="4" iso="True"/>
   
   <model name="Island" size="400" steps="-1" pixelsize="1">
     <color symbol="I" value="abcbe8" comment="sea"/>

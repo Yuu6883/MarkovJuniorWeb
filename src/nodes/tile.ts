@@ -202,21 +202,25 @@ export class TileNode extends WFCNode {
 
         const tilenames = etiles.map((x) => x.getAttribute("name"));
         tilenames.push(null);
+        console.log(tilenames);
 
         for (const en of Helper.matchTags(
             Helper.matchTag(root, "neighbors"),
             "neighbor"
         )) {
             if (fullSymmetry) {
-                const left = en.getAttribute("left"),
-                    right = en.getAttribute("right");
+                const left = en.getAttribute("left");
+                const right = en.getAttribute("right");
                 if (
                     !tilenames.includes(last(left)) ||
                     !tilenames.includes(last(right))
                 ) {
                     console.error(
                         en,
-                        `unknown tile ${last(left)} or ${last(right)}`
+                        `unknown tile "${last(left)}" or "${last(
+                            right
+                        )}" ("${left}", "${right}")`,
+                        tilenames
                     );
                     return false;
                 }
@@ -309,7 +313,10 @@ export class TileNode extends WFCNode {
                 ) {
                     console.error(
                         en,
-                        `unknown tile ${last(left)} or ${last(right)}`
+                        `unknown tile "${last(left)}" or "${last(
+                            right
+                        )}" ("${left}", "${right}")`,
+                        tilenames
                     );
                     return false;
                 }
@@ -365,11 +372,14 @@ export class TileNode extends WFCNode {
                 const bottom = en.getAttribute("bottom");
                 if (
                     !tilenames.includes(last(top)) ||
-                    !tilenames.indexOf(last(bottom))
+                    !tilenames.includes(last(bottom))
                 ) {
                     console.error(
                         en,
-                        `unknown tile ${last(top)} or ${last(bottom)}`
+                        `unknown tile "${last(top)}" or "${last(
+                            bottom
+                        )}" ("${top}", "${bottom}")`,
+                        tilenames
                     );
                     return false;
                 }

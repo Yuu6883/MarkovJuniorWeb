@@ -190,7 +190,7 @@ export class Rule {
         const [data, MX, MY, MZ] = d2
             ? await Graphics.loadBitmap(filename)
             : await Loader.vox(filename);
-        if (data == null) {
+        if (data === null) {
             console.error(`failed to load ${filename}`);
             return [null, MX, MY, MZ];
         }
@@ -246,7 +246,7 @@ export class Rule {
             let result = "resources/rules/";
             if (gout.folder != null) result += gout.folder + "/";
             result += name;
-            result += gin.MZ == 1 ? ".png" : ".vox";
+            result += gin.MZ === 1 ? ".png" : ".vox";
             return result;
         };
 
@@ -288,11 +288,10 @@ export class Rule {
                 return null;
             }
 
-            // TODO: gout or gin (source has gin)
             [outRect, OMX, OMY, OMZ] = outString
                 ? this.parse(outString)
                 : await this.loadResource(
-                      filepath(finString),
+                      filepath(foutString),
                       legend,
                       gout.MZ === 1
                   );

@@ -1,3 +1,4 @@
+import { saveAs } from "file-saver";
 import { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Graphics } from "../helpers/graphics";
@@ -15,12 +16,16 @@ const ControlPanel = ({
     const [prog, setProg] = useState(Program.init(null));
     const [speed, setSpeed] = useState(0);
     const [running, setRunning] = useState(false);
+    const [output, setOutput] = useState<{ name: string; buffer: ArrayBuffer }>(
+        null
+    );
 
     useEffect(() => {
         const prog = Program.init(model);
         if (!prog) return close();
 
         setProg(prog);
+        setOutput(null);
         setRunning(false);
 
         return () => void prog.abort();
@@ -42,34 +47,53 @@ const ControlPanel = ({
                             ? `${prog.MX}x${prog.MY}x${prog.MZ}`
                             : `${prog.MX}x${prog.MY}`}
                     </p>
-                    {running ? (
-                        <button
-                            className="danger"
-                            onClick={() =>
-                                prog
-                                    .abort()
-                                    .then(
-                                        (stopped) =>
-                                            stopped && setRunning(false)
+                    <div className="control-buttons">
+                        {running ? (
+                            <button
+                                className="danger"
+                                onClick={() =>
+                                    prog
+                                        .abort()
+                                        .then(
+                                            (stopped) =>
+                                                stopped && setRunning(false)
+                                        )
+                                }
+                            >
+                                stop
+                            </button>
+                        ) : (
+                            <button
+                                onClick={() => {
+                                    prog.start({ speed }).then((result) => {
+                                        if (result) {
+                                            const { time, output } = result;
+                                            setOutput(output);
+                                        }
+                                        setRunning(false);
+                                    });
+
+                                    setOutput(null);
+                                    setRunning(true);
+                                }}
+                            >
+                                start
+                            </button>
+                        )}
+
+                        {output && (
+                            <button
+                                onClick={() =>
+                                    saveAs(
+                                        new Blob([output.buffer]),
+                                        output.name
                                     )
-                            }
-                        >
-                            stop
-                        </button>
-                    ) : (
-                        <button
-                            onClick={() => (
-                                prog
-                                    .start({ speed })
-                                    .then(
-                                        (result) => result && setRunning(false)
-                                    ),
-                                setRunning(true)
-                            )}
-                        >
-                            start
-                        </button>
-                    )}
+                                }
+                            >
+                                Download output
+                            </button>
+                        )}
+                    </div>
                 </div>
                 <div className="speed">
                     <label>Speed</label>

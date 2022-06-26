@@ -306,7 +306,6 @@ export abstract class RuleNode extends Node {
             for (let c = 0; c < this.fields.length; c++) {
                 const field = this.fields[c];
                 if (field && (!this.counter || field.recompute)) {
-                    // TODO: make sure this is right
                     const success = field.compute(this.potentials.row(c), grid);
                     if (!success && field.essential) return false;
                     anysuccess ||= success;

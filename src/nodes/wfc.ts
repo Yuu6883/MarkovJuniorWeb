@@ -218,7 +218,6 @@ export abstract class WFCNode extends Branch {
             const p1 = this.stack[this.stacksize - 1];
             this.stacksize -= 2;
 
-            // TODO: make sure this part is actually correct
             const x1 = i1 % MX,
                 y1 = ~~((i1 % (MX * MY)) / MX),
                 z1 = ~~(i1 / (MX * MY));

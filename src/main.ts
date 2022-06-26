@@ -1,5 +1,4 @@
 import seedrandom from "seedrandom";
-import { saveAs } from "file-saver";
 
 import { Graphics } from "./helpers/graphics";
 import { Helper } from "./helpers/helper";
@@ -141,6 +140,7 @@ export class Program {
             }
 
             let rendered = 0;
+            let output: { name: string; buffer: ArrayBuffer } = null;
 
             const start = performance.now();
             const seed = seeds?.[0] || this.meta.int32();
@@ -187,8 +187,10 @@ export class Program {
                     // interpreter.root.nodes[0] as RuleNode
                 );
             } else {
-                const buf = VoxHelper.serialize(result, MX, MY, MZ, colors);
-                saveAs(new Blob([buf]), `${name}_${seed}.vox`);
+                output = {
+                    name: `${name}_${seed}.vox`,
+                    buffer: VoxHelper.serialize(result, FX, FY, FZ, colors),
+                };
             }
 
             const end = performance.now();
@@ -200,7 +202,7 @@ export class Program {
             );
 
             if (resolveAbort) resolveAbort(false);
-            return { time: end - start };
+            return { time: end - start, output };
         };
 
         return { name, dimension, MX, MY, MZ, abort, start, setSpeed };

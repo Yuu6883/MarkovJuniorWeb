@@ -70,6 +70,12 @@ h1 {
     text-align: center;
 }
 
+.control-buttons {
+    width: 300px;
+    display: flex;
+    justify-content: space-evenly;
+}
+
 button {
     padding: 5px 10px;
     background-color: transparent;
