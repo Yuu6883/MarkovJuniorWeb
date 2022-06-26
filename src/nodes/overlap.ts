@@ -1,8 +1,7 @@
-import { alea, PRNG } from "seedrandom";
 import { Grid } from "../grid";
 import { Array2D } from "../helpers/datastructures";
-import { Graphics } from "../helpers/graphics";
 import { Helper } from "../helpers/helper";
+import { Loader } from "../helpers/loader";
 import { SymmetryHelper } from "../helpers/symmetry";
 
 import { WFCNode } from "./";
@@ -42,7 +41,7 @@ export class OverlapNode extends WFCNode {
         this.periodic = true;
 
         this.name = elem.getAttribute("sample");
-        const [bitmap, SMX, SMY] = await Graphics.loadBitmap(
+        const [bitmap, SMX, SMY] = await Loader.bitmap(
             `resources/samples/${this.name}.png`
         );
         if (!bitmap) {

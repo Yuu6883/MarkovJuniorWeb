@@ -97,6 +97,11 @@ export class Interpreter {
         yield [grid.state, grid.characters, grid.MX, grid.MY, grid.MZ];
     }
 
+    public info(): [string, number, number, number] {
+        const { grid } = this;
+        return [grid.characters, grid.MX, grid.MY, grid.MZ];
+    }
+
     public final(): [Uint8Array, string, number, number, number] {
         const grid = this.grid;
         return [grid.state, grid.characters, grid.MX, grid.MY, grid.MZ];

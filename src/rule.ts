@@ -1,6 +1,5 @@
 import { Grid } from "./grid";
 import { Array3Dflat } from "./helpers/datastructures";
-import { Graphics } from "./helpers/graphics";
 import { Helper, vec3 } from "./helpers/helper";
 import { Loader } from "./helpers/loader";
 import { SymmetryHelper } from "./helpers/symmetry";
@@ -188,7 +187,7 @@ export class Rule {
             return [null, -1, -1, -1];
         }
         const [data, MX, MY, MZ] = d2
-            ? await Graphics.loadBitmap(filename)
+            ? await Loader.bitmap(filename)
             : await Loader.vox(filename);
         if (data === null) {
             console.error(`failed to load ${filename}`);

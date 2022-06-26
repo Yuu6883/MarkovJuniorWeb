@@ -1,86 +1,89 @@
-import { OneNode, RuleNode } from "../nodes";
+export interface Renderer {
+    update(MX: number, MY: number, MZ: number);
+    palette(colors: Uint8ClampedArray[]);
+    render(state: Uint8Array);
+    clear();
+}
 
-const RED = new Uint8ClampedArray([255, 0, 0]);
+export class BitmapRenderer implements Renderer {
+    private MX: number;
+    private MY: number;
+    private colors: Uint8Array;
+    private img: ImageData;
 
-export class Graphics {
-    private static canvas: HTMLCanvasElement;
-    private static ctx: CanvasRenderingContext2D;
+    private readonly canvas: HTMLCanvasElement;
+    private readonly ctx: CanvasRenderingContext2D;
 
-    static init(canvas: HTMLCanvasElement) {
+    constructor(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
-        this.ctx = canvas.getContext("2d", {});
+        this.ctx = canvas.getContext("2d");
     }
 
-    static async loadBitmap(
-        url: string
-    ): Promise<[Int32Array, number, number, number]> {
-        try {
-            const response = await fetch(url);
-            const fileBlob = await response.blob();
-            const bitmap = await createImageBitmap(fileBlob);
+    update(MX: number, MY: number, _: number) {
+        if (this.MX !== MX || this.MY !== MY) {
+            this.MX = MX;
+            this.MY = MY;
+            this.img = new ImageData(MX, MY);
+        }
+    }
 
-            const canvas = document.createElement("canvas");
-
-            canvas.width = bitmap.width;
-            canvas.height = bitmap.height;
-
-            const context = canvas.getContext("2d");
-            context.drawImage(bitmap, 0, 0);
-            bitmap.close();
-
-            const { data, width, height } = context.getImageData(
-                0,
-                0,
-                canvas.width,
-                canvas.height
-            );
-
-            return [new Int32Array(data.buffer), width, height, 1];
-        } catch (e) {
-            console.error(e);
-            return [null, -1, -1, -1];
+    palette(colors: Uint8ClampedArray[]) {
+        this.colors = new Uint8Array(colors.length * 4);
+        for (let i = 0; i < colors.length; i++) {
+            this.colors.set(colors[i], i * 4);
         }
     }
 
     // TODO: use wasm to speed up? or just color it on GPU w shaders
-    static async renderBitmap(
-        state: Uint8Array,
-        MX: number,
-        MY: number,
-        colors: Uint8ClampedArray[],
-        pixelsize: number
-    ) {
-        const img = new ImageData(MX, MY);
+    render(state: Uint8Array) {
+        const { MX, MY, img, colors, canvas, ctx } = this;
+        if (!canvas || !ctx || !colors || !img) return;
+
+        const { data } = img;
 
         const total = MX * MY;
         for (let offset = 0; offset < total; offset++) {
-            img.data.set(colors[state[offset]], offset << 2);
+            const c = state[offset] << 2;
+            const o = offset << 2;
+
+            // imagine simd in js ):
+            data[o + 0] = colors[c + 0];
+            data[o + 1] = colors[c + 1];
+            data[o + 2] = colors[c + 2];
+            data[o + 3] = colors[c + 3];
         }
 
-        if (this.canvas) {
-            const w = MX * pixelsize;
-            const h = MY * pixelsize;
+        canvas.width = MX;
+        canvas.height = MY;
 
-            this.canvas.width = w;
-            this.canvas.height = h;
-
-            this.canvas.style.width = `${w}px`;
-            this.canvas.style.height = `${h}px`;
-            this.ctx?.drawImage(
-                await createImageBitmap(img, {
-                    resizeWidth: w,
-                    resizeHeight: h,
-                    resizeQuality: "pixelated",
-                }),
-                0,
-                0
-            );
-        }
+        canvas.style.width = `${MX}px`;
+        canvas.style.height = `${MY}px`;
+        ctx.putImageData(img, 0, 0);
     }
 
-    static renderIsometric() {}
-
-    static clear() {
+    clear() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+}
+
+export class IsometricRenderer implements Renderer {
+    private readonly canvas: HTMLCanvasElement;
+    private readonly ctx: CanvasRenderingContext2D;
+
+    constructor(canvas: HTMLCanvasElement) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext("2d");
+    }
+    update(MX: number, MY: number, MZ: number) {
+        throw new Error("Method not implemented.");
+    }
+    palette(colors: Uint8ClampedArray[]) {
+        throw new Error("Method not implemented.");
+    }
+    render(state: Uint8Array) {
+        throw new Error("Method not implemented.");
+    }
+    clear() {
+        throw new Error("Method not implemented.");
     }
 }

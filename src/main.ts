@@ -1,6 +1,10 @@
 import seedrandom from "seedrandom";
+import {
+    BitmapRenderer,
+    IsometricRenderer,
+    Renderer,
+} from "./helpers/graphics";
 
-import { Graphics } from "./helpers/graphics";
 import { Helper } from "./helpers/helper";
 import { Loader } from "./helpers/loader";
 import { VoxHelper } from "./helpers/vox";
@@ -50,15 +54,14 @@ export class Program {
         }
     }
 
-    public static init(model: string) {
+    public static init(model: string, canvas: HTMLCanvasElement) {
         if (!Program.palette) {
             console.error("Load palette first before running any model");
             return null;
         }
 
         const emodel = this.models.get(model?.toUpperCase());
-        if (!emodel) return null;
-        Graphics.clear();
+        if (!canvas || !emodel) return null;
 
         const name = emodel.getAttribute("name");
         const size = parseInt(emodel.getAttribute("size")) || -1;
@@ -69,6 +72,13 @@ export class Program {
         const MZ =
             parseInt(emodel.getAttribute("height")) ||
             (dimension === 2 ? 1 : size);
+
+        const renderer: Renderer =
+            MZ === 1
+                ? new BitmapRenderer(canvas)
+                : new IsometricRenderer(canvas);
+
+        renderer.clear();
 
         let stop = false;
 
@@ -139,13 +149,19 @@ export class Program {
                 );
             }
 
+            const [chars, GX, GY, GZ] = interpreter.info();
+
+            const colors = chars.split("").map((c) => customPalette.get(c));
+            renderer.palette(colors);
+            renderer.update(GX, GY, GZ);
+
             let rendered = 0;
             let output: { name: string; buffer: ArrayBuffer } = null;
 
             const start = performance.now();
             const seed = seeds?.[0] || this.meta.int32();
 
-            for (const [result, legend, FX, FY, FZ] of interpreter.run(
+            for (const [result, _, FX, FY, FZ] of interpreter.run(
                 seed,
                 steps,
                 true
@@ -156,18 +172,9 @@ export class Program {
                 }
                 if (rendered++ % speed) continue;
 
-                const colors = legend
-                    .split("")
-                    .map((c) => customPalette.get(c));
                 if (FZ === 1 || iso) {
-                    await Graphics.renderBitmap(
-                        result,
-                        FX,
-                        FY,
-                        colors,
-                        pixelsize
-                        // interpreter.root.nodes[0] as RuleNode
-                    );
+                    renderer.update(FX, FY, FZ);
+                    renderer.render(result);
                 } else {
                     // TODO: render voxels
                 }
@@ -175,17 +182,10 @@ export class Program {
                 await frame(delay);
             }
 
-            const [result, legend, FX, FY, FZ] = interpreter.final();
-            const colors = legend.split("").map((c) => customPalette.get(c));
+            const [result, _, FX, FY, FZ] = interpreter.final();
             if (FZ === 1) {
-                await Graphics.renderBitmap(
-                    result,
-                    FX,
-                    FY,
-                    colors,
-                    pixelsize
-                    // interpreter.root.nodes[0] as RuleNode
-                );
+                renderer.update(FX, FY, FZ);
+                renderer.render(result);
             } else {
                 output = {
                     name: `${name}_${seed}.vox`,

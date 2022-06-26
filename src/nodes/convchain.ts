@@ -1,6 +1,6 @@
 import { Grid } from "../grid";
-import { Graphics } from "../helpers/graphics";
 import { Helper, range } from "../helpers/helper";
+import { Loader } from "../helpers/loader";
 import { SymmetryHelper } from "../helpers/symmetry";
 import { Node } from "./";
 
@@ -29,7 +29,7 @@ export class ConvChainNode extends Node {
         const name = elem.getAttribute("sample");
         const filename = `resources/samples/${name}.png`;
 
-        const result = await Graphics.loadBitmap(filename);
+        const result = await Loader.bitmap(filename);
 
         const bitmap = result[0];
         this.SMX = result[1];
