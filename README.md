@@ -1,6 +1,10 @@
 # WIP
-Most 2D models should work now; only **wfc** node with tileset (TileNode class) is still being implemented.
-Not sure about 3D models since **VoxHelper.save** is not implemented yet.
+Most features have been implemented, include exporting the result as a `.vox` file.
+However there is currently a mysterious bug that causes complex 3D models to fail:
+- CarmaTower only generates a column
+- ModernHouse only generates grass nodes
+- SeaVilla only generates the base columns
+- Apartemazements works fine!?? 😐
 
 **Contribution would be appreciated** 🙏
 
