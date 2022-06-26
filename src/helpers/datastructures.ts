@@ -51,13 +51,29 @@ export class BoolArray2D {
         this.buf = new Uint8Array(Math.ceil((x * y) / 8));
     }
 
+    check(x: number, y: number) {
+        if (
+            x < 0 ||
+            x >= this.MX ||
+            !Number.isInteger(x) ||
+            y < 0 ||
+            y >= this.MX ||
+            !Number.isInteger(y)
+        )
+            debugger;
+    }
+
     get(x: number, y: number) {
+        // this.check(x, y);
+
         const offset = y * this.MX + x;
         const mask = 1 << offset % 8;
         return Boolean(this.buf[offset >>> 3] & mask);
     }
 
     set(x: number, y: number, value: boolean) {
+        // this.check(x, y);
+
         const offset = y * this.MX + x;
         const mask = 1 << offset % 8;
         value
@@ -99,7 +115,23 @@ export class BoolArray3D {
         init ? this.fill() : this.clear();
     }
 
+    check(x: number, y: number, z: number) {
+        if (
+            x < 0 ||
+            x >= this.MX ||
+            !Number.isInteger(x) ||
+            y < 0 ||
+            y >= this.MX ||
+            !Number.isInteger(y) ||
+            z < 0 ||
+            z >= this.MX ||
+            !Number.isInteger(z)
+        )
+            debugger;
+    }
+
     get(x: number, y: number, z: number) {
+        // this.check(x, y, z);
         const offset = z * this.MY * this.MX + y * this.MX + x;
         const mask = 1 << offset % 8;
 
@@ -107,6 +139,8 @@ export class BoolArray3D {
     }
 
     set(x: number, y: number, z: number, value: boolean) {
+        // this.check(x, y, z);
+
         const offset = z * this.MY * this.MX + y * this.MX + x;
         const mask = 1 << offset % 8;
 
@@ -158,11 +192,25 @@ export class Array2D<T extends TypedArray> {
         this.MY = MY;
     }
 
+    check(x: number, y: number) {
+        if (
+            x < 0 ||
+            x >= this.MX ||
+            !Number.isInteger(x) ||
+            y < 0 ||
+            y >= this.MX ||
+            !Number.isInteger(y)
+        )
+            debugger;
+    }
+
     get(x: number, y: number) {
+        // this.check(x, y);
         return this.arr[y * this.MX + x];
     }
 
     set(x: number, y: number, value: number) {
+        // this.check(x, y);
         this.arr[y * this.MX + x] = value;
     }
 
@@ -175,6 +223,7 @@ export class Array2D<T extends TypedArray> {
     }
 
     incre(x: number, y: number) {
+        // this.check(x, y);
         this.arr[y * this.MX + x]++;
     }
 
@@ -226,11 +275,28 @@ export class Array3D<T extends TypedArray> {
         this.MZ = MZ;
     }
 
+    check(x: number, y: number, z: number) {
+        if (
+            x < 0 ||
+            x >= this.MX ||
+            !Number.isInteger(x) ||
+            y < 0 ||
+            y >= this.MX ||
+            !Number.isInteger(y) ||
+            z < 0 ||
+            z >= this.MX ||
+            !Number.isInteger(z)
+        )
+            debugger;
+    }
+
     get(x: number, y: number, z: number) {
+        // this.check(x, y, z);
         return this.arr[z * this.MX * this.MY + y * this.MX + x];
     }
 
     set(x: number, y: number, z: number, value: number) {
+        // this.check(x, y, z);
         this.arr[z * this.MX * this.MY + y * this.MX + x] = value;
     }
 
