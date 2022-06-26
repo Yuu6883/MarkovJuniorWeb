@@ -48,23 +48,13 @@ export class Graphics {
         MX: number,
         MY: number,
         colors: Uint8ClampedArray[],
-        pixelsize: number,
-        debugNode?: RuleNode
+        pixelsize: number
     ) {
         const img = new ImageData(MX, MY);
 
         const total = MX * MY;
         for (let offset = 0; offset < total; offset++) {
             img.data.set(colors[state[offset]], offset << 2);
-        }
-
-        if (debugNode) {
-            for (let i = 0; i < debugNode.matchCount; i++) {
-                const o = i << 2;
-                const [x, y] = debugNode.matches.subarray(o + 1, o + 3);
-                const offset = x + y * MX;
-                img.data.set(RED, offset << 2);
-            }
         }
 
         if (this.canvas) {
@@ -87,6 +77,8 @@ export class Graphics {
             );
         }
     }
+
+    static renderIsometric() {}
 
     static clear() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
