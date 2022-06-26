@@ -96,6 +96,8 @@ export class Program {
             }
         };
 
+        let modelCache: Element;
+
         const start = async (params: ProgramParams) => {
             stop = false;
             setSpeed(params.speed);
@@ -103,17 +105,20 @@ export class Program {
             const overwriteSteps = params.steps || 0;
 
             const path = `models/${name}.xml`;
-            const mdoc = await Loader.xml(path);
+            const mdoc = modelCache || (await Loader.xml(path));
             if (!mdoc) {
                 console.error(`Failed to load ${path}`);
                 return null;
-            } else console.log("Loading model...");
+            }
+            modelCache = mdoc;
 
             const interpreter = await Interpreter.load(mdoc, MX, MY, MZ);
             if (!interpreter) {
                 console.error(`Interpreter.load failed ${path}`);
                 return null;
-            } else console.log(`Model loaded: ${name}`);
+            }
+
+            console.log(`Running model: ${name}`);
 
             const pixelsize = parseInt(emodel.getAttribute("pixelsize")) || 4;
             const seedString = emodel.getAttribute("seeds");
