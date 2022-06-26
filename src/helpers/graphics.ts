@@ -1,6 +1,7 @@
 export interface Renderer {
+    set palette(colors: Map<string, Uint8ClampedArray>);
+    set characters(chars: string);
     update(MX: number, MY: number, MZ: number);
-    palette(colors: Uint8ClampedArray[]);
     render(state: Uint8Array);
     clear();
 }
@@ -8,8 +9,11 @@ export interface Renderer {
 export class BitmapRenderer implements Renderer {
     private MX: number;
     private MY: number;
-    private colors: Uint8Array;
     private img: ImageData;
+    private colors: Uint8Array;
+
+    private _chars: string;
+    private _palette: Map<string, Uint8ClampedArray>;
 
     private readonly canvas: HTMLCanvasElement;
     private readonly ctx: CanvasRenderingContext2D;
@@ -19,18 +23,27 @@ export class BitmapRenderer implements Renderer {
         this.ctx = canvas.getContext("2d");
     }
 
+    set characters(chars: string) {
+        if (this._chars !== chars) {
+            this._chars = chars;
+
+            const colorArr = chars.split("").map((c) => this._palette.get(c));
+            this.colors = new Uint8Array(colorArr.length * 4);
+            for (let i = 0; i < colorArr.length; i++) {
+                this.colors.set(colorArr[i], i * 4);
+            }
+        }
+    }
+
+    set palette(colors: Map<string, Uint8ClampedArray>) {
+        this._palette = new Map([...colors.entries()]);
+    }
+
     update(MX: number, MY: number, _: number) {
         if (this.MX !== MX || this.MY !== MY) {
             this.MX = MX;
             this.MY = MY;
             this.img = new ImageData(MX, MY);
-        }
-    }
-
-    palette(colors: Uint8ClampedArray[]) {
-        this.colors = new Uint8Array(colors.length * 4);
-        for (let i = 0; i < colors.length; i++) {
-            this.colors.set(colors[i], i * 4);
         }
     }
 
@@ -74,10 +87,13 @@ export class IsometricRenderer implements Renderer {
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
     }
-    update(MX: number, MY: number, MZ: number) {
+    set characters(chars: string) {
         throw new Error("Method not implemented.");
     }
-    palette(colors: Uint8ClampedArray[]) {
+    set palette(colors: Map<string, Uint8ClampedArray>) {
+        throw new Error("Method not implemented.");
+    }
+    update(MX: number, MY: number, MZ: number) {
         throw new Error("Method not implemented.");
     }
     render(state: Uint8Array) {

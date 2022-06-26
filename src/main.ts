@@ -149,11 +149,7 @@ export class Program {
                 );
             }
 
-            const [chars, GX, GY, GZ] = interpreter.info();
-
-            const colors = chars.split("").map((c) => customPalette.get(c));
-            renderer.palette(colors);
-            renderer.update(GX, GY, GZ);
+            renderer.palette = customPalette;
 
             let rendered = 0;
             let output: { name: string; buffer: ArrayBuffer } = null;
@@ -161,7 +157,7 @@ export class Program {
             const start = performance.now();
             const seed = seeds?.[0] || this.meta.int32();
 
-            for (const [result, _, FX, FY, FZ] of interpreter.run(
+            for (const [result, chars, FX, FY, FZ] of interpreter.run(
                 seed,
                 steps,
                 true
@@ -173,6 +169,7 @@ export class Program {
                 if (rendered++ % speed) continue;
 
                 if (FZ === 1 || iso) {
+                    renderer.characters = chars;
                     renderer.update(FX, FY, FZ);
                     renderer.render(result);
                 } else {
@@ -182,11 +179,14 @@ export class Program {
                 await frame(delay);
             }
 
-            const [result, _, FX, FY, FZ] = interpreter.final();
+            const [result, chars, FX, FY, FZ] = interpreter.final();
             if (FZ === 1) {
+                renderer.characters = chars;
                 renderer.update(FX, FY, FZ);
                 renderer.render(result);
             } else {
+                const colors = chars.split("").map((c) => customPalette.get(c));
+
                 output = {
                     name: `${name}_${seed}.vox`,
                     buffer: VoxHelper.serialize(result, FX, FY, FZ, colors),
