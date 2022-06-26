@@ -177,9 +177,7 @@ export class OverlapNode extends WFCNode {
         }
 
         this.map = new Map();
-        for (const rule of Helper.collectionIter(
-            elem.getElementsByTagName("rule")
-        )) {
+        for (const rule of Helper.childrenByTag(elem, "rule")) {
             const input = rule.getAttribute("in").charCodeAt(0);
             const outputs = rule
                 .getAttribute("out")

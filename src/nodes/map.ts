@@ -56,8 +56,7 @@ export class MapNode extends Branch {
             parentSymmetry
         );
 
-        const rules = Helper.collectionToArr(elem.getElementsByTagName("rule"));
-        for (const e of rules) {
+        for (const e of Helper.childrenByTag(elem, "rule")) {
             const rule = await Rule.load(e, grid, this.newgrid);
             if (!rule) return false;
             rule.symmetries(symmetry, grid.MZ === 1).forEach((r) =>

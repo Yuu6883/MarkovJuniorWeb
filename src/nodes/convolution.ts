@@ -47,9 +47,9 @@ export class ConvolutionNode extends Node {
             return false;
         }
 
-        this.rules = Helper.collectionToArr(
-            elem.getElementsByTagName("rule")
-        ).map((x) => new ConvolutionRule(x, grid));
+        this.rules = [...Helper.childrenByTag(elem, "rule")].map(
+            (x) => new ConvolutionRule(x, grid)
+        );
 
         this.steps = parseInt(elem.getAttribute("steps")) || -1;
         this.periodic = elem.getAttribute("periodic") === "True";

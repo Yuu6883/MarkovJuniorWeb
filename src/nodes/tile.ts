@@ -34,7 +34,10 @@ export class TileNode extends WFCNode {
         const filepath = `resources/tilesets/${this.name}.xml`;
         const root = await Loader.xml(filepath);
         const fullSymmetry = root.getAttribute("fullSymmetry") === "True";
-        const eFirstTile = root.querySelector("tiles tile");
+        const eFirstTile = Helper.matchTag(
+            Helper.matchTag(root, "tiles"),
+            "tile"
+        );
         const firstFileName = `${tilesname}/${eFirstTile.getAttribute(
             "name"
         )}.vox`;
@@ -94,10 +97,12 @@ export class TileNode extends WFCNode {
         const tempStationary: number[] = [];
 
         const uniques: number[] = [];
-        const etiles = root.querySelectorAll("tiles tile");
+        const etiles = [
+            ...Helper.matchTags(Helper.matchTag(root, "tiles"), "tile"),
+        ];
         let ind = 0;
 
-        for (const etile of Helper.collectionIter(etiles)) {
+        for (const etile of etiles) {
             const tilename = etile.getAttribute("name");
             const weight = parseFloat(etile.getAttribute("weight")) || 1;
 
@@ -141,14 +146,16 @@ export class TileNode extends WFCNode {
             positions.set(tilename, position);
         }
 
+        console.log([...positions.keys()]);
+
         const P = (this.P = this.tiledata.length);
         console.log(`P = ${this.P}`);
         this.weights = new Float64Array(tempStationary);
 
         this.map = new Map();
-        for (const erule of Helper.collectionToArr(
-            elem.getElementsByTagName("rule")
-        )) {
+        for (const erule of Helper.childrenByTag(elem, "rule")) {
+            console.log(erule);
+
             const input = erule.getAttribute("in").charCodeAt(0);
             const outputs = erule.getAttribute("out").split("|");
             const position = new Uint8Array(P);
@@ -193,13 +200,12 @@ export class TileNode extends WFCNode {
             return starttile;
         };
 
-        const tilenames = Helper.collectionToArr(etiles).map((x) =>
-            x.getAttribute("name")
-        );
+        const tilenames = etiles.map((x) => x.getAttribute("name"));
         tilenames.push(null);
 
-        for (const en of Helper.collectionIter(
-            root.querySelectorAll("neighbors neighbor")
+        for (const en of Helper.matchTags(
+            Helper.matchTag(root, "neighbors"),
+            "neighbor"
         )) {
             if (fullSymmetry) {
                 const left = en.getAttribute("left"),

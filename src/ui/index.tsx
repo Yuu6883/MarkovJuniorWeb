@@ -42,7 +42,6 @@ const ControlPanel = ({
                             ? `${prog.MX}x${prog.MY}x${prog.MZ}`
                             : `${prog.MX}x${prog.MY}`}
                     </p>
-                    {prog.MZ > 1 && <p>3D models not implemented yet</p>}
                     {running ? (
                         <button
                             className="danger"
@@ -59,7 +58,6 @@ const ControlPanel = ({
                         </button>
                     ) : (
                         <button
-                            disabled={prog.dimension === 3}
                             onClick={() => (
                                 prog
                                     .start({ speed })

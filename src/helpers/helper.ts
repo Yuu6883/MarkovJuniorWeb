@@ -33,6 +33,12 @@ export class Helper {
         return 0;
     }
 
+    public static *childrenByTag(e: Element, tag: string) {
+        for (const c of Helper.collectionIter(e.children)) {
+            if (c.tagName === tag) yield c;
+        }
+    }
+
     public static collectionToArr<T>(c: DOMCollection<T>) {
         const arr: T[] = [];
         for (let i = 0; i < c.length; i++) {
@@ -54,9 +60,15 @@ export class Helper {
         while (queue.length) {
             const e = queue.shift();
             if (e !== elem) yield e;
-            for (const x of this.collectionIter(e.querySelectorAll(t)))
-                queue.push(x);
+            for (const x of this.childrenByTag(e, t)) queue.push(x);
         }
+    }
+
+    public static matchTag(e: Element, tag: string) {
+        for (const c of Helper.collectionIter(e.children)) {
+            if (c.tagName === tag) return c;
+        }
+        return null;
     }
 
     public static maxPositiveIndex<T extends ArrayLike<number>>(amounts: T) {

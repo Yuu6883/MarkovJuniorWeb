@@ -55,7 +55,7 @@ export abstract class RuleNode extends Node {
         }
 
         const ruleList: Rule[] = [];
-        const rules = Helper.collectionToArr(elem.getElementsByTagName("rule"));
+        const rules = [...Helper.childrenByTag(elem, "rule")];
         const ruleElements = rules.length > 0 ? rules : [elem];
         for (const e of ruleElements) {
             const rule = await Rule.load(e, grid, grid);
@@ -91,9 +91,7 @@ export abstract class RuleNode extends Node {
         this.steps = parseInt(elem.getAttribute("steps")) || 0;
         this.temperature = parseFloat(elem.getAttribute("temperature")) || 0;
 
-        const efields = Helper.collectionToArr(
-            elem.getElementsByTagName("field")
-        );
+        const efields = [...Helper.matchTags(elem, "field")];
 
         if (efields.length) {
             this.fields = Array.from({ length: grid.C });
@@ -111,9 +109,7 @@ export abstract class RuleNode extends Node {
             // console.log(`RuleNode has ${this.fields.length} fields`);
         }
 
-        const eobs = Helper.collectionToArr(
-            elem.getElementsByTagName("observe")
-        );
+        const eobs = [...Helper.childrenByTag(elem, "observe")];
         if (eobs.length) {
             this.observations = Array.from({ length: grid.C });
             for (const eob of eobs) {
