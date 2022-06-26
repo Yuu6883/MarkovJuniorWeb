@@ -63,7 +63,6 @@ export class MapNode extends Branch {
                 this.rules.push(r)
             );
         }
-
         return true;
     }
 
@@ -77,9 +76,10 @@ export class MapNode extends Branch {
         MY: number,
         MZ: number
     ) {
-        for (let dz = 0; dz < rule.IMZ; dz++)
-            for (let dy = 0; dy < rule.IMY; dy++)
-                for (let dx = 0; dx < rule.IMX; dx++) {
+        const { IMX, IMY, IMZ, input } = rule;
+        for (let dz = 0; dz < IMZ; dz++)
+            for (let dy = 0; dy < IMY; dy++)
+                for (let dx = 0; dx < IMX; dx++) {
                     let sx = x + dx;
                     let sy = y + dy;
                     let sz = z + dz;
@@ -88,10 +88,7 @@ export class MapNode extends Branch {
                     if (sy >= MY) sy -= MY;
                     if (sz >= MZ) sz -= MZ;
 
-                    const inputWave =
-                        rule.input[
-                            dx + dy * rule.IMX + dz * rule.IMX * rule.IMY
-                        ];
+                    const inputWave = input[dx + dy * IMX + dz * IMX * IMY];
                     if (
                         (inputWave &
                             (1 << state[sx + sy * MX + sz * MX * MY])) ===
@@ -113,9 +110,11 @@ export class MapNode extends Branch {
         MY: number,
         MZ: number
     ) {
-        for (let dz = 0; dz < rule.OMZ; dz++)
-            for (let dy = 0; dy < rule.OMY; dy++)
-                for (let dx = 0; dx < rule.OMX; dx++) {
+        const { OMZ, OMY, OMX, output } = rule;
+
+        for (let dz = 0; dz < OMZ; dz++)
+            for (let dy = 0; dy < OMY; dy++)
+                for (let dx = 0; dx < OMX; dx++) {
                     let sx = x + dx;
                     let sy = y + dy;
                     let sz = z + dz;
@@ -124,12 +123,8 @@ export class MapNode extends Branch {
                     if (sy >= MY) sy -= MY;
                     if (sz >= MZ) sz -= MZ;
 
-                    const output =
-                        rule.output[
-                            dx + dy * rule.OMX + dz * rule.OMX * rule.OMY
-                        ];
-                    if (output != 0xff)
-                        state[sx + sy * MX + sz * MX * MY] = output;
+                    const o = output[dx + dy * OMX + dz * OMX * OMY];
+                    if (o != 0xff) state[sx + sy * MX + sz * MX * MY] = o;
                 }
     }
 
@@ -139,24 +134,14 @@ export class MapNode extends Branch {
         const grid = this.grid;
         const newgrid = this.newgrid;
         const [NX, NY, NZ, DX, DY, DZ] = this.ND;
+        const { MZ, MY, MX, state } = grid;
 
-        this.newgrid.clear();
+        newgrid.clear();
         for (const rule of this.rules) {
-            for (let z = 0; z < grid.MZ; z++)
-                for (let y = 0; y < grid.MY; y++)
-                    for (let x = 0; x < grid.MX; x++)
-                        if (
-                            MapNode.matches(
-                                rule,
-                                x,
-                                y,
-                                z,
-                                grid.state,
-                                grid.MX,
-                                grid.MY,
-                                grid.MZ
-                            )
-                        )
+            for (let z = 0; z < MZ; z++)
+                for (let y = 0; y < MY; y++)
+                    for (let x = 0; x < MX; x++)
+                        if (MapNode.matches(rule, x, y, z, state, MX, MY, MZ))
                             MapNode.apply(
                                 rule,
                                 ~~((x * NX) / DX),
