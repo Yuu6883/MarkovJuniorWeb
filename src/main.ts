@@ -168,23 +168,20 @@ export class Program {
                 }
                 if (rendered++ % speed) continue;
 
-                if (FZ === 1 || iso) {
-                    renderer.characters = chars;
-                    renderer.update(FX, FY, FZ);
-                    renderer.render(result);
-                } else {
-                    // TODO: render voxels
-                }
+                renderer.characters = chars;
+                renderer.update(FX, FY, FZ);
+                renderer.render(result);
 
                 await frame(delay);
             }
 
             const [result, chars, FX, FY, FZ] = interpreter.final();
-            if (FZ === 1) {
-                renderer.characters = chars;
-                renderer.update(FX, FY, FZ);
-                renderer.render(result);
-            } else {
+
+            renderer.characters = chars;
+            renderer.update(FX, FY, FZ);
+            renderer.render(result);
+
+            if (FZ > 1) {
                 const colors = chars.split("").map((c) => customPalette.get(c));
 
                 output = {
