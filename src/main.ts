@@ -1,7 +1,10 @@
 import seedrandom from "seedrandom";
+import { saveAs } from "file-saver";
+
 import { Graphics } from "./helpers/graphics";
 import { Helper } from "./helpers/helper";
 import { Loader } from "./helpers/loader";
+import { VoxHelper } from "./helpers/vox";
 import { Interpreter } from "./interpreter";
 
 const frame = (n = 0) =>
@@ -21,7 +24,7 @@ export class Program {
 
     public static async loadPalette() {
         const ep = await Loader.xml("resources/palette.xml");
-        const ecolors = Helper.collectionToArr(ep.querySelectorAll("color"));
+        const ecolors = [...Helper.childrenByTag(ep, "color")];
         this.palette = new Map(
             ecolors.map((e) => [
                 e.getAttribute("symbol").charAt(0),
@@ -34,9 +37,7 @@ export class Program {
         const doc = await Loader.xml("models.xml");
         this.models.clear();
 
-        for (const emodel of Helper.collectionIter(
-            doc.querySelectorAll("model")
-        )) {
+        for (const emodel of Helper.childrenByTag(doc, "model")) {
             const name = emodel.getAttribute("name")?.toUpperCase() || "MODEL";
 
             const tryInsert = (suffix: number = null) => {
@@ -132,9 +133,7 @@ export class Program {
                 50000;
 
             const customPalette = new Map(Program.palette.entries());
-            for (const ec of Helper.collectionIter(
-                emodel.getElementsByTagName("color")
-            )) {
+            for (const ec of Helper.childrenByTag(emodel, "color")) {
                 customPalette.set(
                     ec.getAttribute("symbol").charAt(0),
                     Helper.hex2rgba(ec.getAttribute("value"))
@@ -170,7 +169,7 @@ export class Program {
                         // interpreter.root.nodes[0] as RuleNode
                     );
                 } else {
-                    // TODO: save VOX / render
+                    // TODO: render voxels
                 }
 
                 await frame(delay);
@@ -188,6 +187,8 @@ export class Program {
                     // interpreter.root.nodes[0] as RuleNode
                 );
             } else {
+                const buf = VoxHelper.serialize(result, MX, MY, MZ, colors);
+                saveAs(new Blob([buf]), `${name}_${seed}.vox`);
             }
 
             const end = performance.now();
