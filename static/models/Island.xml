@@ -2,13 +2,13 @@
   <prl in="***/*U*/***" out="***/*Y*/***"/>
 
   <one in="WY" out="WW" steps="1" comment="draw an island skeleton"/>
-  <one in="YWY/YYY" out="YWY/YWY" steps="400" comment="steps define the lenght of the backbone"/>
+  <one in="YWY/YYY" out="YWY/YWY" steps="200" comment="steps define the lenght of the backbone"/>
   <one in="YWY/YWY/YYY" out="YWY/YRY/YYY" />
   <one in="YYY/WWW" out="YWY/WWW" steps="20" comment="adjust steps to change number of branches. More branches = rounder, smoother island with less inner water"/>
-  <one in="YWY/YYY" out="YWY/YWY" steps="2300" comment="adjust steps for the length of branches. More lenght = bigger island"/>
+  <one in="YWY/YYY" out="YWY/YWY" steps="500" comment="adjust steps for the length of branches. More lenght = bigger island"/>
   <all in="R" out="W" />
 
-  <prl in="Y" out="U" p="0.00003" steps="1" comment="adjust p to reduce lakes"/>
+  <prl in="Y" out="U" p="0.00005" steps="1" comment="adjust p to reduce lakes"/>
 
   <one comment="Voronoi">
     <rule in="WY" out="WW"/>
@@ -28,7 +28,7 @@
 
   <all in="UW" out="UG" comment="spawn a few river sources (paint coast green on some thickness to force sources to be inland)"/>
   <all in="GW" out="GG" steps="80" comment="increase steps to push sources back from the sea"/>
-  <prl in="WW" out="WI" p="0.000015" steps="1" comment="play with p to change the number of sources"/>
+  <prl in="WW" out="WI" p="0.00003" steps="1" comment="play with p to change the number of sources"/>
   <all in="G" out="W"/>
 
   <sequence>
