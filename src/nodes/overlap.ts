@@ -10,7 +10,6 @@ import { WFCNode } from "./";
 export class OverlapNode extends WFCNode {
     private patterns: Array2D<Uint8Array>;
     private votes: Array2D<Uint32Array>;
-    private wrng: PRNG;
 
     protected override async load(
         elem: Element,
@@ -202,14 +201,12 @@ export class OverlapNode extends WFCNode {
             0
         );
 
-        this.wrng = alea("", { entropy: true });
-
         return await super.load(elem, parentSymmetry, grid);
     }
 
     // No idea why this is x20 slower than C# (2000ms vs 100ms, WaveFlower)
     protected override updateState() {
-        const { newgrid, wave, patterns, P, N, votes, wrng } = this;
+        const { newgrid, wave, patterns, P, N, votes, rng } = this;
         const { MX, MY } = newgrid;
 
         const buf = votes.arr;
@@ -246,7 +243,7 @@ export class OverlapNode extends WFCNode {
             const offset = i * cols;
 
             for (let c = 0; c < cols; c++) {
-                const value = buf[offset + c] + 0.1 * wrng.double();
+                const value = buf[offset + c] + 0.1 * rng.double();
                 if (value > max) {
                     argmax = c;
                     max = value;

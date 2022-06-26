@@ -34,7 +34,7 @@ export abstract class WFCNode extends Branch {
     public name: string;
 
     private firstgo = true;
-    private rng: PRNG;
+    protected rng: PRNG;
 
     protected override async load(
         elem: Element,

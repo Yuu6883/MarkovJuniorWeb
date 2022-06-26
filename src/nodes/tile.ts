@@ -18,7 +18,6 @@ export class TileNode extends WFCNode {
     private overlapz: number;
 
     private votes: Array2D<Uint32Array>;
-    private wrng: PRNG;
 
     protected override async load(
         elem: Element,
@@ -428,8 +427,6 @@ export class TileNode extends WFCNode {
             })
         );
 
-        this.wrng = alea("", { entropy: true });
-
         return await super.load(elem, parentSymmetry, grid);
     }
 
@@ -445,7 +442,7 @@ export class TileNode extends WFCNode {
             overlap,
             overlapz,
             votes,
-            wrng,
+            rng,
         } = this;
 
         for (let z = 0; z < grid.MZ; z++)
@@ -475,7 +472,7 @@ export class TileNode extends WFCNode {
                                 let max = -1.0;
                                 let argmax = 0xff;
                                 for (let c = 0; c < v.length; c++) {
-                                    const vote = v[c] + 0.1 * wrng.double();
+                                    const vote = v[c] + 0.1 * rng.double();
                                     if (vote > max) {
                                         argmax = c;
                                         max = vote;
