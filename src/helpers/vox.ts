@@ -11,7 +11,7 @@ export class VoxHelper {
         const magic = r.chars(4);
         const version = r.i32();
 
-        console.log(`${magic}version: ${version}`);
+        // console.log(`${magic}version: ${version}`);
 
         while (!r.EOF) {
             const head = r.chars(1);

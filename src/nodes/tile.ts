@@ -1,4 +1,4 @@
-import seedrandom from "seedrandom";
+import { alea, PRNG } from "seedrandom";
 import { Grid } from "../grid";
 import { Array2D, Array3Dflat, BoolArray3D } from "../helpers/datastructures";
 import { Helper } from "../helpers/helper";
@@ -6,6 +6,8 @@ import { Loader } from "../helpers/loader";
 import { SymmetryHelper } from "../helpers/symmetry";
 
 import { WFCNode } from "./";
+
+const FALSE = (_) => false;
 
 export class TileNode extends WFCNode {
     private tiledata: Uint8Array[];
@@ -16,6 +18,7 @@ export class TileNode extends WFCNode {
     private overlapz: number;
 
     private votes: Array2D<Uint32Array>;
+    private wrng: PRNG;
 
     protected override async load(
         elem: Element,
@@ -66,7 +69,7 @@ export class TileNode extends WFCNode {
         );
         if (!this.newgrid) return false;
 
-        this.votes = new Array2D(Uint32Array, S * S * SZ, this.newgrid.C, 0);
+        this.votes = new Array2D(Uint32Array, this.newgrid.C, S * S * SZ, 0);
 
         this.tiledata = [];
         const positions: Map<string, Uint8Array> = new Map();
@@ -147,9 +150,9 @@ export class TileNode extends WFCNode {
             elem.getElementsByTagName("rule")
         )) {
             const input = erule.getAttribute("in").charCodeAt(0);
-            const outptus = erule.getAttribute("out").split("|");
+            const outputs = erule.getAttribute("out").split("|");
             const position = new Uint8Array(P);
-            for (const s of outptus) {
+            for (const s of outputs) {
                 const array = positions.get(s);
                 if (!array) {
                     console.error(elem, `unknown tilename ${s}`);
@@ -175,7 +178,7 @@ export class TileNode extends WFCNode {
         const last = (attribute: string) => attribute?.split(" ").slice(-1)[0];
         const tile = (attribute: string) => {
             const code = attribute.split(" ");
-            const action = code.length == 2 ? code[0] : "";
+            const action = code.length === 2 ? code[0] : "";
             let starttile = namedTileData.get(last(attribute))[0];
             for (let i = action.length - 1; i >= 0; i--) {
                 const sym = action.charAt(i);
@@ -220,13 +223,13 @@ export class TileNode extends WFCNode {
                     ltile,
                     xRotate,
                     yReflect,
-                    (_) => false
+                    FALSE
                 );
                 const rsym = SymmetryHelper.squareSymmetries(
                     rtile,
                     xRotate,
                     yReflect,
-                    (_) => false
+                    FALSE
                 );
 
                 for (let i = 0; i < lsym.length; i++) {
@@ -246,13 +249,13 @@ export class TileNode extends WFCNode {
                     dtile,
                     yRotate,
                     zReflect,
-                    (_) => false
+                    FALSE
                 );
                 var usym = SymmetryHelper.squareSymmetries(
                     utile,
                     yRotate,
                     zReflect,
-                    (_) => false
+                    FALSE
                 );
 
                 for (let i = 0; i < dsym.length; i++) {
@@ -272,13 +275,13 @@ export class TileNode extends WFCNode {
                     btile,
                     zRotate,
                     xReflect,
-                    (_) => false
+                    FALSE
                 );
                 var tsym = SymmetryHelper.squareSymmetries(
                     ttile,
                     zRotate,
                     xReflect,
-                    (_) => false
+                    FALSE
                 );
 
                 for (let i = 0; i < bsym.length; i++) {
@@ -291,8 +294,8 @@ export class TileNode extends WFCNode {
                     );
                 }
             } else if (en.getAttribute("left")) {
-                const left = en.getAttribute("left"),
-                    right = en.getAttribute("right");
+                const left = en.getAttribute("left");
+                const right = en.getAttribute("right");
 
                 if (
                     !tilenames.includes(last(left)) ||
@@ -305,8 +308,8 @@ export class TileNode extends WFCNode {
                     return false;
                 }
 
-                const ltile = tile(left),
-                    rtile = tile(right);
+                const ltile = tile(left);
+                const rtile = tile(right);
                 if (!ltile || !rtile) return false;
 
                 tempPropagator.set(index(rtile), index(ltile), 0, true);
@@ -352,8 +355,8 @@ export class TileNode extends WFCNode {
                     true
                 );
             } else {
-                const top = en.getAttribute("top"),
-                    bottom = en.getAttribute("bottom");
+                const top = en.getAttribute("top");
+                const bottom = en.getAttribute("bottom");
                 if (
                     !tilenames.includes(last(top)) ||
                     !tilenames.indexOf(last(bottom))
@@ -365,21 +368,21 @@ export class TileNode extends WFCNode {
                     return false;
                 }
 
-                const ttile = tile(top),
-                    btile = tile(bottom);
+                const ttile = tile(top);
+                const btile = tile(bottom);
                 if (!ttile || !btile) return false;
 
                 const tsym = SymmetryHelper.squareSymmetries(
                     ttile,
                     zRotate,
                     xReflect,
-                    (_) => false
+                    FALSE
                 );
                 const bsym = SymmetryHelper.squareSymmetries(
                     btile,
                     zRotate,
                     xReflect,
-                    (_) => false
+                    FALSE
                 );
 
                 for (let i = 0; i < tsym.length; i++)
@@ -387,12 +390,13 @@ export class TileNode extends WFCNode {
             }
         }
 
-        for (let p2 = 0; p2 < P; p2++)
+        for (let p2 = 0; p2 < P; p2++) {
             for (let p1 = 0; p1 < P; p1++) {
                 tempPropagator.set(p1, p2, 2, tempPropagator.get(p2, p1, 0));
                 tempPropagator.set(p1, p2, 3, tempPropagator.get(p2, p1, 1));
                 tempPropagator.set(p1, p2, 5, tempPropagator.get(p2, p1, 4));
             }
+        }
 
         const sparsePropagator: number[][][] = Array.from({ length: 6 }, (_) =>
             Array.from({ length: P }, (_) => [])
@@ -403,16 +407,17 @@ export class TileNode extends WFCNode {
                 const sp = sparsePropagator[d][p1];
 
                 for (let p2 = 0; p2 < P; p2++)
-                    if (tempPropagator.get(sp.length, p1, d)) sp.push(p2);
+                    if (tempPropagator.get(p2, p1, d)) sp.push(p2);
                 return new Int32Array(sp);
             })
         );
+
+        this.wrng = alea("", { entropy: true });
 
         return await super.load(elem, parentSymmetry, grid);
     }
 
     protected override updateState() {
-        const rng = seedrandom();
         const {
             newgrid,
             grid,
@@ -424,6 +429,7 @@ export class TileNode extends WFCNode {
             overlap,
             overlapz,
             votes,
+            wrng,
         } = this;
 
         for (let z = 0; z < grid.MZ; z++)
@@ -436,7 +442,7 @@ export class TileNode extends WFCNode {
                     votes.fill(0);
 
                     for (let t = 0; t < P; t++)
-                        if (w[t]) {
+                        if (w.get(t)) {
                             const tile = tiledata[t];
                             for (let dz = 0; dz < SZ; dz++)
                                 for (let dy = 0; dy < S; dy++)
@@ -453,7 +459,7 @@ export class TileNode extends WFCNode {
                                 let max = -1.0;
                                 let argmax = 0xff;
                                 for (let c = 0; c < v.length; c++) {
-                                    const vote = v[c] + 0.1 * rng.double();
+                                    const vote = v[c] + 0.1 * wrng.double();
                                     if (vote > max) {
                                         argmax = c;
                                         max = vote;
