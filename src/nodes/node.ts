@@ -26,6 +26,7 @@ export abstract class Node {
     public abstract reset(): void;
     public abstract run(): boolean;
 
+    public source: Element;
     protected ip: Interpreter;
     public grid: Grid;
 
@@ -60,6 +61,7 @@ export abstract class Node {
 
         node.ip = ip;
         node.grid = grid;
+        node.source = elem;
 
         const success = await node.load(elem, symmetry, grid);
 
