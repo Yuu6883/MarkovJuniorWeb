@@ -103,23 +103,12 @@ export class BoolArray3D {
         const offset = z * this.MY * this.MX + y * this.MX + x;
         const mask = 1 << offset % 8;
 
-        // console.log(
-        //     `read [${x},${y},${z}] offset=${offset}, mask=${mask
-        //         .toString(2)
-        //         .padStart(8, "0")}`
-        // );
         return Boolean(this.buf[offset >>> 3] & mask);
     }
 
     set(x: number, y: number, z: number, value: boolean) {
         const offset = z * this.MY * this.MX + y * this.MX + x;
         const mask = 1 << offset % 8;
-
-        // console.log(
-        //     `set [${x},${y},${z}] = ${value}, offset=${offset}, mask=${mask
-        //         .toString(2)
-        //         .padStart(8, "0")}`
-        // );
 
         value
             ? (this.buf[offset >>> 3] |= mask) // set bit
