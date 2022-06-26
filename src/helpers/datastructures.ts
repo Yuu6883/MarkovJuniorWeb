@@ -101,15 +101,29 @@ export class BoolArray3D {
 
     get(x: number, y: number, z: number) {
         const offset = z * this.MY * this.MX + y * this.MX + x;
-        return ((this.buf[~~(offset / 8)] >>> offset % 8) & 1) === 1;
+        const mask = 1 << offset % 8;
+
+        // console.log(
+        //     `read [${x},${y},${z}] offset=${offset}, mask=${mask
+        //         .toString(2)
+        //         .padStart(8, "0")}`
+        // );
+        return Boolean(this.buf[offset >>> 3] & mask);
     }
 
     set(x: number, y: number, z: number, value: boolean) {
         const offset = z * this.MY * this.MX + y * this.MX + x;
-        const mask = (1 << offset) % 8;
+        const mask = 1 << offset % 8;
+
+        // console.log(
+        //     `set [${x},${y},${z}] = ${value}, offset=${offset}, mask=${mask
+        //         .toString(2)
+        //         .padStart(8, "0")}`
+        // );
+
         value
-            ? (this.buf[~~(offset / 8)] |= mask) // set bit
-            : (this.buf[~~(offset / 8)] &= 0xff ^ mask); // clear bit
+            ? (this.buf[offset >>> 3] |= mask) // set bit
+            : (this.buf[offset >>> 3] &= 0xff ^ mask); // clear bit
     }
 
     fill() {
