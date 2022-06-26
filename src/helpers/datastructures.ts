@@ -12,6 +12,49 @@ interface TypedArrayConstructor<T> {
     new (length: number): T;
 }
 
+export class BoolArray {
+    private buf: Uint8Array;
+
+    public readonly length: number;
+
+    constructor(length: number) {
+        this.length = length;
+        this.buf = new Uint8Array(Math.ceil(length / 8));
+    }
+
+    check(x: number) {
+        if (x < 0 || x >= this.length || !Number.isInteger(x)) debugger;
+    }
+
+    get(x: number) {
+        // this.check(x);
+        const mask = 1 << x % 8;
+        return Boolean(this.buf[x >>> 3] & mask);
+    }
+
+    set(x: number, value: boolean) {
+        // this.check(x);
+
+        const mask = 1 << x % 8;
+        value
+            ? (this.buf[x >>> 3] |= mask) // set bit
+            : (this.buf[x >>> 3] &= 0xff ^ mask); // clear bit
+    }
+
+    fill() {
+        this.buf.fill(0xff);
+    }
+
+    clear() {
+        this.buf.fill(0);
+    }
+
+    copy(other: BoolArray) {
+        if (this.length !== other.length) throw Error("Mismatched dimension");
+        this.buf.set(other.buf);
+    }
+}
+
 export class BoolArray2DRow {
     private readonly ref: BoolArray2D;
     private readonly y: number;
@@ -95,7 +138,7 @@ export class BoolArray2D {
 
     copy(other: BoolArray2D) {
         if (this.MX !== other.MX || this.MY !== other.MY)
-            throw Error("Mismatched dimention");
+            throw Error("Mismatched dimension");
         this.buf.set(other.buf);
     }
 }
@@ -242,7 +285,7 @@ export class Array2D<T extends TypedArray> {
 
     copy(other: Array3D<T>) {
         if (this.MX !== other.MX || this.MY !== other.MY)
-            throw Error("Mismatched dimention");
+            throw Error("Mismatched dimension");
         this.arr.set(other.arr);
     }
 }
@@ -306,7 +349,7 @@ export class Array3D<T extends TypedArray> {
             this.MY !== other.MY ||
             this.MZ !== other.MZ
         )
-            throw Error("Mismatched dimention");
+            throw Error("Mismatched dimension");
         this.arr.set(other.arr);
     }
 }
