@@ -132,7 +132,7 @@ export abstract class WFCNode extends Branch {
                 this.propagate();
             } else this.n++;
 
-            if (this.n >= 0 || this.ip.gif) this.updateState();
+            if (this.n >= 0) this.updateState();
             return true;
         }
     }

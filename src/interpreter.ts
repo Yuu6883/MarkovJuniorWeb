@@ -62,15 +62,15 @@ export class Interpreter {
         gif: boolean
     ): Generator<[Uint8Array, string, number, number, number]> {
         this.rng = seedrandom(seed.toString());
-        const grid = (this.grid = this.startgrid);
-        grid.clear();
+        this.grid = this.startgrid;
+        this.grid.clear();
 
         if (this.origin) {
             const center =
-                ~~(grid.MX / 2) +
-                ~~(grid.MY / 2) * grid.MX +
-                ~~(grid.MZ / 2) * grid.MX * grid.MY;
-            grid.state[center] = 1;
+                ~~(this.grid.MX / 2) +
+                ~~(this.grid.MY / 2) * this.grid.MX +
+                ~~(this.grid.MZ / 2) * this.grid.MX * this.grid.MY;
+            this.grid.state[center] = 1;
         }
 
         this.changes.splice(0, this.changes.length);
@@ -86,7 +86,13 @@ export class Interpreter {
         while (this.current && (steps <= 0 || this.counter < steps)) {
             if (gif) {
                 // console.log(`[${this.counter}/${steps}]`);
-                yield [grid.state, grid.characters, grid.MX, grid.MY, grid.MZ];
+                yield [
+                    this.grid.state,
+                    this.grid.characters,
+                    this.grid.MX,
+                    this.grid.MY,
+                    this.grid.MZ,
+                ];
             }
 
             this.current.run();
@@ -94,7 +100,13 @@ export class Interpreter {
             this.first.push(this.changes.length);
         }
 
-        yield [grid.state, grid.characters, grid.MX, grid.MY, grid.MZ];
+        yield [
+            this.grid.state,
+            this.grid.characters,
+            this.grid.MX,
+            this.grid.MY,
+            this.grid.MZ,
+        ];
     }
 
     public final(): [Uint8Array, string, number, number, number] {
