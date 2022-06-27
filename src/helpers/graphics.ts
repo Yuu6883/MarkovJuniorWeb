@@ -225,9 +225,6 @@ export class IsometricRenderer extends Renderer {
         this.canvas.width = W;
         this.canvas.height = H;
 
-        const SW = sprite.width;
-        const SH = sprite.height;
-
         const renderState = () => {
             const { data } = img;
             const pool = IsometricRenderer.pool;
@@ -254,25 +251,7 @@ export class IsometricRenderer extends Renderer {
                     const g = colors[co + 1];
                     const b = colors[co + 2];
 
-                    sprite.draw(sprite.cube, data, r, g, b, ~~x, ~~y, W);
-
-                    for (let j = 0; j < 8; j++) {
-                        if (edges & (1 << j)) {
-                            sprite.draw(
-                                sprite.edges.subarray(
-                                    SW * SH * j,
-                                    SW * SH * (j + 1)
-                                ),
-                                data,
-                                r,
-                                g,
-                                b,
-                                ~~x,
-                                ~~y,
-                                W
-                            );
-                        }
-                    }
+                    sprite.draw(data, r, g, b, ~~x, ~~y, W, edges);
                 }
 
             ctx.putImageData(img, 0, 0);
@@ -294,96 +273,96 @@ const C3 = 71;
 const transparent = 0xff;
 const black = 0;
 
-class VoxelSprite {
-    public readonly cube: Uint8Array;
-    public readonly edges: Uint8Array;
+declare type FragFunc = (x: number, y: number) => number;
 
+const frag_funcs = new Array<string>(8);
+frag_funcs[0] = "x == 1 && y <= 0 ? C1 : expr";
+frag_funcs[1] = "x == 0 && y <= 0 ? C1 : expr";
+frag_funcs[2] = "x == 1 - s && 2 * y < s && 2 * y >= -s ? black : expr";
+frag_funcs[3] = "x <= 0 && y == ~~(x / 2) + s - 1 ? black : expr";
+frag_funcs[4] = "x == s && 2 * y < s && 2 * y >= -s ? black : expr";
+frag_funcs[5] = "x > 0 && y == -~~((x + 1) / 2) + s ? black : expr";
+frag_funcs[6] = "x > 0 && y == ~~((x + 1) / 2) - s ? black : expr";
+frag_funcs[7] = "x <= 0 && y == -~~(x / 2) - s + 1 ? black : expr";
+
+class VoxelSprite {
+    private readonly size: number;
     public readonly width: number;
     public readonly height: number;
 
+    private readonly edge_func_table: FragFunc[];
+
     constructor(size: number) {
-        const w = (this.width = size * 2);
-        const h = (this.height = size * 2 - 1);
+        this.size = size;
+        this.width = size * 2;
+        this.height = size * 2 - 1;
 
-        const texture = (
-            out: Uint8Array,
-            f: (x: number, y: number) => number
-        ) => {
-            for (let j = 0; j < h; j++)
-                for (let i = 0; i < w; i++)
-                    out[i + j * w] = f(i - size + 1, size - j - 1);
-            return out;
-        };
+        this.edge_func_table = Array.from({ length: 256 }, (_, index) => {
+            const funcs: string[] = [];
+            for (let i = 0; i < 8; i++) {
+                if ((1 << i) & index) {
+                    funcs.push(frag_funcs[i]);
+                }
+            }
+            const nested = funcs.reduce(
+                (prev, curr) => prev.replaceAll("expr", `(${curr})`),
+                `(x, y) => {
+                    const c = expr;
+                    if (c !== transparent) return c;
 
-        this.cube = texture(new Uint8Array(w * h), (x, y) => {
-            if (
-                2 * y - x >= 2 * size ||
-                2 * y + x > 2 * size ||
-                2 * y - x < -2 * size ||
-                2 * y + x <= -2 * size
-            )
-                return transparent;
-            else if (x > 0 && 2 * y < x) return C3;
-            else if (x <= 0 && 2 * y <= -x) return C2;
-            else return C1;
+                    if (
+                        2 * y - x >= 2 * s ||
+                        2 * y + x > 2 * s ||
+                        2 * y - x < -2 * s ||
+                        2 * y + x <= -2 * s
+                    ) {
+                        return transparent;
+                    } else if (x > 0 && 2 * y < x) {
+                        return C3;
+                    } else if (x <= 0 && 2 * y <= -x) {
+                        return C2;
+                    } else {
+                        return C1;
+                    }
+                }`
+            );
+
+            const cleaned = nested
+                .replaceAll(/\bs\b/g, this.size.toString())
+                .replaceAll("C1", C1.toString())
+                .replaceAll("C2", C2.toString())
+                .replaceAll("C3", C3.toString())
+                .replaceAll("black", black.toString())
+                .replaceAll("expr", "transparent")
+                .replaceAll("transparent", transparent.toString());
+            return eval(cleaned);
         });
-
-        const e = (this.edges = new Uint8Array(w * h * 8));
-
-        texture(e.subarray(w * h * 0, w * h * (0 + 1)), (x, y) =>
-            x == 1 && y <= 0 ? C1 : transparent
-        );
-        texture(e.subarray(w * h * 1, w * h * (1 + 1)), (x, y) =>
-            x == 0 && y <= 0 ? C1 : transparent
-        );
-        texture(e.subarray(w * h * 2, w * h * (2 + 1)), (x, y) =>
-            x == 1 - size && 2 * y < size && 2 * y >= -size
-                ? black
-                : transparent
-        );
-        texture(e.subarray(w * h * 3, w * h * (3 + 1)), (x, y) =>
-            x <= 0 && y == ~~(x / 2) + size - 1 ? black : transparent
-        );
-        texture(e.subarray(w * h * 4, w * h * (4 + 1)), (x, y) =>
-            x == size && 2 * y < size && 2 * y >= -size ? black : transparent
-        );
-        texture(e.subarray(w * h * 5, w * h * (5 + 1)), (x, y) =>
-            x > 0 && y == -~~((x + 1) / 2) + size ? black : transparent
-        );
-        texture(e.subarray(w * h * 6, w * h * (6 + 1)), (x, y) =>
-            x > 0 && y == ~~((x + 1) / 2) - size ? black : transparent
-        );
-        texture(e.subarray(w * h * 7, w * h * (7 + 1)), (x, y) =>
-            x <= 0 && y == -~~(x / 2) - size + 1 ? black : transparent
-        );
     }
 
     draw(
-        source: Uint8Array,
         dist: Uint8ClampedArray,
         r: number,
         g: number,
         b: number,
         x: number,
         y: number,
-        w: number
+        w: number,
+        edges: number
     ) {
-        const { width, height } = this;
+        const { width, height, edge_func_table, size } = this;
+        const func = edge_func_table[edges];
 
-        for (let dy = 0; dy < height; dy++)
+        for (let dy = 0; dy < height; dy++) {
             for (let dx = 0; dx < width; dx++) {
-                const s_offset = dx + dy * width;
+                const grayscale = func(dx - size + 1, size - dy - 1);
+                if (grayscale === transparent) continue;
 
                 const d_offset = ((y + dy) * w + (x + dx)) << 2;
-
-                const grayscale = source[s_offset];
-
-                if (grayscale === 0xff) continue;
-
                 dist[d_offset + 0] = (r * grayscale) / 256;
                 dist[d_offset + 1] = (g * grayscale) / 256;
                 dist[d_offset + 2] = (b * grayscale) / 256;
                 dist[d_offset + 3] = 255;
             }
+        }
     }
 }
