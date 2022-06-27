@@ -64,19 +64,27 @@ export class Program {
     private modelDoc: Element;
 
     private ip: Interpreter;
+
+    @observable
     private _curr: Generator<[Uint8Array, string, number, number, number]> =
         null;
-    private _seed: number = null;
-    private _speed = 0;
-    private _delay = 0;
 
+    @observable
+    private _seed: number = null;
+    @observable
+    private _speed = 0;
+    @observable
+    private _delay = 0;
+    @observable
     private _paused = false;
+
     private _loadPromise: Promise<boolean>;
     private _timer = 0;
     private _steps = -1;
 
     private rendered = 0;
 
+    @observable
     public output: ProgramOutput = null;
 
     public readonly DIM = new Int32Array([-1, -1, -1]);
@@ -135,37 +143,15 @@ export class Program {
             .getElementById("canvas-container")
             .appendChild(this.renderer.canvas);
         this.renderer.clear();
-
-        makeObservable<
-            Program,
-            "_curr" | "_speed" | "_delay" | "_paused" | "_seed"
-        >(this, {
-            output: observable,
-            _curr: observable,
-            _speed: observable,
-            _delay: observable,
-            _paused: observable,
-            _seed: observable,
-            MX: computed,
-            MY: computed,
-            MZ: computed,
-            paused: computed,
-            running: computed,
-            speed: computed,
-            randomize: action,
-            pause: action,
-            resume: action,
-            step: action,
-            stop: action,
-            load: action,
-            start: action,
-        });
+        makeObservable(this);
     }
 
+    @action
     public load() {
         return this._loadPromise;
     }
 
+    @computed
     public get paused() {
         return this._paused;
     }
@@ -180,18 +166,22 @@ export class Program {
         }
     }
 
+    @computed
     public get speed() {
         return this._delay ? -this._delay : this._speed;
     }
 
+    @computed
     public get running() {
         return !!this._curr;
     }
 
+    @computed
     public get seed() {
         return this._seed;
     }
 
+    @action
     public start(params?: ProgramParams) {
         this.ip = null;
         this._curr = null;
@@ -218,19 +208,23 @@ export class Program {
         });
     }
 
+    @action
     public pause() {
         this._paused = true;
     }
 
+    @action
     public resume() {
         this._paused = false;
         this.loop();
     }
 
+    @action
     public step() {
         this.loop(true);
     }
 
+    @action
     public randomize() {
         this._seed = Program.meta.int32();
     }
@@ -301,18 +295,22 @@ export class Program {
         }
     }
 
+    @computed
     public get MX() {
         return this.DIM[0];
     }
 
+    @computed
     public get MY() {
         return this.DIM[1];
     }
 
+    @computed
     public get MZ() {
         return this.DIM[2];
     }
 
+    @action
     public stop() {
         this.pause();
         this.renderer.canvas.remove();

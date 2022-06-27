@@ -23,6 +23,7 @@ module.exports = (_, argv) => ({
                             parser: {
                                 syntax: "typescript",
                                 tsx: true,
+                                decorators: true,
                             },
                             transform: {
                                 react: {
