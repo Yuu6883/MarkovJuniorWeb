@@ -83,11 +83,21 @@ export class BitmapRenderer extends Renderer {
 const BLOCK_SIZE = 6;
 
 export class IsometricRenderer extends Renderer {
-    protected static pool: Uint8Array[] = [];
-    protected static voxel(values: ArrayLike<number>) {
-        const v = this.pool.pop() || new Uint8Array(5);
-        v.set(values);
-        return v;
+    protected static pool = new Uint8Array(10 * 1024 * 1024); // 10mb mem
+    private static pool_ptr = 0;
+
+    protected static voxel(value: number, x: number, y: number, z: number) {
+        const pool = this.pool;
+        const ptr = this.pool_ptr;
+
+        this.pool_ptr += 5;
+
+        pool[ptr + 0] = value;
+        pool[ptr + 1] = x;
+        pool[ptr + 2] = y;
+        pool[ptr + 3] = z;
+
+        return ptr;
     }
 
     private readonly canvas: HTMLCanvasElement;
@@ -101,6 +111,7 @@ export class IsometricRenderer extends Renderer {
     private hash: BoolArray2D;
 
     private sprite: VoxelSprite;
+    private img: ImageData;
 
     constructor(canvas: HTMLCanvasElement) {
         super();
@@ -117,57 +128,76 @@ export class IsometricRenderer extends Renderer {
         this.MZ = MZ;
         this.visible = new BoolArray(MX * MY * MZ);
         this.hash = new BoolArray2D(MX + MY + 2 * MZ - 3, MX + MY - 1);
+
+        const FITWIDTH = (MX + MY) * BLOCK_SIZE,
+            FITHEIGHT = ~~(((MX + MY) / 2 + MZ) * BLOCK_SIZE);
+
+        const W = FITWIDTH + 2 * BLOCK_SIZE;
+        const H = FITHEIGHT + 2 * BLOCK_SIZE;
+
+        this.img = new ImageData(W, H);
     }
 
     override render(state: Uint8Array) {
-        const { MX, MY, MZ, visible, hash, ctx, sprite, colors } = this;
+        const { MX, MY, MZ, visible, hash, ctx, sprite, colors, img } = this;
 
-        if (!ctx || !sprite || !colors) return;
+        if (!ctx || !sprite || !colors || !img) return;
 
         visible.clear();
         hash.clear();
 
-        const voxels: Uint8Array[][] = Array.from(
+        const voxels: number[][] = Array.from(
             { length: MX + MY + MZ - 2 },
             (_) => []
         );
-        const visibleVoxels: Uint8Array[][] = Array.from(
+        const visibleVoxels: number[][] = Array.from(
             { length: MX + MY + MZ - 2 },
             (_) => []
         );
 
-        for (let z = 0; z < MZ; z++)
-            for (let y = 0; y < MY; y++)
-                for (let x = 0; x < MX; x++) {
-                    const i = x + y * MX + z * MX * MY;
-                    const value = state[i];
-                    visible.set(i, value !== 0);
-                    if (value !== 0)
-                        voxels[x + y + z].push(
-                            IsometricRenderer.voxel([value, x, y, z, 0])
-                        );
-                }
+        // Reset memory pool state
+        IsometricRenderer.pool.fill(0);
+        IsometricRenderer.pool_ptr = 0;
 
-        for (let i = voxels.length - 1; i >= 0; i--) {
-            const voxelsi = voxels[i];
-            for (let j = 0; j < voxelsi.length; j++) {
-                const s = voxelsi[j];
-                const [_, sx, sy, sz] = s;
-                let u = sx - sy + MY - 1,
-                    v = sx + sy - 2 * sz + 2 * MZ - 2;
-                if (!hash.get(v, u)) {
-                    const X =
-                        sx === 0 ||
-                        !visible.get(sx - 1 + sy * MX + sz * MX * MY);
-                    const Y =
-                        sy === 0 ||
-                        !visible.get(sx + (sy - 1) * MX + sz * MX * MY);
-                    const Z =
-                        sz === 0 ||
-                        !visible.get(sx + sy * MX + (sz - 1) * MX * MY);
+        const buildState = () => {
+            for (let z = 0; z < MZ; z++)
+                for (let y = 0; y < MY; y++)
+                    for (let x = 0; x < MX; x++) {
+                        const i = x + y * MX + z * MX * MY;
+                        const value = state[i];
+                        visible.set(i, value !== 0);
+                        if (value !== 0)
+                            voxels[x + y + z].push(
+                                IsometricRenderer.voxel(value, x, y, z)
+                            );
+                    }
 
-                    // prettier-ignore
-                    s[4] =
+            const pool = IsometricRenderer.pool;
+
+            for (let i = voxels.length - 1; i >= 0; i--) {
+                const voxelsi = voxels[i];
+                for (let j = 0; j < voxelsi.length; j++) {
+                    const voxel_ptr = voxelsi[j];
+
+                    const sx = pool[voxel_ptr + 1];
+                    const sy = pool[voxel_ptr + 2];
+                    const sz = pool[voxel_ptr + 3];
+
+                    let u = sx - sy + MY - 1,
+                        v = sx + sy - 2 * sz + 2 * MZ - 2;
+                    if (!hash.get(v, u)) {
+                        const X =
+                            sx === 0 ||
+                            !visible.get(sx - 1 + sy * MX + sz * MX * MY);
+                        const Y =
+                            sy === 0 ||
+                            !visible.get(sx + (sy - 1) * MX + sz * MX * MY);
+                        const Z =
+                            sz === 0 ||
+                            !visible.get(sx + sy * MX + (sz - 1) * MX * MY);
+
+                        // prettier-ignore
+                        pool[voxel_ptr + 4] =
                             (Number(sy === MY - 1 || !visible.get(sx + (sy + 1) * MX + sz * MX * MY)) << 0) |
                             (Number(sx === MX - 1 || !visible.get(sx + 1 + sy * MX + sz * MX * MY)) << 1) |
                             (Number(X || (sy != MY - 1 && visible.get(sx - 1 + (sy + 1) * MX + sz * MX * MY))) << 2) |
@@ -177,11 +207,14 @@ export class IsometricRenderer extends Renderer {
                             (Number(Z || (sx != MX - 1 && visible.get(sx + 1 + sy * MX + (sz - 1) * MX * MY))) << 6) |
                             (Number(Z || (sy != MY - 1 && visible.get(sx + (sy + 1) * MX + (sz - 1) * MX * MY))) << 7);
 
-                    visibleVoxels[i].push(s);
-                    hash.set(v, u, true);
+                        visibleVoxels[i].push(voxel_ptr);
+                        hash.set(v, u, true);
+                    }
                 }
             }
-        }
+        };
+        // So it shows up in profiler
+        buildState();
 
         const FITWIDTH = (MX + MY) * BLOCK_SIZE,
             FITHEIGHT = ~~(((MX + MY) / 2 + MZ) * BLOCK_SIZE);
@@ -195,43 +228,57 @@ export class IsometricRenderer extends Renderer {
         const SW = sprite.width;
         const SH = sprite.height;
 
-        for (let i = 0; i < visibleVoxels.length; i++)
-            for (const [c, sx, sy, sz, edges] of visibleVoxels[i]) {
-                const u = BLOCK_SIZE * (sx - sy);
-                const v = ~~((BLOCK_SIZE * (sx + sy)) / 2 - BLOCK_SIZE * sz);
-                const x = W / 2 + u - BLOCK_SIZE;
-                const y = (H - FITHEIGHT) / 2 + (MZ - 1) * BLOCK_SIZE + v;
+        const renderState = () => {
+            const { data } = img;
+            const pool = IsometricRenderer.pool;
 
-                const co = c << 2;
-                const r = colors[co + 0];
-                const g = colors[co + 1];
-                const b = colors[co + 2];
+            data.fill(0);
+            for (const row of visibleVoxels)
+                for (const ptr of row) {
+                    const c = pool[ptr + 0];
+                    const sx = pool[ptr + 1];
+                    const sy = pool[ptr + 2];
+                    const sz = pool[ptr + 3];
+                    const edges = pool[ptr + 4];
 
-                sprite.draw(sprite.cube, r, g, b);
-                ctx.drawImage(sprite.canvas, ~~x, ~~y);
+                    const u = BLOCK_SIZE * (sx - sy);
+                    const v = ~~(
+                        (BLOCK_SIZE * (sx + sy)) / 2 -
+                        BLOCK_SIZE * sz
+                    );
+                    const x = W / 2 + u - BLOCK_SIZE;
+                    const y = (H - FITHEIGHT) / 2 + (MZ - 1) * BLOCK_SIZE + v;
 
-                for (let j = 0; j < 8; j++) {
-                    if (edges & (1 << j)) {
-                        sprite.draw(
-                            sprite.edges.subarray(
-                                SW * SH * j,
-                                SW * SH * (j + 1)
-                            ),
-                            r,
-                            g,
-                            b
-                        );
-                        ctx.drawImage(sprite.canvas, ~~x, ~~y);
+                    const co = c << 2;
+                    const r = colors[co + 0];
+                    const g = colors[co + 1];
+                    const b = colors[co + 2];
+
+                    sprite.draw(sprite.cube, data, r, g, b, ~~x, ~~y, W);
+
+                    for (let j = 0; j < 8; j++) {
+                        if (edges & (1 << j)) {
+                            sprite.draw(
+                                sprite.edges.subarray(
+                                    SW * SH * j,
+                                    SW * SH * (j + 1)
+                                ),
+                                data,
+                                r,
+                                g,
+                                b,
+                                ~~x,
+                                ~~y,
+                                W
+                            );
+                        }
                     }
                 }
-            }
 
-        // add back to pool
-        for (const row of voxels) {
-            for (const v of row) {
-                IsometricRenderer.pool.push(v);
-            }
-        }
+            ctx.putImageData(img, 0, 0);
+        };
+        // So it shows up in profiler
+        renderState();
     }
 
     override clear() {
@@ -248,10 +295,6 @@ const transparent = 0xff;
 const black = 0;
 
 class VoxelSprite {
-    public readonly canvas: HTMLCanvasElement;
-    private readonly tempCtx: CanvasRenderingContext2D;
-    private readonly img: ImageData;
-
     public readonly cube: Uint8Array;
     public readonly edges: Uint8Array;
 
@@ -261,13 +304,6 @@ class VoxelSprite {
     constructor(size: number) {
         const w = (this.width = size * 2);
         const h = (this.height = size * 2 - 1);
-
-        this.canvas = document.createElement("canvas");
-        this.tempCtx = this.canvas.getContext("2d");
-        this.canvas.width = w;
-        this.canvas.height = h;
-
-        this.img = new ImageData(w, h);
 
         const texture = (
             out: Uint8Array,
@@ -322,30 +358,32 @@ class VoxelSprite {
         );
     }
 
-    draw(source: Uint8Array, r: number, g: number, b: number) {
-        const { width, height, img } = this;
-        const { data } = img;
+    draw(
+        source: Uint8Array,
+        dist: Uint8ClampedArray,
+        r: number,
+        g: number,
+        b: number,
+        x: number,
+        y: number,
+        w: number
+    ) {
+        const { width, height } = this;
 
         for (let dy = 0; dy < height; dy++)
             for (let dx = 0; dx < width; dx++) {
                 const s_offset = dx + dy * width;
-                const d_offset = s_offset << 2;
+
+                const d_offset = ((y + dy) * w + (x + dx)) << 2;
 
                 const grayscale = source[s_offset];
 
-                if (grayscale === 0xff) {
-                    data[d_offset + 0] = 0;
-                    data[d_offset + 1] = 0;
-                    data[d_offset + 2] = 0;
-                    data[d_offset + 3] = 0;
-                } else {
-                    data[d_offset + 0] = (r * grayscale) / 256;
-                    data[d_offset + 1] = (g * grayscale) / 256;
-                    data[d_offset + 2] = (b * grayscale) / 256;
-                    data[d_offset + 3] = 255;
-                }
-            }
+                if (grayscale === 0xff) continue;
 
-        this.tempCtx.putImageData(img, 0, 0);
+                dist[d_offset + 0] = (r * grayscale) / 256;
+                dist[d_offset + 1] = (g * grayscale) / 256;
+                dist[d_offset + 2] = (b * grayscale) / 256;
+                dist[d_offset + 3] = 255;
+            }
     }
 }
