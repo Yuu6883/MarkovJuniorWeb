@@ -4,7 +4,7 @@ However there is currently a mysterious bug that causes complex 3D models to fai
 - CarmaTower only generates a column
 - ModernHouse only generates grass nodes
 - SeaVilla only generates the base columns
-- Apartemazements works half of the time!?? 😐
+- Apartemazements works if the speed is set to really high, otherwise generates some random voxels!?? 😐
 
 **Contribution would be appreciated** 🙏
 
