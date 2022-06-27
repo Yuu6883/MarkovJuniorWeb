@@ -1,45 +1,25 @@
 import { saveAs } from "file-saver";
-import React, { forwardRef, useEffect, useRef, useState } from "react";
+import { observer } from "mobx-react-lite";
+import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { BitmapRenderer } from "../helpers/graphics";
-import { Program } from "../main";
+import { Program } from "../program";
 
 import "./style/index.css";
 
-const ControlPanel = forwardRef(
-    (
-        {
-            model,
-            close,
-        }: {
-            model: string;
-            close: () => void;
-        },
-        ref: React.MutableRefObject<HTMLCanvasElement>
-    ) => {
-        const [prog, setProg] = useState(Program.init(null, null));
-        const [speed, setSpeed] = useState(0);
-        const [running, setRunning] = useState(false);
-        const [output, setOutput] = useState<{
-            name: string;
-            buffer: ArrayBuffer;
-        }>(null);
+const ControlPanel = observer(
+    ({ model, close }: { model: string; close: () => void }) => {
+        const [prog, setProg] = useState<Program>(null);
 
         useEffect(() => {
-            const prog = Program.init(model, ref.current);
-            if (!prog) return close();
-
+            const prog = new Program(model);
+            prog.load().then((loaded) =>
+                loaded ? console.log(`Model loaded: ${model}`) : close()
+            );
             setProg(prog);
-            setOutput(null);
-            setRunning(false);
 
-            return () => void prog.abort();
+            // make the loop stop and make the prog go out of scope
+            return () => void prog.stop();
         }, [model]);
-
-        useEffect(() => {
-            if (prog) prog.setSpeed(speed);
-            else setSpeed(0);
-        }, [speed]);
 
         return (
             prog && (
@@ -53,45 +33,28 @@ const ControlPanel = forwardRef(
                                 : `${prog.MX}x${prog.MY}`}
                         </p>
                         <div className="control-buttons">
-                            {running ? (
-                                <button
-                                    className="danger"
-                                    onClick={() =>
-                                        prog
-                                            .abort()
-                                            .then(
-                                                (stopped) =>
-                                                    stopped && setRunning(false)
-                                            )
-                                    }
-                                >
-                                    stop
-                                </button>
-                            ) : (
+                            {prog.running ? (
                                 <button
                                     onClick={() => {
-                                        prog.start({ speed }).then((result) => {
-                                            if (result) {
-                                                const { time, output } = result;
-                                                setOutput(output);
-                                            }
-                                            setRunning(false);
-                                        });
-
-                                        setOutput(null);
-                                        setRunning(true);
+                                        prog.paused
+                                            ? prog.resume()
+                                            : prog.pause();
                                     }}
                                 >
+                                    {prog.paused ? "resume" : "pause"}
+                                </button>
+                            ) : (
+                                <button onClick={() => prog.start()}>
                                     start
                                 </button>
                             )}
 
-                            {output && (
+                            {prog.output && (
                                 <button
                                     onClick={() =>
                                         saveAs(
-                                            new Blob([output.buffer]),
-                                            output.name
+                                            new Blob([prog.output.buffer]),
+                                            prog.output.name
                                         )
                                     }
                                 >
@@ -107,8 +70,11 @@ const ControlPanel = forwardRef(
                             type="range"
                             min="-200"
                             max="200"
-                            value={speed}
-                            onChange={(e) => setSpeed(e.target.valueAsNumber)}
+                            defaultValue={0}
+                            // value={prog.speed}
+                            onChange={(e) =>
+                                (prog.speed = e.target.valueAsNumber)
+                            }
                         />
                     </div>
                 </>
@@ -120,7 +86,6 @@ const ControlPanel = forwardRef(
 const App = () => {
     const [loaded, setLoaded] = useState(false);
     const [model, setModel] = useState<string>(null);
-    const ref = useRef(document.createElement("canvas"));
 
     useEffect(() => {
         Promise.all([Program.loadPalette(), Program.listModels()]).then(() =>
@@ -146,15 +111,10 @@ const App = () => {
                 </div>
             </div>
 
-            <div className="canvas-container">
+            <div id="canvas-container">
                 {model && (
-                    <ControlPanel
-                        ref={ref}
-                        model={model}
-                        close={() => setModel(null)}
-                    />
+                    <ControlPanel model={model} close={() => setModel(null)} />
                 )}
-                <canvas className="canvas" ref={ref}></canvas>
             </div>
         </>
     );

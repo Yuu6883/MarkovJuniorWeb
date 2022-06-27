@@ -25,7 +25,7 @@ export class Grid {
 
         const valueString = elem.getAttribute("values")?.replaceAll(" ", "");
         if (!valueString) {
-            console.error("no values specified");
+            console.error(elem, "no values specified");
             return null;
         }
 

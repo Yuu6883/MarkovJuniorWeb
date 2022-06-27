@@ -1,9 +1,12 @@
+import React from "react";
 import { BoolArray, BoolArray2D } from "./datastructures";
 
 export abstract class Renderer {
     private _chars: string;
     private _palette: Map<string, Uint8ClampedArray>;
     protected colors: Uint8Array;
+
+    public abstract get canvas(): HTMLCanvasElement;
 
     set characters(chars: string) {
         if (this._chars !== chars) {
@@ -21,23 +24,29 @@ export abstract class Renderer {
         this._palette = new Map([...colors.entries()]);
     }
 
+    get palette() {
+        return new Map([...this._palette.entries()]);
+    }
+
     abstract update(MX: number, MY: number, MZ: number);
     abstract render(state: Uint8Array);
     abstract clear();
 }
 
 export class BitmapRenderer extends Renderer {
+    private static _canvas = document.createElement("canvas");
+    private static _ctx = BitmapRenderer._canvas.getContext("2d");
+
     private MX: number;
     private MY: number;
     private img: ImageData;
 
-    private readonly canvas: HTMLCanvasElement;
-    private readonly ctx: CanvasRenderingContext2D;
+    public override get canvas(): HTMLCanvasElement {
+        return BitmapRenderer._canvas;
+    }
 
-    constructor(canvas: HTMLCanvasElement) {
-        super();
-        this.canvas = canvas;
-        this.ctx = canvas.getContext("2d");
+    private get ctx() {
+        return BitmapRenderer._ctx;
     }
 
     override update(MX: number, MY: number, _: number) {
@@ -83,6 +92,17 @@ export class BitmapRenderer extends Renderer {
 const BLOCK_SIZE = 6;
 
 export class IsometricRenderer extends Renderer {
+    private static _canvas = document.createElement("canvas");
+    private static _ctx = IsometricRenderer._canvas.getContext("2d");
+
+    public override get canvas(): HTMLCanvasElement {
+        return IsometricRenderer._canvas;
+    }
+
+    private get ctx() {
+        return IsometricRenderer._ctx;
+    }
+
     protected static pool = new Uint8Array(10 * 1024 * 1024); // 10mb mem
     private static pool_ptr = 0;
 
@@ -100,9 +120,6 @@ export class IsometricRenderer extends Renderer {
         return ptr;
     }
 
-    private readonly canvas: HTMLCanvasElement;
-    private readonly ctx: CanvasRenderingContext2D;
-
     private MX: number;
     private MY: number;
     private MZ: number;
@@ -113,11 +130,10 @@ export class IsometricRenderer extends Renderer {
     private sprite: VoxelSprite;
     private img: ImageData;
 
-    constructor(canvas: HTMLCanvasElement) {
+    constructor() {
         super();
-        this.canvas = canvas;
-        this.ctx = canvas.getContext("2d");
         this.sprite = new VoxelSprite(BLOCK_SIZE);
+        this.canvas.style.imageRendering = "auto";
     }
 
     override update(MX: number, MY: number, MZ: number) {

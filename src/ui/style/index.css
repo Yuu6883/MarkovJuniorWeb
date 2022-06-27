@@ -48,14 +48,14 @@ h1 {
     color: cornflowerblue;
 }
 
-.canvas-container {
+#canvas-container {
     width: 75%;
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-.canvas {
+#canvas-container canvas {
     min-width: 50%;
     min-height: 50%;
     max-width: 75%;

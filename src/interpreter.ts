@@ -17,7 +17,6 @@ export class Interpreter {
     public readonly changes: vec3[] = [];
     public readonly first: number[] = [];
     public counter = 0;
-    public gif: boolean;
 
     public static async load(
         elem: Element,
@@ -58,8 +57,7 @@ export class Interpreter {
 
     public *run(
         seed: number,
-        steps: number,
-        gif: boolean
+        steps: number
     ): Generator<[Uint8Array, string, number, number, number]> {
         this.rng = seedrandom(seed.toString());
         this.grid = this.startgrid;
@@ -80,20 +78,16 @@ export class Interpreter {
         this.root.reset();
         this.current = this.root;
 
-        this.gif = gif;
         this.counter = 0;
 
         while (this.current && (steps <= 0 || this.counter < steps)) {
-            if (gif) {
-                // console.log(`[${this.counter}/${steps}]`);
-                yield [
-                    this.grid.state,
-                    this.grid.characters,
-                    this.grid.MX,
-                    this.grid.MY,
-                    this.grid.MZ,
-                ];
-            }
+            yield [
+                this.grid.state,
+                this.grid.characters,
+                this.grid.MX,
+                this.grid.MY,
+                this.grid.MZ,
+            ];
 
             this.current.run();
             this.counter++;

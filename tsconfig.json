@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "experimentalDecorators": true,
         "outDir": "./dist",
         "rootDir": ".",
         "target": "ES2020",
