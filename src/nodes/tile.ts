@@ -430,7 +430,7 @@ export class TileNode extends WFCNode {
         return await super.load(elem, parentSymmetry, grid);
     }
 
-    protected override updateState() {
+    public override updateState() {
         const {
             newgrid,
             grid,

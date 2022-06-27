@@ -2,7 +2,7 @@ import seedrandom, { PRNG } from "seedrandom";
 import { Grid } from "./grid";
 import { vec3 } from "./helpers/helper";
 import { SymmetryHelper } from "./helpers/symmetry";
-import { Node, Branch, MarkovNode } from "./nodes/";
+import { Node, Branch, MarkovNode, WFCNode } from "./nodes/";
 
 export class Interpreter {
     public root: Branch;
@@ -101,6 +101,11 @@ export class Interpreter {
             this.grid.MY,
             this.grid.MZ,
         ];
+    }
+
+    public onRender() {
+        if (this.current instanceof WFCNode && this.current.n < 0)
+            this.current.updateState();
     }
 
     public final(): [Uint8Array, string, number, number, number] {

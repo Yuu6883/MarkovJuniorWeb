@@ -67,7 +67,7 @@ export class AllNode extends RuleNode {
 
         if (this.trajectory) {
             if (this.counter >= this.trajectory.ROWS) return false;
-            console.log(`Set state to trajectory [${this.counter}]`);
+            console.log(`[ALL] Set state to trajectory [${this.counter}]`);
             grid.state.set(this.trajectory.row(this.counter));
             this.counter++;
             return true;

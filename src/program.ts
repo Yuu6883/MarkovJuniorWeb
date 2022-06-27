@@ -1,5 +1,11 @@
 import seedrandom from "seedrandom";
-import { action, computed, makeObservable, observable } from "mobx";
+import {
+    action,
+    computed,
+    makeObservable,
+    observable,
+    runInAction,
+} from "mobx";
 
 import {
     BitmapRenderer,
@@ -58,8 +64,9 @@ export class Program {
     private modelDoc: Element;
 
     private ip: Interpreter;
-    private _curr: Generator<[Uint8Array, string, number, number, number]>;
-    private _seed: number;
+    private _curr: Generator<[Uint8Array, string, number, number, number]> =
+        null;
+    private _seed: number = null;
     private _speed = 0;
     private _delay = 0;
 
@@ -67,7 +74,8 @@ export class Program {
     private _loadPromise: Promise<boolean>;
     private _timer = 0;
     private _steps = -1;
-    private _rendered = 0;
+
+    private rendered = 0;
 
     public output: ProgramOutput = null;
 
@@ -128,16 +136,26 @@ export class Program {
             .appendChild(this.renderer.canvas);
         this.renderer.clear();
 
-        makeObservable(this, {
+        makeObservable<
+            Program,
+            "_curr" | "_speed" | "_delay" | "_paused" | "_seed"
+        >(this, {
             output: observable,
+            _curr: observable,
+            _speed: observable,
+            _delay: observable,
+            _paused: observable,
+            _seed: observable,
             MX: computed,
             MY: computed,
             MZ: computed,
             paused: computed,
             running: computed,
             speed: computed,
+            randomize: action,
             pause: action,
             resume: action,
+            step: action,
             stop: action,
             load: action,
             start: action,
@@ -170,6 +188,10 @@ export class Program {
         return !!this._curr;
     }
 
+    public get seed() {
+        return this._seed;
+    }
+
     public start(params?: ProgramParams) {
         this.ip = null;
         this._curr = null;
@@ -186,9 +208,11 @@ export class Program {
                 this.DIM[2]
             );
 
-            this._timer = 0;
-            this._paused = false;
-            this.loop();
+            runInAction(() => {
+                this._timer = 0;
+                this._paused = false;
+                this.loop();
+            });
 
             return true;
         });
@@ -205,6 +229,10 @@ export class Program {
 
     public step() {
         this.loop(true);
+    }
+
+    public randomize() {
+        this._seed = Program.meta.int32();
     }
 
     private loop(once = false, render = true) {
@@ -233,9 +261,11 @@ export class Program {
 
             const [state, chars, FX, FY, FZ] = this.ip.final();
 
+            this.ip.onRender();
             this.renderer.characters = chars;
             this.renderer.update(FX, FY, FZ);
             this.renderer.render(state);
+            this.rendered++;
 
             if (FZ > 1) {
                 const palette = this.renderer.palette;
@@ -251,15 +281,22 @@ export class Program {
         } else {
             if (!once)
                 this._delay
-                    ? setTimeout(() => this.loop(), this._delay)
-                    : requestAnimationFrame(() => this.loop());
+                    ? setTimeout(
+                          () => runInAction(() => this.loop()),
+                          this._delay
+                      )
+                    : requestAnimationFrame(() =>
+                          runInAction(() => this.loop())
+                      );
 
             if (render) {
                 const [state, chars, FX, FY, FZ] = result.value;
 
+                this.ip.onRender();
                 this.renderer.characters = chars;
                 this.renderer.update(FX, FY, FZ);
                 this.renderer.render(state);
+                this.rendered++;
             }
         }
     }

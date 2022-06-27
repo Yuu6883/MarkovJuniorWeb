@@ -204,7 +204,7 @@ export class OverlapNode extends WFCNode {
     }
 
     // No idea why this is x20 slower than C# (2000ms vs 100ms, WaveFlower)
-    protected override updateState() {
+    public override updateState() {
         const { newgrid, wave, patterns, P, N, votes, rng } = this;
         const { MX, MY } = newgrid;
 

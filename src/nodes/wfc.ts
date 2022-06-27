@@ -132,7 +132,11 @@ export abstract class WFCNode extends Branch {
                 this.propagate();
             } else this.n++;
 
-            if (this.n >= 0) this.updateState();
+            // if (this.n > -1) debugger;
+
+            if (this.n >= 0) {
+                this.updateState();
+            }
             return true;
         }
     }
@@ -289,7 +293,7 @@ export abstract class WFCNode extends Branch {
         }
     }
 
-    protected abstract updateState();
+    public abstract updateState();
 
     protected static DX = new Int8Array([1, 0, -1, 0, 0, 0]);
     protected static DY = new Int8Array([0, 1, 0, -1, 0, 0]);

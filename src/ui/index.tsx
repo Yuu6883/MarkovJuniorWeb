@@ -31,6 +31,8 @@ const ControlPanel = observer(
                             {prog.MZ > 1
                                 ? `${prog.MX}x${prog.MY}x${prog.MZ}`
                                 : `${prog.MX}x${prog.MY}`}
+                            {"  "}
+                            seed: {prog.seed}
                         </p>
                         <div className="control-buttons">
                             {prog.running ? (
@@ -44,8 +46,18 @@ const ControlPanel = observer(
                                     {prog.paused ? "resume" : "pause"}
                                 </button>
                             ) : (
-                                <button onClick={() => prog.start()}>
-                                    start
+                                <>
+                                    <button onClick={() => prog.start()}>
+                                        start
+                                    </button>
+                                    <button onClick={() => prog.randomize()}>
+                                        randomize seed
+                                    </button>
+                                </>
+                            )}
+                            {prog.paused && (
+                                <button onClick={() => prog.step()}>
+                                    step
                                 </button>
                             )}
 
@@ -70,8 +82,7 @@ const ControlPanel = observer(
                             type="range"
                             min="-200"
                             max="200"
-                            defaultValue={0}
-                            // value={prog.speed}
+                            value={prog.speed}
                             onChange={(e) =>
                                 (prog.speed = e.target.valueAsNumber)
                             }
