@@ -1,12 +1,8 @@
 <models>
-  <model name="Apartemazements" size="8" d="3" amount="4"/>
-  <model name="Apartemazements" size="8" d="3" iso="True" pixelsize="6" gui="150"/>
+  <model name="Apartemazements" size="8" d="3" />
   <model name="CarmaTower" length="12" width="12" height="18"/>
-  <model name="CarmaTower" length="12" width="12" height="18" iso="True" amount="1"/>
-  <model name="ModernHouse" length="9" width="9" height="4" amount="4"/>
-  <model name="ModernHouse" length="9" width="9" height="4" iso="True"/>
-  <model name="SeaVilla" length="10" width="10" height="4" amount="4"/>
-  <model name="SeaVilla" length="10" width="10" height="4" iso="True"/>
+  <model name="ModernHouse" length="9" width="9" height="4" />
+  <model name="SeaVilla" length="10" width="10" height="4" />
   
   <model name="Island" size="400" steps="-1" pixelsize="1">
     <color symbol="I" value="abcbe8" comment="sea"/>
@@ -52,13 +48,13 @@
   <model name="CrawlersChase" size="60" steps="200"/>
   <model name="CrossCountry" size="80"/>
   <model name="Cycles" size="59"/>
-  <model name="DenseSAW" size="59" amount="4"/>
+  <model name="DenseSAW" size="59" />
   <model name="DiagonalPath" size="80"/>
   <model name="Digger" size="359" steps="50000"/>
-  <model name="DijkstraDungeon" size="40" amount="4"/>
+  <model name="DijkstraDungeon" size="40" />
   <model name="DualRetraction" size="59"/>
   <model name="DualRetraction3D" size="27" d="3"/>
-  <model name="DungeonGrowth" size="79" amount="4"/>
+  <model name="DungeonGrowth" size="79" />
   <model name="Dwarves" size="20" steps="85"/>
   <model name="Escher" size="8" d="3"/>
   <model name="EscherSurface" size="8" d="3"/>
@@ -70,7 +66,7 @@
   <model name="ForestFireCA" size="600" steps="80" pixelsize="1"/>
   <model name="GameOfLife" size="120" steps="100"/>
   <model name="Growth" size="359" steps="128880" pixelsize="2" />
-  <!-- <model name="Growth" size="29" d="3" steps="3000"/> -->
+  <model name="Growth" size="29" d="3" steps="3000"/>
   <model name="GrowthCompetition" size="80" steps="30000"/>
   <model name="GrowthContraction" size="79" steps="10000"/>
   <model name="GrowthWalk" size="79" steps="5000"/>
@@ -103,7 +99,7 @@
   <model name="NoDeadEnds" size="19" d="3"/>
   <model name="Noise" size="80"/>
   <model name="Noise" size="24" d="3"/>
-  <model name="NystromDungeon" size="39" amount="4" pixelsize="8" gui="150"/>
+  <model name="NystromDungeon" size="39"  pixelsize="8" gui="150"/>
   <model name="OddScale" size="8"/>
   <model name="OddScale3D" size="8" d="3"/>
   <model name="OpenCave" size="80"/>
@@ -126,8 +122,8 @@
   <model name="RegularSAW" size="19" d="3"/>
   <model name="RegularSAWRestart" size="39"/>
   <model name="RegularSAWRestart" size="19" d="3"/>
-  <model name="River" size="80" amount="4"/>
-  <model name="River" size="20" d="3" amount="1"/>
+  <model name="River" size="80" />
+  <model name="River" size="20" d="3" />
   <model name="SAWRestart" size="79" steps="2000"/>
   <model name="SelectLargeCaves" size="60"/>
   <model name="SelectLongKnots" size="10" d="3"/>
@@ -150,7 +146,7 @@
   <model name="SubmergedKnots" size="12" d="3"/>
   <model name="Surface" size="10" d="3"/>
   <model name="Tetris" size="30" steps="1500"/>
-  <model name="TileDungeon" size="12" amount="4"/>
+  <model name="TileDungeon" size="12" />
   <model name="Trail" size="59" steps="3000"/>
   <model name="Voronoi" size="240"/>
   <model name="Voronoi" size="60" d="3"/>
@@ -164,16 +160,16 @@
   <model name="BasicSnake" size="50" steps="1000" pixelsize="10" />
   <!--<model name="Chase" size="60" steps="200" gif="True"/>-->
 
-  <!--<model name="MultiSokoban9" size="9" amount="1" pixelsize="20" gif="True"/>-->
-  <!--<model name="MultiSokoban8" size="8" amount="1" pixelsize="20" gif="True"/>-->
-  <model name="SokobanLevel1" length="14" width="9" amount="1" pixelsize="21" />
-  <model name="SokobanLevel2" length="5" width="4" amount="1" pixelsize="21" gif="True"/>
+  <!--<model name="MultiSokoban9" size="9"  pixelsize="20" gif="True"/>-->
+  <!--<model name="MultiSokoban8" size="8"  pixelsize="20" gif="True"/>-->
+  <model name="SokobanLevel1" length="14" width="9"  pixelsize="21" />
+  <model name="SokobanLevel2" length="5" width="4"  pixelsize="21" gif="True"/>
   <!--<model name="SequentialSokoban" size="20" gif="True"/>-->
 
   benchmarks
-  <!--<model name="MazeGrowth" size="967" amount="20" pixelsize="1" steps="200000"/> 1.7-->
-  <!--<model name="ParallelMazeGrowth" size="967" amount="20" pixelsize="1"/> 2.0-->
-  <!--<model name="MazeBacktracker" size="967" amount="20" pixelsize="1" steps="200000"/> 2.3-->
+  <!--<model name="MazeGrowth" size="967"  pixelsize="1" steps="200000"/> 1.7-->
+  <!--<model name="ParallelMazeGrowth" size="967"  pixelsize="1"/> 2.0-->
+  <!--<model name="MazeBacktracker" size="967"  pixelsize="1" steps="200000"/> 2.3-->
 </models>
 
 <!--
