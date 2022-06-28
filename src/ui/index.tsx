@@ -6,6 +6,8 @@ import { Program } from "../program";
 
 import "./style/index.css";
 
+const debug = location.hostname === "localhost";
+
 const ControlPanel = observer(
     ({ model, close }: { model: string; close: () => void }) => {
         const [prog, setProg] = useState<Program>(null);
@@ -60,7 +62,11 @@ const ControlPanel = observer(
                                     step
                                 </button>
                             )}
-
+                            {debug && (
+                                <button onClick={() => prog.debug()}>
+                                    debug 😭
+                                </button>
+                            )}
                             {prog.output && (
                                 <button
                                     onClick={() =>

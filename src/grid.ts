@@ -55,7 +55,7 @@ export class Grid {
             if (g.waves.has(symbol)) {
                 console.error(
                     union,
-                    `pepeating union type "${String.fromCharCode(symbol)}"`
+                    `repeating union type "${String.fromCharCode(symbol)}"`
                 );
                 return null;
             } else {

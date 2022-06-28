@@ -348,7 +348,7 @@ export class Rule {
         for (let i = 0; i < inRect.length; i++) {
             const c = inRect[i];
             const value = gin.waves.get(c);
-            if (value === null) {
+            if (isNaN(value)) {
                 console.error(elem, `input code ${c} is not found in codes`);
                 return null;
             }
@@ -361,7 +361,7 @@ export class Rule {
             if (c === "*".charCodeAt(0)) output[o] = 0xff;
             else {
                 const value = gout.values.get(c);
-                if (value === null) {
+                if (isNaN(value)) {
                     console.error(
                         elem,
                         `output code ${c} is not found in codes`

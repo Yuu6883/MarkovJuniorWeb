@@ -39,6 +39,12 @@ export class Helper {
         }
     }
 
+    public static *childrenByTags(e: Element, tags: string[]) {
+        for (const c of Helper.collectionIter(e.children)) {
+            if (tags.includes(c.tagName)) yield c;
+        }
+    }
+
     public static collectionToArr<T>(c: DOMCollection<T>) {
         const arr: T[] = [];
         for (let i = 0; i < c.length; i++) {
@@ -54,13 +60,12 @@ export class Helper {
     }
 
     public static *matchTags(elem: Element, ...tags: string[]) {
-        const t = tags.join(", ");
         const queue = [elem];
 
         while (queue.length) {
             const e = queue.shift();
             if (e !== elem) yield e;
-            for (const x of this.childrenByTag(e, t)) queue.push(x);
+            for (const x of this.childrenByTags(e, tags)) queue.push(x);
         }
     }
 

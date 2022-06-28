@@ -27,6 +27,8 @@ export abstract class Node {
     public abstract run(): boolean;
 
     public source: Element;
+    public comment: string;
+
     protected ip: Interpreter;
     public grid: Grid;
 
@@ -62,6 +64,7 @@ export abstract class Node {
         node.ip = ip;
         node.grid = grid;
         node.source = elem;
+        node.comment = elem.getAttribute("comment");
 
         const success = await node.load(elem, symmetry, grid);
 

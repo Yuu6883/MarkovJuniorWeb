@@ -38,8 +38,11 @@ export class ParallelNode extends RuleNode {
                         rule.output[
                             dx + dy * rule.OMX + dz * rule.OMX * rule.OMY
                         ];
+
+                    if (isNaN(newvalue)) debugger;
+
                     let idi = x + dx + (y + dy) * MX + (z + dz) * MX * MY;
-                    if (newvalue != 0xff && newvalue != grid.state[idi]) {
+                    if (newvalue !== 0xff && newvalue !== grid.state[idi]) {
                         this.newstate[idi] = newvalue;
                         ip.changes.push([x + dx, y + dy, z + dz]);
                     }

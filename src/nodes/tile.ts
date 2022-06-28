@@ -1,4 +1,4 @@
-import { alea, PRNG } from "seedrandom";
+import { alea } from "seedrandom";
 import { Grid } from "../grid";
 import { Array2D, Array3Dflat, BoolArray3D } from "../helpers/datastructures";
 import { Helper } from "../helpers/helper";
@@ -10,6 +10,8 @@ import { WFCNode } from "./";
 const FALSE = (_) => false;
 
 export class TileNode extends WFCNode {
+    protected static state_rng = alea("", { entropy: true });
+
     private tiledata: Uint8Array[];
 
     private S: number;
@@ -442,8 +444,9 @@ export class TileNode extends WFCNode {
             overlap,
             overlapz,
             votes,
-            rng,
         } = this;
+
+        const rng = TileNode.state_rng;
 
         for (let z = 0; z < grid.MZ; z++)
             for (let y = 0; y < grid.MY; y++)

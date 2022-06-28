@@ -124,6 +124,7 @@ export abstract class WFCNode extends Branch {
 
             this.newgrid.clear();
             this.ip.grid = this.newgrid;
+
             return true;
         } else {
             const node = this.nextUnobservedNode(this.rng);
@@ -131,8 +132,6 @@ export abstract class WFCNode extends Branch {
                 this.observe(node, this.rng);
                 this.propagate();
             } else this.n++;
-
-            // if (this.n > -1) debugger;
 
             if (this.n >= 0) {
                 this.updateState();

@@ -1,3 +1,4 @@
+import { alea } from "seedrandom";
 import { Grid } from "../grid";
 import { Array2D } from "../helpers/datastructures";
 import { Helper } from "../helpers/helper";
@@ -7,6 +8,8 @@ import { SymmetryHelper } from "../helpers/symmetry";
 import { WFCNode } from "./";
 
 export class OverlapNode extends WFCNode {
+    protected static state_rng = alea("", { entropy: true });
+
     private patterns: Array2D<Uint8Array>;
     private votes: Array2D<Uint32Array>;
 
@@ -205,8 +208,10 @@ export class OverlapNode extends WFCNode {
 
     // No idea why this is x20 slower than C# (2000ms vs 100ms, WaveFlower)
     public override updateState() {
-        const { newgrid, wave, patterns, P, N, votes, rng } = this;
+        const { newgrid, wave, patterns, P, N, votes } = this;
         const { MX, MY } = newgrid;
+
+        const rng = OverlapNode.state_rng;
 
         const buf = votes.arr;
         const rows = votes.ROWS;

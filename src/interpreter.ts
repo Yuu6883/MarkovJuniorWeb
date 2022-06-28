@@ -104,8 +104,9 @@ export class Interpreter {
     }
 
     public onRender() {
-        if (this.current instanceof WFCNode && this.current.n < 0)
+        if (this.current instanceof WFCNode && this.current.n < 0) {
             this.current.updateState();
+        }
     }
 
     public final(): [Uint8Array, string, number, number, number] {

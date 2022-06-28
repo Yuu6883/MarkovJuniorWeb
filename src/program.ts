@@ -25,6 +25,8 @@ export interface ProgramParams {
 }
 
 export class Program {
+    public static instance: Program;
+
     private static meta = seedrandom();
     public static models: Map<string, Element> = new Map();
     private static palette: Map<string, Uint8ClampedArray>;
@@ -99,6 +101,8 @@ export class Program {
         ));
         if (!this.modelDescriptor) return;
 
+        Program.instance = this;
+
         const name = (this.name = emodel.getAttribute("name"));
         const size = parseInt(emodel.getAttribute("size")) || -1;
         const dimension = parseInt(emodel.getAttribute("d")) || 2;
@@ -134,7 +138,10 @@ export class Program {
             }
 
             this.renderer.palette = customPalette;
-            this._seed = seeds?.[0] || Program.meta.int32();
+
+            runInAction(() => {
+                this._seed = seeds?.[0] || Program.meta.int32();
+            });
 
             return true;
         })();
@@ -144,6 +151,11 @@ export class Program {
             .appendChild(this.renderer.canvas);
         this.renderer.clear();
         makeObservable(this);
+    }
+
+    @action
+    public debug() {
+        debugger;
     }
 
     @action

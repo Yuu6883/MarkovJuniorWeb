@@ -84,7 +84,7 @@ export abstract class RuleNode extends Node {
             // );
         }
         this.rules = ruleList.concat([]);
-        this.last = new Uint8Array(rules.length);
+        this.last = new Uint8Array(this.rules.length);
 
         // console.log(`RuleNode has ${this.rules.length} rules`);
 
