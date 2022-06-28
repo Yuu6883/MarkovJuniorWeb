@@ -36,50 +36,56 @@ const ControlPanel = observer(
                             {"  "}
                             seed: {prog.seed}
                         </p>
-                        <div className="control-buttons">
-                            {prog.running ? (
-                                <button
-                                    onClick={() => {
-                                        prog.paused
-                                            ? prog.resume()
-                                            : prog.pause();
-                                    }}
-                                >
-                                    {prog.paused ? "resume" : "pause"}
-                                </button>
-                            ) : (
-                                <>
-                                    <button onClick={() => prog.start()}>
-                                        start
+                        {prog.loading ? (
+                            <p>loading...</p>
+                        ) : (
+                            <div className="control-buttons">
+                                {prog.running ? (
+                                    <button
+                                        onClick={() => {
+                                            prog.paused
+                                                ? prog.resume()
+                                                : prog.pause();
+                                        }}
+                                    >
+                                        {prog.paused ? "resume" : "pause"}
                                     </button>
-                                    <button onClick={() => prog.randomize()}>
-                                        randomize seed
+                                ) : (
+                                    <>
+                                        <button onClick={() => prog.start()}>
+                                            start
+                                        </button>
+                                        <button
+                                            onClick={() => prog.randomize()}
+                                        >
+                                            randomize seed
+                                        </button>
+                                    </>
+                                )}
+                                {prog.paused && (
+                                    <button onClick={() => prog.step()}>
+                                        step
                                     </button>
-                                </>
-                            )}
-                            {prog.paused && (
-                                <button onClick={() => prog.step()}>
-                                    step
-                                </button>
-                            )}
-                            {debug && (
-                                <button onClick={() => prog.debug()}>
-                                    debug 😭
-                                </button>
-                            )}
-                            {prog.output && (
-                                <button
-                                    onClick={() =>
-                                        saveAs(
-                                            new Blob([prog.output.buffer]),
-                                            prog.output.name
-                                        )
-                                    }
-                                >
-                                    Download output
-                                </button>
-                            )}
-                        </div>
+                                )}
+                                {debug && (
+                                    <button onClick={() => prog.debug()}>
+                                        debug 😭
+                                    </button>
+                                )}
+                                {prog.output && (
+                                    <button
+                                        onClick={() =>
+                                            saveAs(
+                                                new Blob([prog.output.buffer]),
+                                                prog.output.name
+                                            )
+                                        }
+                                    >
+                                        Download output
+                                    </button>
+                                )}
+                            </div>
+                        )}
                     </div>
                     <div className="speed">
                         <label>Speed</label>

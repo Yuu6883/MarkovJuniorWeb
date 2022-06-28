@@ -88,6 +88,9 @@ export class Program {
     private rendered = 0;
 
     @observable
+    public loading = false;
+
+    @observable
     public output: ProgramOutput = null;
 
     public readonly DIM = new Int32Array([-1, -1, -1]);
@@ -205,6 +208,9 @@ export class Program {
         this._curr = null;
         this.output = null;
 
+        if (this.loading) return Promise.resolve(false);
+        this.loading = true;
+
         return this._loadPromise.then(async (loaded) => {
             if (!loaded) return false;
 
@@ -217,6 +223,7 @@ export class Program {
             );
 
             runInAction(() => {
+                this.loading = false;
                 this._timer = 0;
                 this._paused = false;
                 this.loop();
