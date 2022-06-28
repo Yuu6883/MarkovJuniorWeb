@@ -7,11 +7,7 @@ import {
     runInAction,
 } from "mobx";
 
-import {
-    BitmapRenderer,
-    IsometricRenderer,
-    Renderer,
-} from "./helpers/graphics";
+import { BitmapRenderer, IsometricRenderer, Renderer } from "./render";
 
 import { Helper } from "./helpers/helper";
 import { Loader } from "./helpers/loader";

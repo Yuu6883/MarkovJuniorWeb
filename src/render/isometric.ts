@@ -1,97 +1,8 @@
-import React from "react";
-import { BoolArray, BoolArray2D } from "./datastructures";
-
-export abstract class Renderer {
-    private _chars: string;
-    private _palette: Map<string, Uint8ClampedArray>;
-    protected colors: Uint8Array;
-
-    public abstract get canvas(): HTMLCanvasElement;
-
-    set characters(chars: string) {
-        if (this._chars !== chars) {
-            this._chars = chars;
-
-            const colorArr = chars.split("").map((c) => this._palette.get(c));
-            this.colors = new Uint8Array(colorArr.length * 4);
-            for (let i = 0; i < colorArr.length; i++) {
-                this.colors.set(colorArr[i], i * 4);
-            }
-        }
-    }
-
-    set palette(colors: Map<string, Uint8ClampedArray>) {
-        this._palette = new Map([...colors.entries()]);
-    }
-
-    get palette() {
-        return new Map([...this._palette.entries()]);
-    }
-
-    abstract update(MX: number, MY: number, MZ: number);
-    abstract render(state: Uint8Array);
-    abstract clear();
-}
-
-export class BitmapRenderer extends Renderer {
-    private static _canvas = document.createElement("canvas");
-    private static _ctx = BitmapRenderer._canvas.getContext("2d");
-
-    private MX: number;
-    private MY: number;
-    private img: ImageData;
-
-    public override get canvas(): HTMLCanvasElement {
-        return BitmapRenderer._canvas;
-    }
-
-    private get ctx() {
-        return BitmapRenderer._ctx;
-    }
-
-    override update(MX: number, MY: number, _: number) {
-        if (this.MX === MX && this.MY === MY) return;
-
-        this.MX = MX;
-        this.MY = MY;
-        this.img = new ImageData(MX, MY);
-    }
-
-    // TODO: use wasm to speed up? or just color it on GPU w shaders
-    override render(state: Uint8Array) {
-        const { MX, MY, img, colors, canvas, ctx } = this;
-        if (!canvas || !ctx || !colors || !img) return;
-
-        const { data } = img;
-
-        const total = MX * MY;
-        for (let offset = 0; offset < total; offset++) {
-            const c = state[offset] << 2;
-            const o = offset << 2;
-
-            // imagine simd in js ):
-            data[o + 0] = colors[c + 0];
-            data[o + 1] = colors[c + 1];
-            data[o + 2] = colors[c + 2];
-            data[o + 3] = colors[c + 3];
-        }
-
-        canvas.width = MX;
-        canvas.height = MY;
-
-        canvas.style.width = `${MX}px`;
-        canvas.style.height = `${MY}px`;
-        ctx.putImageData(img, 0, 0);
-    }
-
-    override clear() {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    }
-}
-
-const BLOCK_SIZE = 6;
+import { Renderer } from ".";
+import { BoolArray, BoolArray2D } from "../helpers/datastructures";
 
 export class IsometricRenderer extends Renderer {
+    public static readonly BLOCK_SIZE = 6;
     private static _canvas = document.createElement("canvas");
     private static _ctx = IsometricRenderer._canvas.getContext("2d");
 
@@ -132,7 +43,7 @@ export class IsometricRenderer extends Renderer {
 
     constructor() {
         super();
-        this.sprite = new VoxelSprite(BLOCK_SIZE);
+        this.sprite = new VoxelSprite(IsometricRenderer.BLOCK_SIZE);
         this.canvas.style.imageRendering = "auto";
     }
 
@@ -145,11 +56,11 @@ export class IsometricRenderer extends Renderer {
         this.visible = new BoolArray(MX * MY * MZ);
         this.hash = new BoolArray2D(MX + MY + 2 * MZ - 3, MX + MY - 1);
 
-        const FITWIDTH = (MX + MY) * BLOCK_SIZE,
-            FITHEIGHT = ~~(((MX + MY) / 2 + MZ) * BLOCK_SIZE);
+        const FITWIDTH = (MX + MY) * this.sprite.size,
+            FITHEIGHT = ~~(((MX + MY) / 2 + MZ) * this.sprite.size);
 
-        const W = FITWIDTH + 2 * BLOCK_SIZE;
-        const H = FITHEIGHT + 2 * BLOCK_SIZE;
+        const W = FITWIDTH + 2 * this.sprite.size;
+        const H = FITHEIGHT + 2 * this.sprite.size;
 
         this.img = new ImageData(W, H);
     }
@@ -232,6 +143,7 @@ export class IsometricRenderer extends Renderer {
         // So it shows up in profiler
         buildState();
 
+        const BLOCK_SIZE = this.sprite.size;
         const FITWIDTH = (MX + MY) * BLOCK_SIZE,
             FITHEIGHT = ~~(((MX + MY) / 2 + MZ) * BLOCK_SIZE);
 
@@ -302,7 +214,7 @@ frag_funcs[6] = "x > 0 && y == ~~((x + 1) / 2) - s ? black : expr";
 frag_funcs[7] = "x <= 0 && y == -~~(x / 2) - s + 1 ? black : expr";
 
 class VoxelSprite {
-    private readonly size: number;
+    public readonly size: number;
     public readonly width: number;
     public readonly height: number;
 
