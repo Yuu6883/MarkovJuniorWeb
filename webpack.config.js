@@ -63,6 +63,11 @@ module.exports = (_, argv) => ({
                     },
                 ],
             },
+            {
+                test: /\.vert|frag$/,
+                type: "asset/source",
+                use: "glslify-loader",
+            },
         ],
     },
     plugins: [

@@ -7,7 +7,12 @@ import {
     runInAction,
 } from "mobx";
 
-import { BitmapRenderer, IsometricRenderer, Renderer } from "./render";
+import {
+    BitmapRenderer,
+    IsometricRenderer,
+    VoxelPathTracer,
+    Renderer,
+} from "./render";
 
 import { Helper } from "./helpers/helper";
 import { Loader } from "./helpers/loader";
@@ -110,7 +115,12 @@ export class Program {
             (dimension === 2 ? 1 : size);
 
         this.renderer =
-            this.DIM[2] === 1 ? new BitmapRenderer() : new IsometricRenderer();
+            this.DIM[2] === 1
+                ? new BitmapRenderer()
+                : VoxelPathTracer.supported
+                ? new VoxelPathTracer()
+                : new IsometricRenderer();
+
         this.renderer.clear();
 
         this._loadPromise = (async () => {
@@ -264,7 +274,7 @@ export class Program {
             const [state, chars, FX, FY, FZ] = this.ip.final();
 
             this.ip.onRender();
-            this.renderer.characters = chars;
+            this.renderer.setCharacters(chars);
             this.renderer.update(FX, FY, FZ);
             this.renderer.render(state);
             this.rendered++;
@@ -295,7 +305,7 @@ export class Program {
                 const [state, chars, FX, FY, FZ] = result.value;
 
                 this.ip.onRender();
-                this.renderer.characters = chars;
+                this.renderer.setCharacters(chars);
                 this.renderer.update(FX, FY, FZ);
                 this.renderer.render(state);
                 this.rendered++;
@@ -322,5 +332,6 @@ export class Program {
     public stop() {
         this.pause();
         this.renderer.canvas.remove();
+        this.renderer.dispose();
     }
 }

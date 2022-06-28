@@ -20,5 +20,6 @@
         "noEmit": true,
         "jsx": "react-jsx",
         "downlevelIteration": true
-    }
+    },
+    "include": ["src/"]
 }

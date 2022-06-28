@@ -5,7 +5,11 @@ export abstract class Renderer {
 
     public abstract get canvas(): HTMLCanvasElement;
 
-    set characters(chars: string) {
+    get characters() {
+        return this._chars;
+    }
+
+    setCharacters(chars: string) {
         if (this._chars !== chars) {
             this._chars = chars;
 
@@ -28,4 +32,5 @@ export abstract class Renderer {
     abstract update(MX: number, MY: number, MZ: number);
     abstract render(state: Uint8Array);
     abstract clear();
+    abstract dispose();
 }
