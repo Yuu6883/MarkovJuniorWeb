@@ -92,10 +92,12 @@ export class Vixel {
         this.camera.aspect = this._canvas.width / this._canvas.height;
         if (this.camera.update()) this._renderDirty = true;
 
-        if (this._renderDirty && !(this.frame % 5)) {
+        if (this._renderDirty && !(this.frame % 4)) {
             this._renderer.reset();
             this._renderDirty = false;
         }
+
+        if (this._renderer.sampleCount() >= 1024) return;
 
         this._renderer.sample(this.stage, this.camera, {
             groundColor: this._ground.color,
@@ -112,6 +114,8 @@ export class Vixel {
     }
 
     display() {
+        if (this._renderer.sampleCount() >= 1024) return;
+
         this._renderer.display();
     }
 

@@ -107,7 +107,7 @@ export class VoxelPathTracer extends Renderer {
         this.MY = MY;
         this.MZ = MZ;
 
-        this.vixel.camera.azimuth = 45;
+        this.vixel.camera.azimuth = -45;
         this.vixel.camera.incline = 30;
         this.vixel.camera.center.set([MX / 2, MZ / 2, MY / 2]);
         this.vixel.camera.distance = Math.sqrt(MX * MX + MY * MY + MZ * MZ);
