@@ -6,8 +6,7 @@ The only buggy thing for now is in SokobanLevel, probably related to the potenti
 
 # MarkovJuniorWeb
 Typescript version of [MarkovJunior](https://github.com/mxgmn/MarkovJunior), runs on the web: https://yuu6883.github.io/MarkovJuniorWeb/
-![Screenshot](https://user-images.githubusercontent.com/38842891/175824430-6552825e-4896-427e-a4ce-8a84dafbbdde.png)
-
+![Screenshot](https://user-images.githubusercontent.com/38842891/176066503-87998266-7b66-4be3-9060-6c295f778935.png)
 
 ## TODO
 - Get rid of all the bugs
