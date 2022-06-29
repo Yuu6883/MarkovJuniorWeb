@@ -3,10 +3,12 @@ import { observer } from "mobx-react-lite";
 import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Program } from "../program";
+import { VoxelPathTracer } from "../render";
 
 import "./style/index.css";
 
 const debug = location.hostname === "localhost";
+const rtx = VoxelPathTracer.supported;
 
 const ControlPanel = observer(
     ({ model, close }: { model: string; close: () => void }) => {
@@ -53,23 +55,18 @@ const ControlPanel = observer(
                                 ) : (
                                     <>
                                         <button onClick={() => prog.start()}>
-                                            start
+                                            Start
                                         </button>
                                         <button
                                             onClick={() => prog.randomize()}
                                         >
-                                            randomize seed
+                                            Randomize Seed
                                         </button>
                                     </>
                                 )}
                                 {prog.paused && (
                                     <button onClick={() => prog.step()}>
-                                        step
-                                    </button>
-                                )}
-                                {debug && (
-                                    <button onClick={() => prog.debug()}>
-                                        debug 😭
+                                        Step
                                     </button>
                                 )}
                                 {prog.output && (
@@ -81,7 +78,29 @@ const ControlPanel = observer(
                                             )
                                         }
                                     >
-                                        Download output
+                                        Download Output
+                                    </button>
+                                )}
+                                {rtx &&
+                                    prog.renderType !== "bitmap" &&
+                                    prog.MZ > 1 && (
+                                        <button
+                                            onClick={() =>
+                                                prog.toggleRender(
+                                                    prog.renderType === "voxel"
+                                                        ? "isometric"
+                                                        : "voxel"
+                                                )
+                                            }
+                                        >
+                                            {prog.renderType === "voxel"
+                                                ? "Isometric"
+                                                : "Voxel"}
+                                        </button>
+                                    )}
+                                {debug && (
+                                    <button onClick={() => prog.debug()}>
+                                        debug 😭
                                     </button>
                                 )}
                             </div>

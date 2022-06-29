@@ -1,7 +1,7 @@
 import { vec3 } from "gl-matrix";
 import createAtmosphereRenderer from "regl-atmosphere-envmap";
 import { PingPongTextures } from "./pingpong";
-import { FramebufferColorDataType, Regl } from "regl";
+import { FramebufferColorDataType, Regl, Texture2D } from "regl";
 
 import SampleVert from "./glsl/sample.vert";
 import SampleFrag from "./glsl/sample.frag";
@@ -10,10 +10,26 @@ import DisplayFrag from "./glsl/display.frag";
 import Stage from "./stage";
 import Camera from "./camera";
 
-export default function Renderer(
-    regl: Regl,
-    colorType: FramebufferColorDataType
-) {
+const TexCache: {
+    t2Sphere?: Texture2D;
+    t3Sphere?: Texture2D;
+    tUniform1?: Texture2D;
+    tUniform2?: Texture2D;
+} = {};
+
+export const clearTexCache = () => {
+    TexCache.t2Sphere && TexCache.t2Sphere.destroy();
+    TexCache.t3Sphere && TexCache.t3Sphere.destroy();
+    TexCache.tUniform1 && TexCache.tUniform1.destroy();
+    TexCache.tUniform2 && TexCache.tUniform2.destroy();
+
+    TexCache.t2Sphere = null;
+    TexCache.t3Sphere = null;
+    TexCache.tUniform1 = null;
+    TexCache.tUniform2 = null;
+};
+
+const Renderer = (regl: Regl, colorType: FramebufferColorDataType) => {
     const canvas = regl._gl.canvas;
 
     const sunDistance = 149600000000;
@@ -40,7 +56,7 @@ export default function Renderer(
 
     const tRandSize = 1024;
 
-    const t2Sphere = (function () {
+    TexCache.t2Sphere ||= (() => {
         const data = new Float32Array(tRandSize * tRandSize * 3);
         for (let i = 0; i < tRandSize * tRandSize; i++) {
             const r = vec3.random(vec3.create());
@@ -58,7 +74,7 @@ export default function Renderer(
         });
     })();
 
-    const t3Sphere = (function () {
+    TexCache.t3Sphere ||= (() => {
         const data = new Float32Array(tRandSize * tRandSize * 3);
         for (let i = 0; i < tRandSize * tRandSize; i++) {
             const r = vec3.random(vec3.create(), Math.random());
@@ -76,7 +92,7 @@ export default function Renderer(
         });
     })();
 
-    const tUniform2 = (function () {
+    TexCache.tUniform2 ||= (() => {
         const data = new Float32Array(tRandSize * tRandSize * 2);
         for (let i = 0; i < tRandSize * tRandSize; i++) {
             data[i * 2 + 0] = Math.random();
@@ -92,7 +108,7 @@ export default function Renderer(
         });
     })();
 
-    const tUniform1 = (function () {
+    TexCache.tUniform1 ||= (() => {
         const data = new Float32Array(tRandSize * tRandSize * 1);
         for (let i = 0; i < tRandSize * tRandSize; i++) {
             data[i] = Math.random();
@@ -123,10 +139,10 @@ export default function Renderer(
             res: prop("res"),
             resFrag: prop("resFrag"),
             tSky: skyMap,
-            tUniform1: tUniform1,
-            tUniform2: tUniform2,
-            t2Sphere: t2Sphere,
-            t3Sphere: t3Sphere,
+            tUniform1: TexCache.tUniform1,
+            tUniform2: TexCache.tUniform2,
+            t2Sphere: TexCache.t2Sphere,
+            t3Sphere: TexCache.t3Sphere,
             tOffset: prop("tOffset"),
             tRGB: prop("tRGB"),
             tRMET: prop("tRMET"),
@@ -162,8 +178,8 @@ export default function Renderer(
         uniforms: {
             source: prop("source"),
             fraction: prop("fraction"),
-            tUniform1: tUniform1,
-            tUniform1Res: [tUniform1.width, tUniform1.height],
+            tUniform1: TexCache.tUniform1,
+            tUniform1Res: [TexCache.tUniform1.width, TexCache.tUniform1.height],
         },
         depth: {
             enable: false,
@@ -288,4 +304,6 @@ export default function Renderer(
             pingpong.pong.destroy();
         },
     };
-}
+};
+
+export default Renderer;

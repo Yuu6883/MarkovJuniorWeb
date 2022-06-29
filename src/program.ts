@@ -28,6 +28,11 @@ export interface ProgramParams {
     steps?: number;
 }
 
+const Render3DTypes = {
+    isometric: IsometricRenderer,
+    voxel: VoxelPathTracer,
+};
+
 export class Program {
     public static instance: Program;
 
@@ -65,11 +70,14 @@ export class Program {
     }
 
     public readonly name: string;
-    public readonly renderer: Renderer;
+
     private readonly modelDescriptor: Element;
     private modelDoc: Element;
 
     private ip: Interpreter;
+
+    @observable
+    public renderer: Renderer;
 
     @observable
     private _curr: Generator<[Uint8Array, string, number, number, number]> =
@@ -88,6 +96,9 @@ export class Program {
     private _timer = 0;
     private _steps = -1;
 
+    private default3DrenderType = VoxelPathTracer.supported
+        ? "voxel"
+        : "isometric";
     private rendered = 0;
 
     @observable
@@ -123,11 +134,12 @@ export class Program {
         this.renderer =
             this.DIM[2] === 1
                 ? new BitmapRenderer()
-                : VoxelPathTracer.supported
-                ? new VoxelPathTracer()
-                : new IsometricRenderer();
+                : new Render3DTypes[this.default3DrenderType]();
 
         this.renderer.clear();
+        document
+            .getElementById("canvas-container")
+            .appendChild(this.renderer.canvas);
 
         this._loadPromise = (async () => {
             const path = `models/${name}.xml`;
@@ -158,10 +170,6 @@ export class Program {
             return true;
         })();
 
-        document
-            .getElementById("canvas-container")
-            .appendChild(this.renderer.canvas);
-        this.renderer.clear();
         makeObservable(this);
     }
 
@@ -336,6 +344,39 @@ export class Program {
     @computed
     public get MZ() {
         return this.DIM[2];
+    }
+
+    @computed
+    public get renderType() {
+        const r = this.renderer;
+
+        if (r instanceof BitmapRenderer) return "bitmap";
+        if (r instanceof IsometricRenderer) return "isometric";
+        if (r instanceof VoxelPathTracer) return "voxel";
+
+        return null;
+    }
+
+    @action toggleRender(type: "isometric" | "voxel") {
+        const palette = this.renderer.palette;
+        this.renderer.canvas.remove();
+        this.renderer.dispose();
+        this.rendered = 0;
+
+        this.renderer = new Render3DTypes[type]();
+        this.renderer.palette = palette;
+        this.renderer.clear();
+        document
+            .getElementById("canvas-container")
+            .appendChild(this.renderer.canvas);
+
+        const [state, chars, FX, FY, FZ] = this.ip.final();
+
+        this.ip.onRender();
+        this.renderer.setCharacters(chars);
+        this.renderer.update(FX, FY, FZ);
+        this.renderer.render(state);
+        this.rendered++;
     }
 
     @action
