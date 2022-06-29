@@ -125,7 +125,7 @@ const App = () => {
                         [...Program.models.keys()].map((k) => (
                             <div
                                 key={k}
-                                aria-selected={model === k}
+                                data-selected={model === k}
                                 onClick={() => setModel(k)}
                             >
                                 {k}

@@ -39,7 +39,7 @@ h1 {
     cursor: pointer;
 }
 
-.model-list div[aria-selected="true"] {
+.model-list div[data-selected="true"] {
     font-weight: bold;
     background-color: rgb(45, 50, 58);
 }
