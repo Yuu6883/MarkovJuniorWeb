@@ -35,6 +35,13 @@ export class ConvolutionNode extends Node {
     ]);
 
     protected override async load(elem: Element, _: Uint8Array, grid: Grid) {
+        const erules = [...Helper.childrenByTag(elem, "rule")];
+        const elems = erules.length ? erules : [elem];
+
+        this.rules = elems.map(() => new ConvolutionRule());
+
+        if (!this.rules.every((r, i) => r.load(elems[i], grid))) return false;
+
         const neighborhood = elem.getAttribute("neighborhood");
         this.kernel = (
             grid.MZ === 1
@@ -46,10 +53,6 @@ export class ConvolutionNode extends Node {
             console.error(elem, "unknown kernel");
             return false;
         }
-
-        this.rules = [...Helper.childrenByTag(elem, "rule")].map(
-            (x) => new ConvolutionRule(x, grid)
-        );
 
         this.steps = parseInt(elem.getAttribute("steps")) || -1;
         this.periodic = elem.getAttribute("periodic") === "True";
@@ -171,16 +174,28 @@ function* interval(s: string) {
 }
 
 class ConvolutionRule {
-    public readonly input: number;
-    public readonly output: number;
-    public readonly values: Uint8Array;
-    public readonly sums: Uint8Array;
-    public readonly p: number;
+    public input: number;
+    public output: number;
+    public values: Uint8Array;
+    public sums: Uint8Array;
+    public p: number;
 
-    constructor(elem: Element, grid: Grid) {
+    public load(elem: Element, grid: Grid) {
         this.input = grid.values.get(elem.getAttribute("in").charCodeAt(0));
         this.output = grid.values.get(elem.getAttribute("out").charCodeAt(0));
         const valueString = elem.getAttribute("values");
+        const sumsString = elem.getAttribute("sum");
+
+        if (valueString && !sumsString) {
+            console.error(elem, 'missing "sum" attribute');
+            return false;
+        }
+
+        if (!valueString && sumsString) {
+            console.error(elem, 'missing "value" attribute');
+            return false;
+        }
+
         if (valueString)
             this.values = new Uint8Array(
                 Array.from({ length: valueString.length }, (_, i) =>
@@ -190,12 +205,13 @@ class ConvolutionRule {
 
         this.p = parseFloat(elem.getAttribute("p")) || 1;
 
-        const sumsText = elem.getAttribute("sum");
-        if (sumsText) {
+        if (sumsString) {
             this.sums = new Uint8Array(28);
-            const intervals = sumsText.split(",");
+            const intervals = sumsString.split(",");
             for (const s of intervals)
                 for (const i of interval(s)) this.sums[i] = 1;
         }
+
+        return true;
     }
 }
