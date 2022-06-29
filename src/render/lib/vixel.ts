@@ -92,7 +92,9 @@ export class Vixel {
         this.camera.aspect = this._canvas.width / this._canvas.height;
         if (this.camera.update()) this._renderDirty = true;
 
-        if (this._renderDirty && !(this.frame % 4)) {
+        const CD = 4;
+
+        if (this._renderDirty && !(this.frame % CD)) {
             this._renderer.reset();
             this._renderDirty = false;
         }

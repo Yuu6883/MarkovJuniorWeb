@@ -7,7 +7,7 @@ uniform vec2 res, tOffset, invResRand;
 uniform float resStage, lightRadius, groundRoughness, groundMetalness, dofDist, dofMag, lightIntensity;
 
 const float epsilon = 0.0001;
-const int nBounces = 8;
+const int nBounces = 4;
 
 float randUniform1(inout vec2 randOffset) {
     float r = texture2D(tUniform1, randOffset + tOffset).r;
