@@ -110,7 +110,12 @@ export class VoxelPathTracer extends Renderer {
 
         this.vixel.camera.azimuth = -45;
         this.vixel.camera.incline = 30;
-        this.vixel.camera.center.set([MX / 2, MZ / 4, MY / 2]);
+
+        if (MZ > MX && MZ > MY) {
+            this.vixel.camera.center.set([MX / 2, MZ / 2, MY / 2]);
+        } else {
+            this.vixel.camera.center.set([MX / 2, MZ / 4, MY / 2]);
+        }
 
         this.vixel.camera.maxDistance = dist * 2;
         this.vixel.camera.distance = dist;
