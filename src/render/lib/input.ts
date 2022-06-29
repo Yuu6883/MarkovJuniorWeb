@@ -15,36 +15,48 @@ enum InputButtons {
 }
 
 export default class CameraRotator {
-    private leftDown: boolean;
-    private middleDown: boolean;
-    private rightDown: boolean;
-
-    private mouseX: number;
-    private mouseY: number;
+    private readonly pointers: Map<
+        number,
+        { nx: number; ny: number; ox: number; oy: number; ts: number }
+    > = new Map();
 
     private cam: Camera;
 
     constructor(elem: HTMLElement) {
-        // elem.addEventListener("contextmenu", (e) => e.preventDefault());
-        elem.addEventListener("mousemove", (e) => {
-            if (!this.cam) return;
-            this.onMouseMove(e.clientX, e.clientY);
-        });
-
-        elem.addEventListener("mousedown", (e) => {
-            if (!this.cam || e.target !== elem) return;
-            this.onClick(e.button, InputState.MOUSE_DOWN, e.clientX, e.clientY);
-        });
-
-        elem.addEventListener("mouseup", (e) => {
-            if (!this.cam || e.target !== elem) return;
-            this.onClick(e.button, InputState.MOUSE_UP, e.clientX, e.clientY);
-        });
-
         elem.addEventListener("wheel", (e) => {
             if (!this.cam) return;
             this.onMouseWheel(e.deltaY);
         });
+
+        elem.addEventListener("pointerdown", (e) => {
+            if (!this.cam) return;
+
+            if (this.pointers.size >= 2) return;
+
+            this.pointers.set(e.pointerId, {
+                nx: e.clientX,
+                ny: e.clientY,
+                ox: e.clientX,
+                oy: e.clientY,
+                ts: Date.now(),
+            });
+        });
+
+        elem.addEventListener("pointermove", (e) => {
+            if (!this.cam) return;
+
+            this.onOnePointerMove(e.pointerId, e.clientX, e.clientY);
+        });
+
+        const up = (e: PointerEvent) => {
+            if (!this.cam) return;
+            this.pointers.delete(e.pointerId);
+        };
+
+        elem.addEventListener("pointercancel", up);
+        elem.addEventListener("pointerleave", up);
+        elem.addEventListener("pointerout", up);
+        elem.addEventListener("pointerup", up);
     }
 
     set camera(value: Camera) {
@@ -55,37 +67,22 @@ export default class CameraRotator {
         this.cam.distance *= 1 + delta / 1000;
     }
 
-    onMouseMove(nx: number, ny: number) {
+    onOnePointerMove(id: number, nx: number, ny: number) {
+        const obj = this.pointers.get(id);
+        if (!obj) return;
+
         const MaxDelta = 100;
-        const dx = clamp(nx - this.mouseX, -MaxDelta, MaxDelta);
-        const dy = clamp(-(ny - this.mouseY), -MaxDelta, MaxDelta);
+        const dx = clamp(nx - obj.ox, -MaxDelta, MaxDelta);
+        const dy = clamp(-(ny - obj.oy), -MaxDelta, MaxDelta);
 
-        this.mouseX = nx;
-        this.mouseY = ny;
+        obj.ox = obj.nx;
+        obj.oy = obj.ny;
 
-        if (this.leftDown) {
-            const rate = 1;
-            this.cam.azimuth = this.cam.azimuth + dx * rate;
-            this.cam.incline = clamp(this.cam.incline - dy * rate, -90, 90);
-        }
+        obj.nx = nx;
+        obj.ny = ny;
 
-        if (this.rightDown) {
-            const rate = 0.005;
-            this.cam.distance = clamp(
-                this.cam.distance * (1 - dx * rate),
-                0.01,
-                1000
-            );
-        }
-    }
-
-    public onClick(button: number, mode: InputState, x: number, y: number) {
-        if (button == InputButtons.MOUSE_LEFT) {
-            this.leftDown = mode == InputState.MOUSE_DOWN;
-        } else if (button == InputButtons.MOUSE_MIDDLE) {
-            this.middleDown = mode == InputState.MOUSE_DOWN;
-        } else if (button == InputButtons.MOUSE_RIGHT) {
-            this.rightDown = mode == InputState.MOUSE_DOWN;
-        }
+        const rate = 1;
+        this.cam.azimuth = this.cam.azimuth + dx * rate;
+        this.cam.incline = clamp(this.cam.incline - dy * rate, -90, 90);
     }
 }

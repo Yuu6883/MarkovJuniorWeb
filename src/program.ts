@@ -40,7 +40,7 @@ export class Program {
     public static models: Map<string, Element> = new Map();
     private static palette: Map<string, Uint8ClampedArray>;
 
-    public static async loadPalette() {
+    public static loadPalette() {
         const ep = Loader.xmlParse(PaletteXML);
         const ecolors = [...Helper.childrenByTag(ep, "color")];
         this.palette = new Map(
@@ -51,7 +51,7 @@ export class Program {
         );
     }
 
-    public static async listModels() {
+    public static listModels() {
         const doc = Loader.xmlParse(ModelsXML);
         this.models.clear();
 

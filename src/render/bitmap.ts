@@ -8,6 +8,11 @@ export class BitmapRenderer extends Renderer {
     private MY: number;
     private img: ImageData;
 
+    constructor() {
+        super();
+        this.canvas.style.imageRendering = "pixelated";
+    }
+
     public override get canvas(): HTMLCanvasElement {
         return BitmapRenderer._canvas;
     }

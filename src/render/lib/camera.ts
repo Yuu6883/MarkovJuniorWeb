@@ -8,7 +8,17 @@ export default class Camera {
     public nearClip = 0;
     public farClip = 0;
 
-    public distance = 0;
+    private _distance = 0;
+    public maxDistance = 0;
+
+    public set distance(value: number) {
+        this._distance = Math.max(0.001, Math.min(value, this.maxDistance));
+    }
+
+    public get distance() {
+        return this._distance;
+    }
+
     public azimuth = 0;
     public incline = 0;
 
@@ -48,7 +58,7 @@ export default class Camera {
         mat4.mul(rot, rotX, rotY);
 
         const world = mat4.create();
-        world[14] = this.distance;
+        world[14] = this._distance;
 
         const final = mat4.mul(mat4.create(), rot, world);
 
@@ -81,7 +91,8 @@ export default class Camera {
         this.nearClip = 0.1;
         this.farClip = 1000;
 
-        this.distance = 10;
+        this._distance = 10;
+        this.maxDistance = 1000;
         this.azimuth = 0;
         this.incline = 0;
 

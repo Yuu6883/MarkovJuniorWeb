@@ -106,11 +106,14 @@ export class VoxelPathTracer extends Renderer {
         this.MX = MX;
         this.MY = MY;
         this.MZ = MZ;
+        const dist = Math.sqrt(MX * MX + MY * MY + MZ * MZ);
 
         this.vixel.camera.azimuth = -45;
         this.vixel.camera.incline = 30;
-        this.vixel.camera.center.set([MX / 2, MZ / 2, MY / 2]);
-        this.vixel.camera.distance = Math.sqrt(MX * MX + MY * MY + MZ * MZ);
+        this.vixel.camera.center.set([MX / 2, MZ / 4, MY / 2]);
+
+        this.vixel.camera.maxDistance = dist * 2;
+        this.vixel.camera.distance = dist;
 
         this.vixel.stage.resize([MX, MZ, MY]); // from Z-up to Y-up
     }
