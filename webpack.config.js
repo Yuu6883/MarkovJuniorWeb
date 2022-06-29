@@ -64,6 +64,10 @@ module.exports = (_, argv) => ({
                 ],
             },
             {
+                test: /\.xml$/,
+                type: "asset/source",
+            },
+            {
                 test: /\.vert|frag$/,
                 type: "asset/source",
                 use: "glslify-loader",

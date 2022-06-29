@@ -19,6 +19,9 @@ import { Loader } from "./helpers/loader";
 import { VoxHelper } from "./helpers/vox";
 import { Interpreter } from "./interpreter";
 
+import ModelsXML from "../static/models.xml";
+import PaletteXML from "../static/resources/palette.xml";
+
 export type ProgramOutput = { name: string; buffer: ArrayBuffer };
 
 export interface ProgramParams {
@@ -33,7 +36,7 @@ export class Program {
     private static palette: Map<string, Uint8ClampedArray>;
 
     public static async loadPalette() {
-        const ep = await Loader.xml("resources/palette.xml");
+        const ep = Loader.xmlParse(PaletteXML);
         const ecolors = [...Helper.childrenByTag(ep, "color")];
         this.palette = new Map(
             ecolors.map((e) => [
@@ -44,7 +47,7 @@ export class Program {
     }
 
     public static async listModels() {
-        const doc = await Loader.xml("models.xml");
+        const doc = Loader.xmlParse(ModelsXML);
         this.models.clear();
 
         for (const emodel of Helper.childrenByTag(doc, "model")) {
