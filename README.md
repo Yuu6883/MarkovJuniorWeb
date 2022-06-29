@@ -6,9 +6,5 @@ The only buggy thing for now is in SokobanLevel, probably related to the potenti
 
 # MarkovJuniorWeb
 Typescript version of [MarkovJunior](https://github.com/mxgmn/MarkovJunior), runs on the web: https://yuu6883.github.io/MarkovJuniorWeb/
+![RTX=on](https://user-images.githubusercontent.com/38842891/176314516-db9d3cbf-46c0-4856-bf1f-67e9e390a76c.png)
 ![Screenshot](https://user-images.githubusercontent.com/38842891/176066503-87998266-7b66-4be3-9060-6c295f778935.png)
-
-## TODO
-- Get rid of all the bugs
-- Voxel renderer with webgpu
-- Ray tracing???
