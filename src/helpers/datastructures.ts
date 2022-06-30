@@ -402,13 +402,14 @@ export class HashMap<K, T> {
         const hash = this.hashFunc(k);
         const list = this.map.get(hash);
         if (!list) return null;
-        if (list.length === 1) return list[0].v;
-        return list.find((o) => this.eqFunc(k, o.k))?.v;
+        const obj = list.find((o) => this.eqFunc(k, o.k));
+        return obj ? obj.v : null;
     }
 
     set(k: K, v: T) {
         const hash = this.hashFunc(k);
         const list = this.map.get(hash);
+
         if (!list) {
             this.map.set(hash, [{ k: this.copyFunc(k), v }]);
             this._size++;
@@ -471,7 +472,7 @@ export class PriorityQueue<T> {
     }
 
     isEmpty() {
-        return this.size === 0;
+        return !this.heap.length;
     }
 
     peek() {
@@ -497,18 +498,11 @@ export class PriorityQueue<T> {
         return poppedValue;
     }
 
-    replace(value) {
-        const replacedValue = this.peek();
-        this.heap[top] = value;
-        this._siftDown();
-        return replacedValue;
-    }
-
-    private _greater(i, j) {
+    private _greater(i: number, j: number) {
         return this.comparator(this.heap[i], this.heap[j]);
     }
 
-    private _swap(i, j) {
+    private _swap(i: number, j: number) {
         [this.heap[i], this.heap[j]] = [this.heap[j], this.heap[i]];
     }
 
