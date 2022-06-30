@@ -65,7 +65,7 @@ export class OneNode extends RuleNode {
 
         if (this.trajectory) {
             if (this.counter >= this.trajectory.ROWS) return false;
-            console.log(`[ONE] Set state to trajectory [${this.counter}]`);
+            // console.log(`[ONE] Set state to trajectory [${this.counter}]`);
             this.grid.state.set(this.trajectory.row(this.counter));
             this.counter++;
             return true;
