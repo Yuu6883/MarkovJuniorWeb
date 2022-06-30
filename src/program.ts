@@ -369,6 +369,7 @@ export class Program {
         this.renderer.clear();
 
         oldCanvas.replaceWith(this.renderer.canvas);
+        this.renderer.canvas.id = oldCanvas.id;
 
         if (!this.ip) return;
 
