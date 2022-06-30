@@ -52,9 +52,10 @@ export class Search {
             console.error("INCORRECT PROBLEM");
             return null;
         }
-        console.log(
-            `root estimate = (${rootBackwardEstimate}, ${rootForwardEstimate})`
-        );
+
+        // console.log(
+        //     `root estimate = (${rootBackwardEstimate}, ${rootForwardEstimate})`
+        // );
 
         if (!rootBackwardEstimate) return [];
         const rootBoard = new Board(
@@ -74,25 +75,25 @@ export class Search {
         visited.set(present, 0);
 
         const frontier = new PriorityQueue<{ p: number; v: number }>(
-            ({ p: p1 }, { p: p2 }) => p1 < p2
+            ({ p: p1 }, { p: p2 }) => p1 <= p2
         );
         const rng = seedrandom(seed.toString());
         frontier.enqueue({ v: 0, p: rootBoard.rank(rng, depthCoefficient) });
-        let frontierLength = 1;
 
         let record = rootBackwardEstimate + rootForwardEstimate;
-        while (frontierLength > 0 && (limit < 0 || database.length < limit)) {
-            const parentIndex = frontier.dequeue().v;
-            frontierLength--;
 
+        while (frontier.size > 0 && (limit < 0 || database.length < limit)) {
+            const parentIndex = frontier.dequeue().v;
             const parentBoard = database[parentIndex];
+
             const children = all
                 ? this.allChildStates(parentBoard.state, MX, MY, rules)
                 : this.oneChildStates(parentBoard.state, MX, MY, rules);
 
             for (const childState of children) {
                 let childIndex = visited.get(childState);
-                if (childIndex !== null) {
+
+                if (childIndex in database) {
                     const oldBoard = database[childIndex];
                     if (parentBoard.depth + 1 < oldBoard.depth) {
                         oldBoard.depth = parentBoard.depth + 1;
@@ -106,7 +107,6 @@ export class Search {
                                 v: childIndex,
                                 p: oldBoard.rank(rng, depthCoefficient),
                             });
-                            frontierLength++;
                         }
                     }
                 } else {
@@ -151,6 +151,7 @@ export class Search {
                             childIndex,
                             database
                         ).reverse();
+
                         return trajectory.map((b) => b.state);
                     } else {
                         if (
@@ -161,9 +162,8 @@ export class Search {
                             record =
                                 childBackwardEstimate + childForwardEstimate;
 
-                            console.log(
-                                `Found a state of record estimate ${record} = ${childBackwardEstimate} + ${childForwardEstimate}`
-                            );
+                            const log = `found a state of record estimate ${record} = ${childBackwardEstimate} + ${childForwardEstimate}`;
+                            console.debug(log);
                             // PrintState(childState, MX, MY);
                         }
 
@@ -171,7 +171,6 @@ export class Search {
                             v: childIndex,
                             p: childBoard.rank(rng, depthCoefficient),
                         });
-                        frontierLength++;
                     }
                 }
             }
@@ -300,6 +299,7 @@ const chars = [
     "4",
     "5",
 ];
+
 const PrintState = (state: Uint8Array, MX: number, MY: number) => {
     for (let y = 0; y < MY; y++) {
         const str: string[] = [];
@@ -320,11 +320,7 @@ const Matches = (
 
     let dy = 0,
         dx = 0;
-    for (
-        let di = 0;
-        di < rule.input.length;
-        di++ //try binput, but this time replace here too!
-    ) {
+    for (let di = 0; di < rule.input.length; di++) {
         if ((rule.input[di] & (1 << state[x + dx + (y + dy) * MX])) === 0)
             return false;
         dx++;
@@ -366,11 +362,7 @@ const MatchRule = (
     if (x + rule.IMX > MX || y + rule.IMY > MY) return false;
     let dy = 0,
         dx = 0;
-    for (
-        let di = 0;
-        di < rule.input.length;
-        di++ //попробовать binput, но в этот раз здесь тоже заменить!
-    ) {
+    for (let di = 0; di < rule.input.length; di++) {
         if ((rule.input[di] & (1 << state[x + dx + (y + dy) * MX])) == 0)
             return false;
         dx++;
