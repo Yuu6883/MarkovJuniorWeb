@@ -45,6 +45,7 @@ export class IsometricRenderer extends Renderer {
         super();
         this.sprite = new VoxelSprite(IsometricRenderer.BLOCK_SIZE);
         this.canvas.style.imageRendering = "auto";
+        this.canvas.style.objectFit = "contain";
     }
 
     override update(MX: number, MY: number, MZ: number) {

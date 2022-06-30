@@ -11,6 +11,7 @@ export class BitmapRenderer extends Renderer {
     constructor() {
         super();
         this.canvas.style.imageRendering = "pixelated";
+        this.canvas.style.objectFit = "contain";
     }
 
     public override get canvas(): HTMLCanvasElement {
@@ -51,8 +52,7 @@ export class BitmapRenderer extends Renderer {
         canvas.width = MX;
         canvas.height = MY;
 
-        canvas.style.width = `${MX}px`;
-        canvas.style.height = `${MY}px`;
+        canvas.style.width = "256px";
         ctx.putImageData(img, 0, 0);
     }
 

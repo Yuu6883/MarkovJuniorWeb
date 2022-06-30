@@ -83,6 +83,6 @@ export default class CameraRotator {
 
         const rate = 1;
         this.cam.azimuth = this.cam.azimuth + dx * rate;
-        this.cam.incline = clamp(this.cam.incline - dy * rate, -90, 90);
+        this.cam.incline = clamp(this.cam.incline - dy * rate, -89, 89);
     }
 }

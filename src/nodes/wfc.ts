@@ -156,7 +156,7 @@ export abstract class WFCNode extends Branch {
                     obs++;
                     const success = this.propagate();
                     if (!success) {
-                        console.error(
+                        console.warn(
                             `CONTRADICTION on try#${k} with ${obs} observations`
                         );
                         break;

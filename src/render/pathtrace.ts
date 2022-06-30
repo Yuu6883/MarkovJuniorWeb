@@ -53,9 +53,6 @@ export class VoxelPathTracer extends Renderer {
         this.canvas.width = 512;
         this.canvas.height = 512;
 
-        this.canvas.style.width = "512px";
-        this.canvas.style.height = "512px";
-
         this.vixel = new Vixel(
             this.canvas,
             VoxelPathTracer.gfx,

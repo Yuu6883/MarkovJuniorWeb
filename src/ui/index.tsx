@@ -1,6 +1,6 @@
 import { saveAs } from "file-saver";
 import { observer } from "mobx-react-lite";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Program } from "../program";
 import { VoxelPathTracer } from "../render";
@@ -13,11 +13,12 @@ const rtx = VoxelPathTracer.supported;
 const ControlPanel = observer(
     ({ model, close }: { model: string; close: () => void }) => {
         const [prog, setProg] = useState<Program>(null);
+        const id = useId();
 
         useEffect(() => {
             if (!model) return () => {};
 
-            const prog = new Program(model);
+            const prog = new Program(model, id);
             prog.load().then((loaded) =>
                 loaded ? console.log(`Model loaded: ${model}`) : close()
             );
@@ -29,7 +30,7 @@ const ControlPanel = observer(
 
         return (
             <>
-                <div className="controls">
+                <div id="controls">
                     <h3 id="model-select">{model}</h3>
                     {prog && (
                         <>
@@ -45,7 +46,7 @@ const ControlPanel = observer(
                             {prog.loading ? (
                                 <p>loading...</p>
                             ) : (
-                                <div className="control-buttons">
+                                <div id="control-buttons">
                                     {prog.running ? (
                                         <button
                                             onClick={() => {
@@ -121,13 +122,12 @@ const ControlPanel = observer(
                         </>
                     )}
                 </div>
+                <canvas id={id} />
                 {prog && (
                     <div id="speed">
                         <label
                             style={{
-                                left: `calc(${
-                                    ((prog.speed + 200) / 400) * 100
-                                }% + ${Math.max(50 - prog.speed, 0) / 10}px)`,
+                                left: `${((prog.speed + 200) / 400) * 100}%`,
                             }}
                         >
                             {prog.speed >= 0
@@ -160,9 +160,9 @@ const App = () => {
 
     return (
         <>
-            <div className="left-column">
+            <div id="left-column">
                 <h1 id="title">MarkovJunior</h1>
-                <div className="model-list">
+                <div id="model-list">
                     {[...Program.models.keys()].map((k) => (
                         <div
                             key={k}
@@ -174,7 +174,7 @@ const App = () => {
                     ))}
                 </div>
             </div>
-            <div id="canvas-container">
+            <div id="right-column">
                 <ControlPanel model={model} close={() => setModel(null)} />
             </div>
             <div id="mobile-select">

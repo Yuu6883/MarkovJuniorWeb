@@ -109,7 +109,7 @@ export class Program {
 
     public readonly DIM = new Int32Array([-1, -1, -1]);
 
-    constructor(model: string) {
+    constructor(model: string, containerID: string) {
         if (!Program.palette) {
             console.error("Load palette first before running any model");
         }
@@ -137,9 +137,9 @@ export class Program {
                 : new Render3DTypes[this.default3DrenderType]();
 
         this.renderer.clear();
-        document
-            .getElementById("canvas-container")
-            .appendChild(this.renderer.canvas);
+
+        document.getElementById(containerID).replaceWith(this.renderer.canvas);
+        this.renderer.canvas.id = containerID;
 
         this._loadPromise = (async () => {
             const path = `models/${name}.xml`;
@@ -359,16 +359,18 @@ export class Program {
 
     @action toggleRender(type: "isometric" | "voxel") {
         const palette = this.renderer.palette;
-        this.renderer.canvas.remove();
+
+        const oldCanvas = this.renderer.canvas;
         this.renderer.dispose();
         this.rendered = 0;
 
         this.renderer = new Render3DTypes[type]();
         this.renderer.palette = palette;
         this.renderer.clear();
-        document
-            .getElementById("canvas-container")
-            .appendChild(this.renderer.canvas);
+
+        oldCanvas.replaceWith(this.renderer.canvas);
+
+        if (!this.ip) return;
 
         const [state, chars, FX, FY, FZ] = this.ip.final();
 
@@ -382,7 +384,7 @@ export class Program {
     @action
     public stop() {
         this.pause();
-        this.renderer.canvas.remove();
+
         this.renderer.dispose();
     }
 }
