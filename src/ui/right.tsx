@@ -1,5 +1,6 @@
+import { trace } from "mobx";
 import { observer } from "mobx-react-lite";
-import { useContext } from "react";
+import { useContext, useMemo, useState } from "react";
 import { ProgramContext } from ".";
 
 import { Helper } from "../helpers/helper";
@@ -8,8 +9,10 @@ import { Rule } from "../rule";
 
 export const RightPanel = observer(() => {
     const model = useContext(ProgramContext).instance;
-    const colors = model?.renderer.colors;
+    const colors = model?.renderer.colorHex;
     const chars = model?.renderer.characters;
+
+    const [RAF, setRAF] = useState(0);
 
     return (
         <div id="right-column">
@@ -18,31 +21,29 @@ export const RightPanel = observer(() => {
                     <div id="palette-container">
                         <h4>Palette</h4>
                         <div>
-                            {Array.from(
-                                { length: colors.length >>> 2 },
-                                (_, k) => (
-                                    <input
-                                        key={k}
-                                        type="color"
-                                        defaultValue={Helper.rgb2hex(
-                                            colors.subarray(
-                                                k << 2,
-                                                (k << 2) + 4
-                                            )
-                                        )}
-                                        onChange={(e) => {
-                                            const rgba = Helper.hex2rgba(
-                                                e.target.value
-                                            );
-                                            model.renderer.updateSymbol(
-                                                chars.charAt(k),
-                                                rgba
-                                            );
-                                            model.renderer.updateColors();
-                                        }}
-                                    />
-                                )
-                            )}
+                            {colors.map((v, k) => (
+                                <input
+                                    key={k}
+                                    type="color"
+                                    defaultValue={v}
+                                    onChange={(e) => {
+                                        if (RAF) cancelAnimationFrame(RAF);
+                                        setRAF(
+                                            requestAnimationFrame(() => {
+                                                const rgba = Helper.hex2rgba(
+                                                    e.target.value
+                                                );
+                                                model.renderer.updateSymbol(
+                                                    chars.charAt(k),
+                                                    rgba
+                                                );
+                                                model.renderer.updateColors();
+                                                setRAF(0);
+                                            })
+                                        );
+                                    }}
+                                />
+                            ))}
                         </div>
                     </div>
                     <StateViz />
@@ -52,62 +53,55 @@ export const RightPanel = observer(() => {
     );
 });
 
-const RuleViz = ({ rule, colors }: { rule: Rule; colors: Uint8Array }) => {
+const Cell = ({ value }: { value: number }) => {
+    const colors = useContext(ProgramContext).instance.renderer.colorHex;
+    return (
+        <td
+            data-transparent={value === 0xff}
+            style={{
+                backgroundColor: colors[value],
+            }}
+        ></td>
+    );
+};
+
+const RuleViz = ({ rule }: { rule: Rule }) => {
     const [IMX, IMY, IMZ, OMX, OMY, OMZ] = rule.IO_DIM;
 
+    const iGrid = useMemo(
+        () =>
+            Array.from({ length: IMY }, (_, y) => (
+                <tr key={y}>
+                    {Array.from({ length: IMX }, (_, x) => (
+                        <Cell key={x} value={rule.binput[x + y * IMX]} />
+                    ))}
+                </tr>
+            )),
+        [IMX, IMY, IMZ]
+    );
+
+    const oGrid = useMemo(
+        () =>
+            Array.from({ length: OMY }, (_, y) => (
+                <tr key={y}>
+                    {Array.from({ length: OMX }, (_, x) => (
+                        <Cell key={x} value={rule.output[x + y * OMX]} />
+                    ))}
+                </tr>
+            )),
+        [OMX, OMY, OMZ]
+    );
+
     const shrink = IMX > 5 || IMY > 5 || OMX > 5 || OMY > 5;
+
     return (
         <div className="rule" data-size={shrink ? "small" : "normal"}>
             <table>
-                <tbody>
-                    {Array.from({ length: IMY }, (_, y) => (
-                        <tr key={y}>
-                            {Array.from({ length: IMX }, (_, x) => {
-                                const value = rule.binput[x + y * IMX];
-                                return (
-                                    <td
-                                        key={x}
-                                        data-transparent={value === 0xff}
-                                        style={{
-                                            backgroundColor: Helper.rgb2hex(
-                                                colors.subarray(
-                                                    value << 2,
-                                                    (value << 2) + 4
-                                                )
-                                            ),
-                                        }}
-                                    ></td>
-                                );
-                            })}
-                        </tr>
-                    ))}
-                </tbody>
+                <tbody>{iGrid}</tbody>
             </table>
             <label>🡒</label>
             <table>
-                <tbody>
-                    {Array.from({ length: OMY }, (_, y) => (
-                        <tr key={y}>
-                            {Array.from({ length: OMX }, (_, x) => {
-                                const value = rule.output[x + y * OMX];
-                                return (
-                                    <td
-                                        key={x}
-                                        data-transparent={value === 0xff}
-                                        style={{
-                                            backgroundColor: Helper.rgb2hex(
-                                                colors.subarray(
-                                                    value << 2,
-                                                    (value << 2) + 4
-                                                )
-                                            ),
-                                        }}
-                                    ></td>
-                                );
-                            })}
-                        </tr>
-                    ))}
-                </tbody>
+                <tbody>{oGrid}</tbody>
             </table>
         </div>
     );
@@ -115,7 +109,6 @@ const RuleViz = ({ rule, colors }: { rule: Rule; colors: Uint8Array }) => {
 
 const StateViz = observer(() => {
     const model = useContext(ProgramContext).instance;
-    const active_index = model.curr_node_index;
 
     return (
         !!model.nodes.length && (
@@ -131,7 +124,7 @@ const StateViz = observer(() => {
                                 style={{
                                     marginLeft: `${depth * 2}em`,
                                     color:
-                                        active_index === i
+                                        model.curr_node_index === i
                                             ? "cornflowerblue"
                                             : "white",
                                 }}
@@ -148,10 +141,6 @@ const StateViz = observer(() => {
                                                     <RuleViz
                                                         key={key}
                                                         rule={r}
-                                                        colors={
-                                                            model.renderer
-                                                                .colors
-                                                        }
                                                     />
                                                 )
                                         )}
