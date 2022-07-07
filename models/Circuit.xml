@@ -31,6 +31,8 @@
     <rule in="YOG" out="GYO"/>
     <rule in="YO/*G" out="GY/*O"/>
     <rule in="YOAD" out="GGAN"/>
+    <rule in="NWGA" out="DWOA"/>
+    <rule in="WOAD" out="WGAN"/>
   </all>
 </sequence>
 
