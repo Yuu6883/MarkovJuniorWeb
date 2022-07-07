@@ -109,7 +109,7 @@ export class Interpreter {
         }
     }
 
-    public final(): [Uint8Array, string, number, number, number] {
+    public state(): [Uint8Array, string, number, number, number] {
         const grid = this.grid;
         return [grid.state, grid.characters, grid.MX, grid.MY, grid.MZ];
     }

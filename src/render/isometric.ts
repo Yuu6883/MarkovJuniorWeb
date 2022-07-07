@@ -66,7 +66,7 @@ export class IsometricRenderer extends Renderer {
         this.img = new ImageData(W, H);
     }
 
-    override render(state: Uint8Array) {
+    override _render(state: Uint8Array) {
         const { MX, MY, MZ, visible, hash, ctx, sprite, colors, img } = this;
 
         if (!ctx || !sprite || !colors || !img) return;

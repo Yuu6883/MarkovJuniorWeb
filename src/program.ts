@@ -21,6 +21,7 @@ import { Interpreter } from "./interpreter";
 
 import ModelsXML from "../static/models.xml";
 import PaletteXML from "../static/resources/palette.xml";
+import { NodeState, NodeStateInfo } from "./state";
 
 export type ProgramOutput = { name: string; buffer: ArrayBuffer };
 
@@ -34,12 +35,18 @@ const Render3DTypes = {
 };
 
 export class Program {
-    public static instance: Program;
+    @observable.ref
+    public static instance: Model = null;
 
-    private static meta = seedrandom();
+    @observable
     public static models: Map<string, Element> = new Map();
-    private static palette: Map<string, Uint8ClampedArray>;
 
+    @observable
+    public static palette: Map<string, Uint8ClampedArray> = new Map();
+
+    public static meta = seedrandom();
+
+    @action
     public static loadPalette() {
         const ep = Loader.xmlParse(PaletteXML);
         const ecolors = [...Helper.childrenByTag(ep, "color")];
@@ -51,6 +58,7 @@ export class Program {
         );
     }
 
+    @action
     public static listModels() {
         const doc = Loader.xmlParse(ModelsXML);
         this.models.clear();
@@ -60,15 +68,29 @@ export class Program {
 
             const tryInsert = (suffix: number = null) => {
                 const n = suffix === null ? name : `${name}_${suffix}`;
+
                 if (!this.models.has(n)) {
                     this.models.set(n, emodel);
                 } else tryInsert(suffix ? suffix + 1 : 1);
             };
 
-            tryInsert();
+            runInAction(tryInsert);
         }
     }
 
+    @action
+    public static load(name: string) {
+        const model = new Model(name);
+        if (!model) return null;
+        runInAction(() => {
+            if (this.instance) this.instance.stop();
+            this.instance = model;
+        });
+        return model;
+    }
+}
+
+export class Model {
     public readonly name: string;
 
     private readonly modelDescriptor: Element;
@@ -107,9 +129,14 @@ export class Program {
     @observable
     public output: ProgramOutput = null;
 
+    @observable.deep
+    public nodes: NodeStateInfo[] = [];
+    @observable
+    public curr_node_index = -1;
+
     public readonly DIM = new Int32Array([-1, -1, -1]);
 
-    constructor(model: string, containerID: string) {
+    constructor(model: string) {
         if (!Program.palette) {
             console.error("Load palette first before running any model");
         }
@@ -118,8 +145,6 @@ export class Program {
             model?.toUpperCase()
         ));
         if (!this.modelDescriptor) return;
-
-        Program.instance = this;
 
         const name = (this.name = emodel.getAttribute("name"));
         const size = parseInt(emodel.getAttribute("size")) || -1;
@@ -138,8 +163,10 @@ export class Program {
 
         this.renderer.clear();
 
-        document.getElementById(containerID).replaceWith(this.renderer.canvas);
-        this.renderer.canvas.id = containerID;
+        document
+            .getElementById("model-canvas")
+            .replaceWith(this.renderer.canvas);
+        this.renderer.canvas.id = "model-canvas";
 
         this._loadPromise = (async () => {
             const path = `models/${name}.xml`;
@@ -161,11 +188,26 @@ export class Program {
                 );
             }
 
-            this.renderer.palette = customPalette;
+            this.ip = await Interpreter.load(
+                this.modelDoc,
+                this.DIM[0],
+                this.DIM[1],
+                this.DIM[2]
+            );
 
             runInAction(() => {
+                if (this.DIM[2] === 1) this.nodes = NodeState.traverse(this.ip);
+                else this.nodes = [];
+
+                this.renderer.palette = customPalette;
                 this._seed = seeds?.[0] || Program.meta.int32();
             });
+
+            const [state, chars, FX, FY, FZ] = this.ip.state();
+
+            this.renderer.setCharacters(chars);
+            this.renderer.update(FX, FY, FZ);
+            this.renderer.render(state);
 
             return true;
         })();
@@ -215,7 +257,7 @@ export class Program {
 
     @action
     public start(params?: ProgramParams) {
-        this.ip = null;
+        if (this._curr) this._curr.throw(new Error("Interrupt"));
         this._curr = null;
         this.output = null;
 
@@ -226,12 +268,6 @@ export class Program {
             if (!loaded) return false;
 
             this._steps = params?.steps || -1;
-            this.ip = await Interpreter.load(
-                this.modelDoc,
-                this.DIM[0],
-                this.DIM[1],
-                this.DIM[2]
-            );
 
             runInAction(() => {
                 this.loading = false;
@@ -257,6 +293,7 @@ export class Program {
 
     @action
     public step() {
+        this._paused = true;
         this.loop(true);
     }
 
@@ -283,13 +320,20 @@ export class Program {
             }
         }
 
+        this.curr_node_index = this.nodes.findIndex(({ state }) => {
+            const n = this.ip.current;
+            if (!n) return false;
+            if (n.n < 0 || n.n >= n.children.length) return state.source === n;
+            return state.source === n.children[n.n];
+        });
+
         const end = performance.now();
         this._timer += end - start;
 
         if (result.done) {
             this._curr = null;
 
-            const [state, chars, FX, FY, FZ] = this.ip.final();
+            const [state, chars, FX, FY, FZ] = this.ip.state();
 
             this.ip.onRender();
             this.renderer.setCharacters(chars);
@@ -357,7 +401,8 @@ export class Program {
         return null;
     }
 
-    @action toggleRender(type: "isometric" | "voxel") {
+    @action
+    public toggleRender(type: "isometric" | "voxel") {
         const palette = this.renderer.palette;
 
         const oldCanvas = this.renderer.canvas;
@@ -373,7 +418,7 @@ export class Program {
 
         if (!this.ip) return;
 
-        const [state, chars, FX, FY, FZ] = this.ip.final();
+        const [state, chars, FX, FY, FZ] = this.ip.state();
 
         this.ip.onRender();
         this.renderer.setCharacters(chars);
@@ -385,7 +430,6 @@ export class Program {
     @action
     public stop() {
         this.pause();
-
         this.renderer.dispose();
     }
 }

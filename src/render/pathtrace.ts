@@ -2,6 +2,7 @@ import { Renderer } from "./abstract";
 import regl from "regl";
 import { Vixel } from "./lib/vixel";
 import CameraRotator from "./lib/input";
+import { action, makeObservable, override } from "mobx";
 
 export class VoxelPathTracer extends Renderer {
     private static readonly canvas = document.createElement("canvas");
@@ -65,6 +66,8 @@ export class VoxelPathTracer extends Renderer {
 
         this.clear();
         this.raf = requestAnimationFrame(() => this.loop());
+
+        makeObservable(this);
     }
 
     private loop() {
@@ -73,9 +76,19 @@ export class VoxelPathTracer extends Renderer {
         this.raf = requestAnimationFrame(() => this.loop());
     }
 
-    public setCharacters(chars: string) {
+    @override
+    public override setCharacters(chars: string) {
         super.setCharacters(chars);
+        this.updateMaterial();
+    }
 
+    @override
+    public override updateColors() {
+        super.updateColors();
+        this.updateMaterial();
+    }
+
+    private updateMaterial() {
         const { characters, colors, vixel } = this;
 
         for (let i = 0; i < characters.length; i++) {
@@ -120,7 +133,7 @@ export class VoxelPathTracer extends Renderer {
         this.vixel.stage.resize([MX, MZ, MY]); // from Z-up to Y-up
     }
 
-    override render(state: Uint8Array) {
+    override _render(state: Uint8Array) {
         this.vixel.grid(state);
     }
 

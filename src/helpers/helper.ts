@@ -159,6 +159,15 @@ export class Helper {
         }
         return null;
     }
+
+    public static rgb2hex(rgba: Uint8Array | Uint8ClampedArray) {
+        if (rgba.length < 3) return "#000000";
+        let str = `#`;
+        for (let i = 0; i < 3; i++) {
+            str += rgba[i].toString(16).padStart(2, "0");
+        }
+        return str;
+    }
 }
 
 // exclusive

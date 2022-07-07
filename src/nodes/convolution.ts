@@ -4,7 +4,8 @@ import { Helper } from "../helpers/helper";
 import { Node } from "./";
 
 export class ConvolutionNode extends Node {
-    private rules: ConvolutionRule[];
+    public rules: ConvolutionRule[];
+
     private kernel: Uint8Array;
     private periodic: boolean;
     public counter: number;

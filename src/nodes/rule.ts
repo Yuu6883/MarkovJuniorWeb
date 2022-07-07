@@ -183,6 +183,7 @@ export abstract class RuleNode extends Node {
     }
 
     public override run() {
+        // console.log(this.source);
         this.last.fill(0);
 
         if (this.steps > 0 && this.counter >= this.steps) return false;

@@ -11,8 +11,9 @@ const readScale = (s: string): [number, number] => {
 };
 
 export class MapNode extends Branch {
+    public rules: Rule[] = [];
+
     private newgrid: Grid;
-    private rules: Rule[] = [];
     private ND = new Int32Array(6);
 
     protected override async load(

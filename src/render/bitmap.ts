@@ -31,7 +31,7 @@ export class BitmapRenderer extends Renderer {
     }
 
     // TODO: use wasm to speed up? or just color it on GPU w shaders
-    override render(state: Uint8Array) {
+    override _render(state: Uint8Array) {
         const { MX, MY, img, colors, canvas, ctx } = this;
         if (!canvas || !ctx || !colors || !img) return;
 

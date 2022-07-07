@@ -87,7 +87,7 @@ export abstract class Node {
 
 export abstract class Branch extends Node {
     public parent: Branch;
-    public nodes: Node[] = [];
+    public children: Node[] = [];
     public n: number;
 
     protected override async load(
@@ -117,14 +117,14 @@ export abstract class Branch extends Node {
                     node instanceof MapNode || node instanceof WFCNode
                         ? null
                         : this;
-            this.nodes.push(node);
+            this.children.push(node);
         }
         return true;
     }
 
     public override run() {
-        for (; this.n < this.nodes.length; this.n++) {
-            const node = this.nodes[this.n];
+        for (; this.n < this.children.length; this.n++) {
+            const node = this.children[this.n];
             if (node instanceof Branch) this.ip.current = node;
             if (node.run()) return true;
         }
@@ -134,7 +134,7 @@ export abstract class Branch extends Node {
     }
 
     public override reset() {
-        this.nodes.forEach((n) => n.reset());
+        this.children.forEach((n) => n.reset());
         this.n = 0;
     }
 }
@@ -145,7 +145,7 @@ export class MarkovNode extends Branch {
     constructor(child?: Node, ip?: Interpreter) {
         super();
 
-        if (child) this.nodes = [child];
+        if (child) this.children = [child];
         this.ip = ip;
         this.grid = ip?.grid;
     }
