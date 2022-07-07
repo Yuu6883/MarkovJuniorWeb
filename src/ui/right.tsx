@@ -67,6 +67,7 @@ const RuleViz = ({ rule, colors }: { rule: Rule; colors: Uint8Array }) => {
                                 return (
                                     <td
                                         key={x}
+                                        data-transparent={value === 0xff}
                                         style={{
                                             backgroundColor: Helper.rgb2hex(
                                                 colors.subarray(
