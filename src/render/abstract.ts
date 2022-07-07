@@ -1,4 +1,5 @@
 import { action, computed, makeObservable, observable } from "mobx";
+import { Helper } from "../helpers/helper";
 
 export abstract class Renderer {
     @observable
@@ -7,11 +8,18 @@ export abstract class Renderer {
     @observable
     public palette: Map<string, Uint8ClampedArray> = new Map();
     @observable.ref
-    public colors = new Uint8Array();
+    protected colors = new Uint8Array();
 
     private _cache: Uint8Array;
 
     public abstract get canvas(): HTMLCanvasElement;
+
+    @computed
+    get colorHex() {
+        return Array.from({ length: this.colors.length >> 2 }, (_, k) =>
+            Helper.rgb2hex(this.colors.subarray(k << 2, (k << 2) + 4))
+        );
+    }
 
     @computed
     get characters() {
