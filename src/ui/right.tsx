@@ -1,51 +1,57 @@
-import { trace } from "mobx";
 import { observer } from "mobx-react-lite";
-import { useContext, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { ProgramContext } from ".";
 
 import { Helper } from "../helpers/helper";
 import { MapNode, RuleNode } from "../nodes";
 import { Rule } from "../rule";
 
+const Palette = observer(() => {
+    const model = useContext(ProgramContext).instance;
+    const colors = model.renderer.colorHex;
+    const chars = model.renderer.characters;
+    const [RAF, setRAF] = useState(0);
+
+    return (
+        <div id="palette-container">
+            <h4>Palette</h4>
+            <div>
+                {colors.map((v, k) => (
+                    <input
+                        key={k}
+                        type="color"
+                        defaultValue={v}
+                        onChange={(e) => {
+                            if (RAF) cancelAnimationFrame(RAF);
+                            setRAF(
+                                requestAnimationFrame(() => {
+                                    const rgba = Helper.hex2rgba(
+                                        e.target.value
+                                    );
+                                    model.renderer.updateSymbol(
+                                        chars.charAt(k),
+                                        rgba
+                                    );
+                                    model.renderer.updateColors();
+                                    setRAF(0);
+                                })
+                            );
+                        }}
+                    />
+                ))}
+            </div>
+        </div>
+    );
+});
+
 export const RightPanel = observer(() => {
     const model = useContext(ProgramContext).instance;
-    const colors = model?.renderer.colorHex;
-    const chars = model?.renderer.characters;
-
-    const [RAF, setRAF] = useState(0);
 
     return (
         <div id="right-column">
             {model && (
                 <>
-                    <div id="palette-container">
-                        <h4>Palette</h4>
-                        <div>
-                            {colors.map((v, k) => (
-                                <input
-                                    key={k}
-                                    type="color"
-                                    defaultValue={v}
-                                    onChange={(e) => {
-                                        if (RAF) cancelAnimationFrame(RAF);
-                                        setRAF(
-                                            requestAnimationFrame(() => {
-                                                const rgba = Helper.hex2rgba(
-                                                    e.target.value
-                                                );
-                                                model.renderer.updateSymbol(
-                                                    chars.charAt(k),
-                                                    rgba
-                                                );
-                                                model.renderer.updateColors();
-                                                setRAF(0);
-                                            })
-                                        );
-                                    }}
-                                />
-                            ))}
-                        </div>
-                    </div>
+                    <Palette />
                     <StateViz />
                 </>
             )}
@@ -53,7 +59,7 @@ export const RightPanel = observer(() => {
     );
 });
 
-const Cell = ({ value }: { value: number }) => {
+const Cell = observer(({ value }: { value: number }) => {
     const colors = useContext(ProgramContext).instance.renderer.colorHex;
     return (
         <td
@@ -63,31 +69,73 @@ const Cell = ({ value }: { value: number }) => {
             }}
         ></td>
     );
-};
+});
 
 const RuleViz = ({ rule }: { rule: Rule }) => {
     const [IMX, IMY, IMZ, OMX, OMY, OMZ] = rule.IO_DIM;
 
     const iGrid = useMemo(
         () =>
-            Array.from({ length: IMY }, (_, y) => (
-                <tr key={y}>
-                    {Array.from({ length: IMX }, (_, x) => (
-                        <Cell key={x} value={rule.binput[x + y * IMX]} />
-                    ))}
-                </tr>
+            Array.from({ length: IMZ }, (_, z) => (
+                <table
+                    key={z}
+                    style={{
+                        top: `${z * 5}px`,
+                        left: `${z * 5}px`,
+                        zIndex: IMZ - z,
+                        opacity: z ? (IMZ - z) / IMZ / 2 + 0.25 : 1,
+                    }}
+                >
+                    <tbody>
+                        {Array.from({ length: IMY }, (_, y) => (
+                            <tr key={y}>
+                                {Array.from({ length: IMX }, (_, x) => (
+                                    <Cell
+                                        key={x}
+                                        value={
+                                            rule.binput[
+                                                x + y * IMX + z * IMX * IMY
+                                            ]
+                                        }
+                                    />
+                                ))}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             )),
         [IMX, IMY, IMZ]
     );
 
     const oGrid = useMemo(
         () =>
-            Array.from({ length: OMY }, (_, y) => (
-                <tr key={y}>
-                    {Array.from({ length: OMX }, (_, x) => (
-                        <Cell key={x} value={rule.output[x + y * OMX]} />
-                    ))}
-                </tr>
+            Array.from({ length: OMZ }, (_, z) => (
+                <table
+                    key={z}
+                    style={{
+                        top: `${z * 5}px`,
+                        left: `${z * 5}px`,
+                        zIndex: OMZ - z,
+                        opacity: z ? (OMZ - z) / OMZ / 2 + 0.25 : 1,
+                    }}
+                >
+                    <tbody>
+                        {Array.from({ length: OMY }, (_, y) => (
+                            <tr key={y}>
+                                {Array.from({ length: OMX }, (_, x) => (
+                                    <Cell
+                                        key={x}
+                                        value={
+                                            rule.output[
+                                                x + y * OMX + z * OMX * OMY
+                                            ]
+                                        }
+                                    />
+                                ))}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             )),
         [OMX, OMY, OMZ]
     );
@@ -96,25 +144,52 @@ const RuleViz = ({ rule }: { rule: Rule }) => {
 
     return (
         <div className="rule" data-size={shrink ? "small" : "normal"}>
-            <table>
-                <tbody>{iGrid}</tbody>
-            </table>
+            <div
+                className="grid"
+                style={{
+                    width: `calc((var(--size) + 1px) * ${IMX} + ${IMZ * 5}px)`,
+                    height: `calc((var(--size) + 1px) * ${IMY} + ${IMZ * 5}px)`,
+                }}
+            >
+                {iGrid}
+            </div>
             <label>🡒</label>
-            <table>
-                <tbody>{oGrid}</tbody>
-            </table>
+            <div
+                className="grid"
+                style={{
+                    width: `calc((var(--size) + 1px) * ${OMX} + ${OMZ * 5}px)`,
+                    height: `calc((var(--size) + 1px) * ${OMY} + ${OMZ * 5}px)`,
+                }}
+            >
+                {oGrid}
+            </div>
         </div>
     );
 };
 
 const StateViz = observer(() => {
     const model = useContext(ProgramContext).instance;
+    const ref = useRef<HTMLDivElement>();
+
+    useEffect(() => {
+        const list = ref.current;
+        if (!list) return;
+        const elem = list.children[model.curr_node_index] as HTMLDivElement;
+        if (!elem) return;
+
+        elem.scrollIntoView({
+            behavior:
+                Math.abs(list.scrollTop - elem.offsetTop) > 800
+                    ? "auto"
+                    : "smooth",
+        });
+    }, [model.curr_node_index]);
 
     return (
         !!model.nodes.length && (
             <>
                 <h4>Node Tree</h4>
-                <div id="state-viz">
+                <div id="state-viz" ref={ref}>
                     {model.nodes.map(({ state, depth, index }, i) => {
                         const n = state.source;
 

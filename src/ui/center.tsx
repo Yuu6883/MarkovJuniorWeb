@@ -86,9 +86,11 @@ export const ControlPanel = observer(() => {
                                                 )
                                             }
                                         >
-                                            {model.renderType === "voxel"
-                                                ? "Isometric"
-                                                : "Voxel"}
+                                            {model.renderType === "voxel" ? (
+                                                <i className="fa-solid fa-cubes"></i>
+                                            ) : (
+                                                <i className="fa-solid fa-video"></i>
+                                            )}
                                         </button>
                                     )}
                                 {debug && (

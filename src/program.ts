@@ -91,6 +91,7 @@ export class Program {
 }
 
 export class Model {
+    public readonly key: string;
     public readonly name: string;
 
     private readonly modelDescriptor: Element;
@@ -136,13 +137,15 @@ export class Model {
 
     public readonly DIM = new Int32Array([-1, -1, -1]);
 
-    constructor(model: string) {
+    constructor(key: string) {
+        this.key = key;
+
         if (!Program.palette) {
             console.error("Load palette first before running any model");
         }
 
         const emodel = (this.modelDescriptor = Program.models.get(
-            model?.toUpperCase()
+            key?.toUpperCase()
         ));
         if (!this.modelDescriptor) return;
 
@@ -196,9 +199,7 @@ export class Model {
             );
 
             runInAction(() => {
-                if (this.DIM[2] === 1) this.nodes = NodeState.traverse(this.ip);
-                else this.nodes = [];
-
+                this.nodes = NodeState.traverse(this.ip);
                 this.renderer.palette = customPalette;
                 this._seed = seeds?.[0] || Program.meta.int32();
             });

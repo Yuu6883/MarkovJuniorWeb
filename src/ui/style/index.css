@@ -233,12 +233,25 @@ input[type="color"]::-webkit-color-swatch {
     display: flex;
     align-items: center;
     margin-top: 5px;
+    --size: 1vw;
+}
+
+.rule[data-size="small"] {
+    --size: 0.5vw;
 }
 
 .rule table {
     border-spacing: 0px;
     border-collapse: collapse;
     flex-shrink: 0;
+}
+
+.grid {
+    position: relative;
+}
+
+.rule > .grid > table {
+    position: absolute;
 }
 
 .rule:last-child {
@@ -251,14 +264,11 @@ input[type="color"]::-webkit-color-swatch {
     border-color: rgba(238, 238, 238, 0.5);
 }
 
-.rule[data-size="small"] td {
-    width: 0.5vw;
-    height: 0.5vw;
-}
-
 .rule td {
-    width: 1vw;
-    height: 1vw;
+    width: var(--size);
+    height: var(--size);
+    min-width: var(--size);
+    max-height: var(--size);
     aspect-ratio: 1 / 1;
     border: solid #eee 1px;
     margin: 0px;

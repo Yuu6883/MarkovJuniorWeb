@@ -18,7 +18,7 @@ export const LeftPanel = observer(() => {
                 {[...Prog.models.keys()].map((k) => (
                     <div
                         key={k}
-                        data-selected={model?.name === k}
+                        data-selected={model?.key === k}
                         onClick={() => Prog.load(k)}
                     >
                         {k}
