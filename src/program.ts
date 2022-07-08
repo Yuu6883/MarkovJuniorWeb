@@ -202,6 +202,8 @@ export class Model {
 
             runInAction(() => {
                 this.nodes = NodeState.traverse(this.ip);
+                for (const { state } of this.nodes) state.sync();
+
                 this.renderer.palette = customPalette;
                 this._seed = seeds?.[0] || Program.meta.int32();
             });
@@ -349,6 +351,8 @@ export class Model {
                 return state.source === br;
             return state.source === br.children[br.n];
         });
+
+        for (const { state } of this.nodes) state.sync();
 
         const end = performance.now();
         this._timer += end - start;

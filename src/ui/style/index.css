@@ -262,6 +262,11 @@ input[type="color"]::-webkit-color-swatch {
     transform: translateY(6px);
 }
 
+.node-state i {
+    color: var(--color);
+    margin-right: 5px;
+}
+
 .node-state > label {
     color: var(--color);
     cursor: pointer;

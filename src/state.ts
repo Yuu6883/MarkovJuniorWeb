@@ -1,4 +1,4 @@
-import { action, makeObservable, observable } from "mobx";
+import { action, makeObservable, observable, override } from "mobx";
 import { Interpreter } from "./interpreter";
 import {
     AllNode,
@@ -104,6 +104,7 @@ abstract class BranchState<T extends Branch> extends NodeState<T> {
         makeObservable(this);
     }
 
+    @override
     override sync() {}
 }
 
@@ -123,18 +124,28 @@ export class ConvChainState extends NodeState<ConvChainNode> {
     get name(): string {
         return "convchain";
     }
-    sync() {
-        throw new Error("Method not implemented.");
+
+    constructor(source: ConvChainNode) {
+        super(source);
+        makeObservable(this);
     }
+
+    @override
+    sync() {}
 }
 
 export class ConvolutionState extends NodeState<ConvolutionNode> {
     get name(): string {
         return "convolution";
     }
-    sync() {
-        throw new Error("Method not implemented.");
+
+    constructor(source: ConvolutionNode) {
+        super(source);
+        makeObservable(this);
     }
+
+    @override
+    sync() {}
 }
 
 export class MapState extends BranchState<MapNode> {
@@ -144,17 +155,34 @@ export class MapState extends BranchState<MapNode> {
 }
 
 export class PathState extends NodeState<PathNode> {
+    constructor(source: PathNode) {
+        super(source);
+        makeObservable(this);
+    }
+
     get name(): string {
         return "path";
     }
-    sync() {
-        throw new Error("Method not implemented.");
-    }
+
+    @override
+    sync() {}
 }
 
 export abstract class RuleState<T extends RuleNode> extends NodeState<T> {
+    @observable
+    public steps = -1;
+    @observable
+    public counter = 0;
+
+    constructor(source: T) {
+        super(source);
+        makeObservable(this);
+    }
+
+    @override
     sync() {
-        throw new Error("Method not implemented.");
+        this.steps = this.source.steps || -1;
+        this.counter = this.source.counter || 0;
     }
 }
 
@@ -177,9 +205,13 @@ export class ParallelState extends RuleState<ParallelNode> {
 }
 
 export abstract class WFCState<T extends WFCNode> extends NodeState<T> {
-    sync() {
-        throw new Error("Method not implemented.");
+    constructor(source: T) {
+        super(source);
+        makeObservable(this);
     }
+
+    @override
+    sync() {}
 }
 
 export class TileState extends WFCState<TileNode> {

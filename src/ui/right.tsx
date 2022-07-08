@@ -5,6 +5,7 @@ import { ProgramContext } from ".";
 import { Helper } from "../helpers/helper";
 import { MapNode, RuleNode } from "../nodes";
 import { Rule } from "../rule";
+import { RuleState } from "../state";
 
 const Palette = observer(() => {
     const model = useContext(ProgramContext).instance;
@@ -71,7 +72,13 @@ const Cell = observer(({ value }: { value: number }) => {
     );
 });
 
-const RuleViz = ({ rule }: { rule: Rule }) => {
+const RuleViz = ({
+    rule,
+    children,
+}: {
+    rule: Rule;
+    children?: React.ReactNode;
+}) => {
     const [IMX, IMY, IMZ, OMX, OMY, OMZ] = rule.IO_DIM;
 
     const iGrid = useMemo(
@@ -153,7 +160,7 @@ const RuleViz = ({ rule }: { rule: Rule }) => {
             >
                 {iGrid}
             </div>
-            <label>🡒</label>
+            <i className="fa-solid fa-arrow-right"></i>
             <div
                 className="grid"
                 style={{
@@ -163,6 +170,7 @@ const RuleViz = ({ rule }: { rule: Rule }) => {
             >
                 {oGrid}
             </div>
+            {children}
         </div>
     );
 };
@@ -214,16 +222,31 @@ const StateViz = observer(() => {
                                     </label>
                                     <div className="rule-list">
                                         {(n instanceof RuleNode ||
-                                            n instanceof MapNode) &&
-                                            n.rules.map(
-                                                (r, key) =>
-                                                    r.original && (
-                                                        <RuleViz
-                                                            key={key}
-                                                            rule={r}
-                                                        />
-                                                    )
-                                            )}
+                                            n instanceof MapNode) && (
+                                            <>
+                                                {n.rules.map(
+                                                    (r, key) =>
+                                                        r.original && (
+                                                            <RuleViz
+                                                                key={key}
+                                                                rule={r}
+                                                            >
+                                                                {!key &&
+                                                                    state instanceof
+                                                                        RuleState &&
+                                                                    state.steps >
+                                                                        0 && (
+                                                                        <label>
+                                                                            {state.counter.toString()}
+                                                                            /
+                                                                            {state.steps.toString()}
+                                                                        </label>
+                                                                    )}
+                                                            </RuleViz>
+                                                        )
+                                                )}
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                             );
