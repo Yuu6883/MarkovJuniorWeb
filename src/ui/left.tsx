@@ -19,11 +19,15 @@ export const LeftPanel = observer(() => {
         <div id="left-column">
             <h1 id="title">MarkovJunior</h1>
             <div id="search-model">
-                <input
-                    type="text"
-                    defaultValue={search}
-                    onChange={(e) => setSearch(e.target.value.trim())}
-                ></input>
+                <div id="input-holder">
+                    <input
+                        type="text"
+                        defaultValue={search}
+                        onChange={(e) => setSearch(e.target.value.trim())}
+                        placeholder="Filter model by name"
+                    ></input>
+                    <i className="fa-solid fa-magnifying-glass"></i>
+                </div>
             </div>
             <div id="model-list">
                 {names
