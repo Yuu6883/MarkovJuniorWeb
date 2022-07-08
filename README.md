@@ -1,6 +1,6 @@
 # MarkovJuniorWeb
 Typescript version of [MarkovJunior](https://github.com/mxgmn/MarkovJunior), runs on the web: https://yuu6883.github.io/MarkovJuniorWeb/
-- Everything have been implemented including isometric rendering and exporting the result as a `.vox` file, except for rule visualization.
+- Everything have been implemented including isometric rendering, exporting the output as a `.vox` file, and node tree visualization.
 - **Every model from the original repository can be loaded with this project, but the output would be different due to different random seed implementation (dotnet builtin vs [seededrandom](https://www.npmjs.com/package/seedrandom))**.
 
 ![demo](https://user-images.githubusercontent.com/38842891/177889134-123a2029-c48a-410e-a700-7869b2e780b4.gif)
