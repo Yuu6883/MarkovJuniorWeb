@@ -11,6 +11,9 @@ export const LeftPanel = observer(() => {
     useEffect(() => {
         Prog.loadPalette();
         Prog.listModels();
+
+        const m = localStorage.getItem("last-mj-model");
+        if (m) Prog.load(m);
     }, []);
 
     const names = [...Prog.models.keys()];
@@ -38,7 +41,10 @@ export const LeftPanel = observer(() => {
                         <div
                             key={k}
                             data-selected={model?.key === k}
-                            onClick={() => Prog.load(k)}
+                            onClick={() => {
+                                Prog.load(k);
+                                localStorage.setItem("last-mj-model", k);
+                            }}
                         >
                             {k}
                         </div>
