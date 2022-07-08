@@ -256,6 +256,7 @@ input[type="color"]::-webkit-color-swatch {
 .node-state {
     --color: #eee;
     display: flex;
+    flex-wrap: wrap;
 }
 
 .node-state[data-level-index="0"] {
@@ -302,7 +303,8 @@ input[type="color"]::-webkit-color-swatch {
     margin-left: 5px;
 }
 
-.convo-rule label {
+.convo-rule label,
+.field label {
     margin-left: 10px;
     margin-right: 10px;
 }
@@ -317,13 +319,15 @@ input[type="color"]::-webkit-color-swatch {
 }
 
 .rule-list,
-.convo-rule-list {
+.convo-rule-list,
+.field-list {
     display: flex;
     flex-direction: column;
     margin-left: 1em;
 }
 
 .rule,
+.field,
 .convo-rule,
 .convchain-sample,
 .path-state {
@@ -363,6 +367,7 @@ input[type="color"]::-webkit-color-swatch {
 }
 
 .rule table,
+.field table,
 .convo-rule table,
 .convchain-sample {
     border-spacing: 0px;
@@ -389,6 +394,7 @@ input[type="color"]::-webkit-color-swatch {
 }
 
 .rule td,
+.field td,
 .convchain-sample td,
 .convo-rule td,
 .path-state td {

@@ -1,6 +1,6 @@
 import { Grid } from "./grid";
 import { Array2D } from "./helpers/datastructures";
-import { vec3, vec4 } from "./helpers/helper";
+import { vec4 } from "./helpers/helper";
 import { Rule } from "./rule";
 
 export class Field {

@@ -230,10 +230,18 @@ export abstract class RuleState<T extends RuleNode> extends NodeState<T> {
     public steps = -1;
     @observable
     public counter = 0;
+    @observable
+    public temperature: number;
+    @observable
+    public search: boolean;
 
     constructor(source: T) {
         super(source);
+
+        this.temperature = this.source.temperature;
+        this.search = this.source.search;
         this.steps = this.source.steps || -1;
+
         makeObservable(this);
     }
 

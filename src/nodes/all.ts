@@ -95,7 +95,7 @@ export class AllNode extends RuleNode {
                     MX,
                     MY
                 );
-                if (heuristic) {
+                if (heuristic !== null) {
                     if (!firstHeuristicComputed) {
                         firstHeuristic = heuristic;
                         firstHeuristicComputed = true;

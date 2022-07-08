@@ -24,11 +24,12 @@ export abstract class RuleNode extends Node {
     protected matchMask: BoolArray2D;
 
     protected potentials: Array2D<Int32Array>;
-    public fields: Field[];
-    protected observations: Observation[];
-    protected temperature: number;
 
-    protected search: boolean;
+    public fields: Field[];
+    public observations: Observation[];
+    public temperature: number;
+
+    public search: boolean;
     protected futureComputed: boolean;
     protected future: Int32Array;
     protected trajectory: Array2D<Uint8Array>; // TODO: maybe not array2d
