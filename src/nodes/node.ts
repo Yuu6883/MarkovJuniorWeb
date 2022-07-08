@@ -12,6 +12,7 @@ import {
     OverlapNode,
     ParallelNode,
     PathNode,
+    RunState,
     TileNode,
     WFCNode,
 } from "./";
@@ -24,7 +25,7 @@ export abstract class Node {
     ): Promise<boolean>;
 
     public abstract reset(): void;
-    public abstract run(): boolean;
+    public abstract run(): RunState;
 
     public source: Element;
     public comment: string;
@@ -126,11 +127,13 @@ export abstract class Branch extends Node {
         for (; this.n < this.children.length; this.n++) {
             const node = this.children[this.n];
             if (node instanceof Branch) this.ip.current = node;
-            if (node.run()) return true;
+            const status = node.run();
+            if (status === RunState.SUCCESS) return RunState.SUCCESS;
+            if (status === RunState.HALT) return RunState.HALT;
         }
         this.ip.current = this.ip.current.parent;
         this.reset();
-        return false;
+        return RunState.FAIL;
     }
 
     public override reset() {

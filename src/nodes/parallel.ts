@@ -1,7 +1,7 @@
 import { Grid } from "../grid";
 import { BoolArray2DRow } from "../helpers/datastructures";
 
-import { RuleNode } from "./";
+import { RuleNode, RunState } from "./";
 
 export class ParallelNode extends RuleNode {
     private newstate: Uint8Array;
@@ -50,8 +50,9 @@ export class ParallelNode extends RuleNode {
         this.matchCount++;
     }
 
-    public override run(): boolean {
-        if (!super.run()) return false;
+    public override run() {
+        const status = super.run();
+        if (status !== RunState.SUCCESS) return status;
 
         const { ip, grid, newstate } = this;
 
@@ -62,6 +63,6 @@ export class ParallelNode extends RuleNode {
         }
 
         this.counter++;
-        return this.matchCount > 0;
+        return this.matchCount > 0 ? RunState.SUCCESS : RunState.FAIL;
     }
 }

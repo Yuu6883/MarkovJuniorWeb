@@ -2,7 +2,7 @@ import seedrandom, { PRNG } from "seedrandom";
 import { Grid } from "../grid";
 import { Helper, vec3, vec4 } from "../helpers/helper";
 
-import { Node } from "./";
+import { Node, RunState } from "./";
 
 export class PathNode extends Node {
     public start: number;
@@ -56,7 +56,7 @@ export class PathNode extends Node {
                     }
                 }
 
-        if (!startPositions.length || !queue.length) return false;
+        if (!startPositions.length || !queue.length) return RunState.FAIL;
 
         const push = (t: number, x: number, y: number, z: number) => {
             let i = x + y * MX + z * MX * MY;
@@ -90,7 +90,7 @@ export class PathNode extends Node {
                 ([px, py, pz]) => generations[px + py * MX + pz * MX * MY] > 0
             )
         )
-            return false;
+            return RunState.FAIL;
 
         const local = seedrandom(this.ip.rng.int32().toString());
         let min = MX * MY * MZ,
@@ -147,7 +147,8 @@ export class PathNode extends Node {
             peny += diry;
             penz += dirz;
         }
-        return true;
+
+        return RunState.SUCCESS;
     }
 
     private direction(

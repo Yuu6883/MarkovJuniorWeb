@@ -234,12 +234,15 @@ export abstract class RuleState<T extends RuleNode> extends NodeState<T> {
     public temperature: number;
     @observable
     public search: boolean;
+    @observable
+    public searchedState: number;
 
     constructor(source: T) {
         super(source);
 
         this.temperature = this.source.temperature;
         this.search = this.source.search;
+        this.searchedState = this.source.visited;
         this.steps = this.source.steps || -1;
 
         makeObservable(this);
@@ -249,6 +252,10 @@ export abstract class RuleState<T extends RuleNode> extends NodeState<T> {
     sync() {
         this.source.steps = this.steps;
         this.counter = this.source.counter || 0;
+
+        if (this.search) {
+            this.searchedState = this.source.visited;
+        }
     }
 }
 

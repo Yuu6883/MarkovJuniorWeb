@@ -6,7 +6,7 @@ import { range, vec4 } from "../helpers/helper";
 import { Observation } from "../observation";
 import { Rule } from "../rule";
 
-import { RuleNode } from "./";
+import { RuleNode, RunState } from "./";
 
 const INVALID: vec4 = [-1, -1, -1, -1];
 
@@ -59,25 +59,27 @@ export class OneNode extends RuleNode {
                 }
     }
 
-    public override run(): boolean {
-        if (!super.run()) return false;
+    public override run() {
+        const status = super.run();
+        if (status !== RunState.SUCCESS) return status;
+
         this.lastMatchedTurn = this.ip.counter;
 
         if (this.trajectory) {
-            if (this.counter >= this.trajectory.ROWS) return false;
+            if (this.counter >= this.trajectory.ROWS) return RunState.FAIL;
             // console.log(`[ONE] Set state to trajectory [${this.counter}]`);
             this.grid.state.set(this.trajectory.row(this.counter));
             this.counter++;
-            return true;
+            return RunState.SUCCESS;
         }
 
         const [R, X, Y, Z] = this.randomMatch(this.ip.rng);
-        if (R < 0) return false;
+        if (R < 0) return RunState.FAIL;
         else {
             this.last[R] = 1;
             this.apply(this.rules[R], X, Y, Z);
             this.counter++;
-            return true;
+            return RunState.SUCCESS;
         }
     }
 

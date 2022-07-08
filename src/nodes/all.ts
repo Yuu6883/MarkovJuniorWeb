@@ -2,7 +2,7 @@ import { Field } from "../field";
 import { Grid } from "../grid";
 import { BoolArray2D } from "../helpers/datastructures";
 import { Helper } from "../helpers/helper";
-import { RuleNode } from "./";
+import { RuleNode, RunState } from "./";
 
 export class AllNode extends RuleNode {
     protected override async load(
@@ -60,20 +60,22 @@ export class AllNode extends RuleNode {
                 }
     }
 
-    public override run(): boolean {
+    public override run() {
+        const status = super.run();
+        if (status !== RunState.SUCCESS) return status;
+
         const grid = this.grid;
-        if (!super.run()) return false;
         this.lastMatchedTurn = this.ip.counter;
 
         if (this.trajectory) {
-            if (this.counter >= this.trajectory.ROWS) return false;
+            if (this.counter >= this.trajectory.ROWS) return RunState.FAIL;
             // console.log(`[ALL] Set state to trajectory [${this.counter}]`);
             grid.state.set(this.trajectory.row(this.counter));
             this.counter++;
-            return true;
+            return RunState.SUCCESS;
         }
 
-        if (!this.matchCount) return false;
+        if (!this.matchCount) return RunState.FAIL;
         const { MX, MY } = grid;
 
         if (this.potentials) {
@@ -143,6 +145,7 @@ export class AllNode extends RuleNode {
         }
         this.counter++;
         this.matchCount = 0;
-        return true;
+
+        return RunState.SUCCESS;
     }
 }

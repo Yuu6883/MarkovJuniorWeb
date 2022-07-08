@@ -5,6 +5,7 @@ import { Field } from "../field";
 
 import { Helper } from "../helpers/helper";
 import { ConvolutionRule, MapNode, RuleNode } from "../nodes";
+import { Observation } from "../observation";
 import { Rule } from "../rule";
 import {
     ConvChainState,
@@ -222,45 +223,94 @@ const FieldViz = ({ field, c }: { c: number; field: Field }) => (
     </div>
 );
 
+const ObserveViz = ({ c, obs }: { c: number; obs: Observation }) => (
+    <div className="field">
+        <label>observe</label>
+        <table>
+            <tbody>
+                <tr>
+                    <Cell value={c} />
+                </tr>
+            </tbody>
+        </table>
+        <label>from</label>
+        <table>
+            <tbody>
+                <tr>
+                    <Cell value={obs.from} />
+                </tr>
+            </tbody>
+        </table>
+        <label>to</label>
+        <table>
+            <tbody>
+                <tr>
+                    <Cell value={obs.to} />
+                </tr>
+            </tbody>
+        </table>
+    </div>
+);
+
 const RuleNodeViz = observer(
-    ({ state }: { state: RuleState<RuleNode> | MapState }) => (
-        <>
-            <div className="rule-list">
-                {state.source.rules.map(
-                    (r, key) =>
-                        r.original && (
-                            <RuleViz key={key} rule={r}>
-                                {!key && state instanceof RuleState && (
-                                    <>
-                                        {state.steps > 0 && (
-                                            <label>
-                                                {state.counter}/{state.steps}
-                                            </label>
-                                        )}
-                                        {state.temperature > 0 && (
-                                            <label>
-                                                temperature: {state.temperature}
-                                            </label>
-                                        )}
-                                    </>
-                                )}
-                                {!key && r.p < 1 && (
-                                    <label>p = {r.p.toFixed(4)}</label>
-                                )}
-                            </RuleViz>
-                        )
-                )}
-            </div>
-            {state instanceof RuleState && state.source.fields && (
-                <div className="field-list">
-                    {state.source.fields.map(
-                        (field, i) =>
-                            field && <FieldViz key={i} c={i} field={field} />
+    ({ state }: { state: RuleState<RuleNode> | MapState }) => {
+        return (
+            <>
+                <div className="rule-list">
+                    {state.source.rules.map(
+                        (r, key) =>
+                            r.original && (
+                                <RuleViz key={key} rule={r}>
+                                    {r.p < 1 && (
+                                        <label>p = {r.p.toFixed(4)}</label>
+                                    )}
+                                    {!key && state instanceof RuleState && (
+                                        <>
+                                            {state.steps > 0 && (
+                                                <label>
+                                                    {state.counter}/
+                                                    {state.steps}
+                                                </label>
+                                            )}
+                                            {state.temperature > 0 && (
+                                                <label>
+                                                    temperature:{" "}
+                                                    {state.temperature}
+                                                </label>
+                                            )}
+                                            {state.searchedState > 0 && (
+                                                <label>
+                                                    Searched{" "}
+                                                    {state.searchedState} states
+                                                </label>
+                                            )}
+                                        </>
+                                    )}
+                                </RuleViz>
+                            )
                     )}
                 </div>
-            )}
-        </>
-    )
+                {state instanceof RuleState && state.source.fields && (
+                    <div className="field-list">
+                        {state.source.fields.map(
+                            (field, i) =>
+                                field && (
+                                    <FieldViz key={i} c={i} field={field} />
+                                )
+                        )}
+                    </div>
+                )}
+                {state instanceof RuleState && state.source.observations && (
+                    <div className="field-list">
+                        {state.source.observations.map(
+                            (obs, i) =>
+                                obs && <ObserveViz key={i} c={i} obs={obs} />
+                        )}
+                    </div>
+                )}
+            </>
+        );
+    }
 );
 
 const ConvChainViz = observer(({ state }: { state: ConvChainState }) => {
@@ -343,7 +393,7 @@ const PathViz = observer(({ state }: { state: PathState }) => {
     );
 });
 
-const ConvoRule = observer(({ rule }: { rule: ConvolutionRule }) => (
+const ConvoRuleViz = observer(({ rule }: { rule: ConvolutionRule }) => (
     <div className="convo-rule">
         <table data-size={"normal"}>
             <tbody>
@@ -396,7 +446,7 @@ const ConvolutionViz = observer(({ state }: { state: ConvolutionState }) => (
         )}
         <div className="convo-rule-list">
             {state.source.rules.map((r, key) => (
-                <ConvoRule key={key} rule={r} />
+                <ConvoRuleViz key={key} rule={r} />
             ))}
         </div>
     </>

@@ -11,7 +11,7 @@ import { Observation } from "../observation";
 import { Rule } from "../rule";
 import { Search } from "../search";
 
-import { Node, AllNode } from "./";
+import { Node, AllNode, RunState } from "./";
 
 export abstract class RuleNode extends Node {
     public rules: Rule[];
@@ -38,6 +38,10 @@ export abstract class RuleNode extends Node {
     private depthCoefficient: number;
 
     public last: Uint8Array;
+
+    public visited = 0;
+    private searching: Generator<number, Uint8Array[]>;
+    private searchTries = 0;
 
     protected override async load(
         elem: Element,
@@ -187,51 +191,83 @@ export abstract class RuleNode extends Node {
         // console.log(this.source);
         this.last.fill(0);
 
-        if (this.steps > 0 && this.counter >= this.steps) return false;
+        if (this.steps > 0 && this.counter >= this.steps) return RunState.FAIL;
 
         const grid = this.grid;
         const { MX, MY, MZ } = grid;
 
         if (this.observations && !this.futureComputed) {
-            if (
-                !Observation.computeFutureSetPresent(
-                    this.future,
-                    grid.state,
-                    this.observations
-                )
-            ) {
-                return false;
-            } else {
-                this.futureComputed = true;
-                if (this.search) {
-                    this.trajectory = null;
-                    const TRIES = this.limit < 0 ? 1 : 20;
-                    for (let k = 0; k < TRIES && !this.trajectory; k++) {
-                        const result = Search.run(
-                            grid.state,
-                            this.future,
-                            this.rules,
-                            grid.MX,
-                            grid.MY,
-                            grid.MZ,
-                            grid.C,
-                            this instanceof AllNode,
-                            this.limit,
-                            this.depthCoefficient,
-                            this.ip.rng.int32()
-                        );
-                        this.trajectory = Array2D.from(Uint8Array, result);
-                    }
-                    if (!this.trajectory) console.error("SEARCH RETURNED NULL");
-                } else
-                    Observation.computeBackwardPotentials(
-                        this.potentials,
+            if (!this.search) {
+                if (
+                    !Observation.computeFutureSetPresent(
                         this.future,
-                        MX,
-                        MY,
-                        MZ,
-                        this.rules
+                        grid.state,
+                        this.observations
+                    )
+                ) {
+                    return RunState.FAIL;
+                }
+
+                this.futureComputed = true;
+                Observation.computeBackwardPotentials(
+                    this.potentials,
+                    this.future,
+                    MX,
+                    MY,
+                    MZ,
+                    this.rules
+                );
+            } else {
+                if (!this.searching) {
+                    if (
+                        !Observation.computeFutureSetPresent(
+                            this.future,
+                            grid.state,
+                            this.observations
+                        )
+                    ) {
+                        return RunState.FAIL;
+                    }
+
+                    this.trajectory = null;
+                    // start searching
+                    this.searching = Search.run(
+                        grid.state,
+                        this.future,
+                        this.rules,
+                        grid.MX,
+                        grid.MY,
+                        grid.MZ,
+                        grid.C,
+                        this instanceof AllNode,
+                        this.limit,
+                        this.depthCoefficient,
+                        this.ip.rng.int32()
                     );
+                }
+
+                let result = this.searching.next();
+                for (let _ = 0; _ < 256; _++) {
+                    result = this.searching.next();
+                    if (result.done) break;
+                }
+
+                if (!result.done && typeof result.value === "number") {
+                    this.visited = result.value;
+                    return RunState.HALT;
+                } else if (result.done) {
+                    this.searching = null;
+                    this.trajectory = Array2D.from(Uint8Array, result.value);
+
+                    if (!this.trajectory) {
+                        this.searchTries++;
+                        // TODO: stop this node from running if too many tries?
+                        console.error("no trajectory found");
+                        return RunState.FAIL;
+                    } else {
+                        this.futureComputed = true;
+                    }
+                }
             }
         }
 
@@ -309,14 +345,14 @@ export abstract class RuleNode extends Node {
                 const field = this.fields[c];
                 if (field && (!this.counter || field.recompute)) {
                     const success = field.compute(this.potentials.row(c), grid);
-                    if (!success && field.essential) return false;
+                    if (!success && field.essential) return RunState.FAIL;
                     anysuccess ||= success;
                     anycomputation = true;
                 }
             }
-            if (anycomputation && !anysuccess) return false;
+            if (anycomputation && !anysuccess) return RunState.FAIL;
         }
 
-        return true;
+        return RunState.SUCCESS;
     }
 }

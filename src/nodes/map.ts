@@ -1,6 +1,6 @@
 import { Grid } from "../grid";
 import { SymmetryHelper } from "../helpers/symmetry";
-import { Branch } from "./";
+import { Branch, RunState } from "./";
 import { Rule } from "../rule";
 import { Helper } from "../helpers/helper";
 
@@ -159,7 +159,7 @@ export class MapNode extends Branch {
         this.ip.grid = newgrid;
         this.n++;
 
-        return true;
+        return RunState.SUCCESS;
     }
 
     public override reset() {

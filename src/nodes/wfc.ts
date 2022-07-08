@@ -3,7 +3,7 @@ import { Grid } from "../grid";
 import { Array3D, BoolArray2D } from "../helpers/datastructures";
 import { Helper } from "../helpers/helper";
 
-import { Branch } from "./";
+import { Branch, RunState } from "./";
 
 export abstract class WFCNode extends Branch {
     protected wave: Wave;
@@ -85,7 +85,7 @@ export abstract class WFCNode extends Branch {
         this.firstgo = true;
     }
 
-    public override run(): boolean {
+    public override run() {
         if (this.n >= 0) return super.run();
 
         if (this.firstgo) {
@@ -111,11 +111,11 @@ export abstract class WFCNode extends Branch {
             const firstSuccess = this.propagate();
             if (!firstSuccess) {
                 console.error("WFC initial conditions are contradictive");
-                return false;
+                return RunState.FAIL;
             }
             this.startwave.copyFrom(this.wave, this.shannon);
             const goodseed = this.goodSeed();
-            if (goodseed === null) return false;
+            if (goodseed === null) return RunState.FAIL;
 
             this.rng = seedrandom(goodseed.toString());
             this.stacksize = 0;
@@ -125,7 +125,7 @@ export abstract class WFCNode extends Branch {
             this.newgrid.clear();
             this.ip.grid = this.newgrid;
 
-            return true;
+            return RunState.SUCCESS;
         } else {
             const node = this.nextUnobservedNode(this.rng);
             if (node >= 0) {
@@ -136,7 +136,7 @@ export abstract class WFCNode extends Branch {
             if (this.n >= 0) {
                 this.updateState();
             }
-            return true;
+            return RunState.SUCCESS;
         }
     }
 

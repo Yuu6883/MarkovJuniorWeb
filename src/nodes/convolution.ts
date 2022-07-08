@@ -1,7 +1,7 @@
 import { Grid } from "../grid";
 import { Array2D } from "../helpers/datastructures";
 import { Helper } from "../helpers/helper";
-import { Node } from "./";
+import { Node, RunState } from "./";
 
 export class ConvolutionNode extends Node {
     public neighborhood: string;
@@ -68,7 +68,7 @@ export class ConvolutionNode extends Node {
     }
 
     public override run() {
-        if (this.steps > 0 && this.counter >= this.steps) return false;
+        if (this.steps > 0 && this.counter >= this.steps) return RunState.FAIL;
 
         const { grid, sumfield, periodic, kernel } = this;
         const { MX, MY, MZ } = grid;
@@ -162,7 +162,8 @@ export class ConvolutionNode extends Node {
         }
 
         this.counter++;
-        return change;
+
+        return change ? RunState.SUCCESS : RunState.FAIL;
     }
 }
 

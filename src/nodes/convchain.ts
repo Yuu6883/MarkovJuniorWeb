@@ -2,7 +2,7 @@ import { Grid } from "../grid";
 import { Helper, range } from "../helpers/helper";
 import { Loader } from "../helpers/loader";
 import { SymmetryHelper } from "../helpers/symmetry";
-import { Node } from "./";
+import { Node, RunState } from "./";
 
 export class ConvChainNode extends Node {
     private N: number;
@@ -85,7 +85,7 @@ export class ConvChainNode extends Node {
     }
 
     public override run() {
-        if (this.steps > 0 && this.counter >= this.steps) return false;
+        if (this.steps > 0 && this.counter >= this.steps) return RunState.FAIL;
 
         const {
             grid,
@@ -109,7 +109,7 @@ export class ConvChainNode extends Node {
                     anySubstrate = true;
                 }
             this.counter++;
-            return anySubstrate;
+            return anySubstrate ? RunState.SUCCESS : RunState.FAIL;
         }
 
         for (let k = 0; k < state.length; k++) {
@@ -153,7 +153,7 @@ export class ConvChainNode extends Node {
         }
 
         this.counter++;
-        return true;
+        return RunState.SUCCESS;
     }
 
     public override reset() {

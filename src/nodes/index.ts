@@ -10,3 +10,9 @@ export * from "./node";
 /**/ export * from "./wfc";
 /*******/ export * from "./tile";
 /*******/ export * from "./overlap";
+
+export enum RunState {
+    SUCCESS = 0,
+    FAIL = 1,
+    HALT = 2,
+}

@@ -5,7 +5,7 @@ import { Observation } from "./observation";
 import { Rule } from "./rule";
 
 export class Search {
-    public static run(
+    public static *run(
         present: Uint8Array,
         future: Int32Array,
         rules: Rule[],
@@ -17,7 +17,7 @@ export class Search {
         limit: number,
         depthCoefficient: number,
         seed: number
-    ): Uint8Array[] {
+    ): Generator<number, Uint8Array[]> {
         const PL = present.length;
 
         const bpotentials = new Array2D(Int32Array, PL, C, -1);
@@ -142,16 +142,12 @@ export class Search {
                     visited.set(childBoard.state, childIndex);
 
                     if (childForwardEstimate === 0) {
-                        console.log(
-                            `Found a trajectory of length ${
-                                parentBoard.depth + 1
-                            }, visited ${visited.size} states`
-                        );
                         const trajectory = Board.trajectory(
                             childIndex,
                             database
                         ).reverse();
 
+                        yield visited.size;
                         return trajectory.map((b) => b.state);
                     } else {
                         if (
@@ -174,6 +170,8 @@ export class Search {
                     }
                 }
             }
+
+            yield visited.size;
         }
 
         return null;

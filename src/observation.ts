@@ -4,8 +4,8 @@ import { vec4 } from "./helpers/helper";
 import { Rule } from "./rule";
 
 export class Observation {
-    readonly from: number;
-    readonly to: number;
+    public readonly from: number;
+    public readonly to: number;
 
     constructor(from: number, to: string, grid: Grid) {
         this.from = grid.values.get(from);
