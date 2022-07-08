@@ -377,31 +377,29 @@ const StateTree = observer(() => {
                 <h4>Node Tree</h4>
                 <div id="state-viz" ref={ref}>
                     {model.nodes.map(
-                        ({ state, depth, index, breakpoint }, i) => {
-                            const n = state.source;
-
-                            return (
-                                <div
-                                    key={i}
-                                    style={{
-                                        marginLeft: `${depth * 2}em`,
-                                    }}
-                                    className="node-state"
-                                    data-level-index={index}
-                                    data-highlight={model.curr_node_index === i}
-                                    data-breakpoint={breakpoint}
+                        ({ state, depth, index, breakpoint }, i) => (
+                            <div
+                                key={i}
+                                style={{
+                                    marginLeft: `${depth * 2}em`,
+                                }}
+                                className="node-state"
+                                data-level-index={index}
+                                data-highlight={model.curr_node_index === i}
+                                data-breakpoint={breakpoint}
+                            >
+                                <pre
+                                    className="breakpoint"
+                                    onClick={() => model.toggleBreakpoint(i)}
+                                />
+                                <label
+                                    onClick={() => model.toggleBreakpoint(i)}
                                 >
-                                    <label
-                                        onClick={() =>
-                                            model.toggleBreakpoint(i)
-                                        }
-                                    >
-                                        {state.name}
-                                    </label>
-                                    <NodeStateViz state={state} />
-                                </div>
-                            );
-                        }
+                                    {state.name}
+                                </label>
+                                <NodeStateViz state={state} />
+                            </div>
+                        )
                     )}
                 </div>
             </>

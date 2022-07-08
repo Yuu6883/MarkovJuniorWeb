@@ -251,15 +251,26 @@ input[type="color"]::-webkit-color-swatch {
     --color: red;
 }
 
-.node-state[data-breakpoint="true"]::before {
-    content: "";
+.breakpoint {
+    display: none;
+    margin: 0;
     width: 12px;
     height: 12px;
-    background-color: red;
+    background-color: crimson;
     border-radius: 50%;
     position: absolute;
     left: 0px;
     transform: translateY(6px);
+    cursor: pointer;
+}
+
+.node-state[data-breakpoint="true"]:hover .breakpoint {
+    color: red;
+    filter: drop-shadow(0 0 5px red) contrast(1) brightness(1.5);
+}
+
+.node-state[data-breakpoint="true"] .breakpoint {
+    display: block;
 }
 
 .node-state i {
