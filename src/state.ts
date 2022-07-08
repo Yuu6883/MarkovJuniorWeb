@@ -173,7 +173,7 @@ export class ConvolutionState extends NodeState<ConvolutionNode> {
     public counter = 0;
 
     get name(): string {
-        return "convolution";
+        return `convolution-${this.source.neighborhood.toLowerCase()}`;
     }
 
     constructor(source: ConvolutionNode) {

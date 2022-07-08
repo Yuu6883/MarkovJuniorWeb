@@ -4,6 +4,7 @@ import { Helper } from "../helpers/helper";
 import { Node } from "./";
 
 export class ConvolutionNode extends Node {
+    public neighborhood: string;
     public rules: ConvolutionRule[];
 
     private kernel: Uint8Array;
@@ -43,12 +44,12 @@ export class ConvolutionNode extends Node {
 
         if (!this.rules.every((r, i) => r.load(elems[i], grid))) return false;
 
-        const neighborhood = elem.getAttribute("neighborhood");
+        this.neighborhood = elem.getAttribute("neighborhood");
         this.kernel = (
             grid.MZ === 1
                 ? ConvolutionNode.kernels2d
                 : ConvolutionNode.kernels3d
-        ).get(neighborhood);
+        ).get(this.neighborhood);
 
         if (!this.kernel) {
             console.error(elem, "unknown kernel");
@@ -174,7 +175,7 @@ function* interval(s: string) {
     } else yield parseInt(s);
 }
 
-class ConvolutionRule {
+export class ConvolutionRule {
     public input: number;
     public output: number;
     public values: Uint8Array;

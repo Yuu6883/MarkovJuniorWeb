@@ -3,11 +3,12 @@ import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { ProgramContext } from ".";
 
 import { Helper } from "../helpers/helper";
-import { MapNode, RuleNode } from "../nodes";
+import { ConvolutionRule, MapNode, RuleNode } from "../nodes";
 import { Rule } from "../rule";
 import {
     ConvChainState,
     ConvolutionState,
+    MapState,
     NodeState,
     PathState,
     RuleState,
@@ -181,6 +182,24 @@ const RuleViz = ({
     );
 };
 
+const RuleNodeViz = ({ state }: { state: RuleState<RuleNode> | MapState }) => (
+    <div className="rule-list">
+        {state.source.rules.map(
+            (r, key) =>
+                r.original && (
+                    <RuleViz key={key} rule={r}>
+                        {!key && state instanceof RuleState && state.steps > 0 && (
+                            <label>
+                                {state.counter}/{state.steps}
+                            </label>
+                        )}
+                        {!key && r.p < 1 && <label>p = {r.p.toFixed(4)}</label>}
+                    </RuleViz>
+                )
+        )}
+    </div>
+);
+
 const ConvChainViz = ({ state }: { state: ConvChainState }) => {
     const { SMX, SMY, c0, c1, sample } = state;
 
@@ -223,7 +242,6 @@ const PathViz = ({ state }: { state: PathState }) => {
                     </tbody>
                 </table>
             </div>
-
             <div>
                 <label>to</label>
                 <table>
@@ -236,7 +254,6 @@ const PathViz = ({ state }: { state: PathState }) => {
                     </tbody>
                 </table>
             </div>
-
             <div>
                 <label>on</label>
                 <table>
@@ -249,7 +266,6 @@ const PathViz = ({ state }: { state: PathState }) => {
                     </tbody>
                 </table>
             </div>
-
             <div>
                 <label>colored</label>
                 <table>
@@ -264,34 +280,74 @@ const PathViz = ({ state }: { state: PathState }) => {
     );
 };
 
-const NodeStateViz = ({ state }: { state: NodeState }) => {
-    const n = state.source;
+const ConvoRule = ({ rule }: { rule: ConvolutionRule }) => (
+    <div className="convo-rule">
+        <table data-size={"normal"}>
+            <tbody>
+                <tr>
+                    <Cell value={rule.input} />
+                </tr>
+            </tbody>
+        </table>
+        <i className="fa-solid fa-arrow-right"></i>
+        <table data-size={"normal"}>
+            <tbody>
+                <tr>
+                    <Cell value={rule.output} />
+                </tr>
+            </tbody>
+        </table>
+        {rule.values && (
+            <>
+                <label>values:</label>
+                <table data-size={"normal"}>
+                    <tbody>
+                        <tr>
+                            {[...rule.values].map((v, i) => (
+                                <Cell key={i} value={v} />
+                            ))}
+                        </tr>
+                    </tbody>
+                </table>
+            </>
+        )}
+        {rule.sums && (
+            <label>
+                sums:{" "}
+                {rule.sums.reduceRight(
+                    (pre, c, i) => (c ? (pre ? `${i},${pre}` : i) : pre),
+                    ""
+                )}
+            </label>
+        )}
+        {rule.p < 1 && <label>p = {rule.p}</label>}
+    </div>
+);
 
-    return n instanceof RuleNode || n instanceof MapNode ? (
-        <div className="rule-list">
-            {n.rules.map(
-                (r, key) =>
-                    r.original && (
-                        <RuleViz key={key} rule={r}>
-                            {!key &&
-                                (state instanceof RuleState ||
-                                    state instanceof ConvolutionState) &&
-                                state.steps > 0 && (
-                                    <label>
-                                        {state.counter}/{state.steps}
-                                    </label>
-                                )}
-                            {!key && r.p < 1 && (
-                                <label>p = {r.p.toFixed(4)}</label>
-                            )}
-                        </RuleViz>
-                    )
-            )}
+const ConvolutionViz = ({ state }: { state: ConvolutionState }) => (
+    <>
+        {state.steps > 0 && (
+            <div>
+                {state.counter}/{state.steps}
+            </div>
+        )}
+        <div className="convo-rule-list">
+            {state.source.rules.map((r, key) => (
+                <ConvoRule key={key} rule={r} />
+            ))}
         </div>
+    </>
+);
+
+const NodeStateViz = ({ state }: { state: NodeState }) => {
+    return state instanceof RuleState || state instanceof MapState ? (
+        <RuleNodeViz state={state} />
     ) : state instanceof ConvChainState ? (
         <ConvChainViz state={state} />
     ) : state instanceof PathState ? (
         <PathViz state={state} />
+    ) : state instanceof ConvolutionState ? (
+        <ConvolutionViz state={state} />
     ) : (
         <></>
     );

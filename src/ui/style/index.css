@@ -267,6 +267,16 @@ input[type="color"]::-webkit-color-swatch {
     margin-right: 5px;
 }
 
+.convo-rule i {
+    color: var(--color);
+    margin-left: 5px;
+}
+
+.convo-rule label {
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
 .node-state > label {
     color: var(--color);
     cursor: pointer;
@@ -276,13 +286,15 @@ input[type="color"]::-webkit-color-swatch {
     filter: drop-shadow(0 0 5px var(--color)) contrast(1) brightness(1.5);
 }
 
-.rule-list {
+.rule-list,
+.convo-rule-list {
     display: flex;
     flex-direction: column;
     margin-left: 1em;
 }
 
 .rule,
+.convo-rule,
 .convchain-sample,
 .path-state {
     display: flex;
@@ -321,6 +333,7 @@ input[type="color"]::-webkit-color-swatch {
 }
 
 .rule table,
+.convo-rule table,
 .convchain-sample {
     border-spacing: 0px;
     border-collapse: collapse;
@@ -347,6 +360,7 @@ input[type="color"]::-webkit-color-swatch {
 
 .rule td,
 .convchain-sample td,
+.convo-rule td,
 .path-state td {
     width: var(--size);
     height: var(--size);
@@ -373,6 +387,10 @@ input[type="color"]::-webkit-color-swatch {
     #left-column {
         width: 0;
         min-width: 0;
+    }
+
+    #right-column {
+        display: none;
     }
 
     #center-column {
@@ -410,12 +428,6 @@ input[type="color"]::-webkit-color-swatch {
 
     .rule td {
         border: none !important;
-    }
-}
-
-@media only screen and (max-width: 400px) {
-    #right-column {
-        width: 0%;
     }
 }
 
