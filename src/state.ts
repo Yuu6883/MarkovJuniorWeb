@@ -184,12 +184,12 @@ export abstract class WFCState<T extends WFCNode> extends NodeState<T> {
 
 export class TileState extends WFCState<TileNode> {
     get name(): string {
-        return "wfc-tile";
+        return `wfc-tile: ${this.source.name.toLowerCase()}`;
     }
 }
 
 export class OverlapState extends WFCState<OverlapNode> {
     get name(): string {
-        return "wfc-overlap";
+        return `wfc-overlap: ${this.source.name.toLowerCase()}`;
     }
 }
