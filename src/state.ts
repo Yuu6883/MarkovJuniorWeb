@@ -121,31 +121,72 @@ export class MarkovState extends BranchState<MarkovNode> {
 }
 
 export class ConvChainState extends NodeState<ConvChainNode> {
+    @observable
+    public steps = -1;
+    @observable
+    public counter = 0;
+    @observable
+    public c0: number;
+    @observable
+    public c1: number;
+    @observable
+    public SMX: number;
+    @observable
+    public SMY: number;
+
+    public readonly sample: Uint8Array;
+
     get name(): string {
         return "convchain";
     }
 
     constructor(source: ConvChainNode) {
         super(source);
+        this.steps = this.source.steps || -1;
+        this.c0 = this.source.c0;
+        this.c1 = this.source.c1;
+        this.SMX = this.source.SMX;
+        this.SMY = this.source.SMY;
+
+        this.sample = new Uint8Array(this.source.sample.length);
+        this.sample.set(this.source.sample);
+
         makeObservable(this);
     }
 
     @override
-    sync() {}
+    sync() {
+        this.source.steps = this.steps;
+
+        this.source.c0 = this.c0;
+        this.source.c1 = this.c1;
+
+        this.counter = this.source.counter || 0;
+    }
 }
 
 export class ConvolutionState extends NodeState<ConvolutionNode> {
+    @observable
+    public steps = -1;
+    @observable
+    public counter = 0;
+
     get name(): string {
         return "convolution";
     }
 
     constructor(source: ConvolutionNode) {
         super(source);
+        this.steps = this.source.steps || -1;
+
         makeObservable(this);
     }
 
     @override
-    sync() {}
+    sync() {
+        this.source.steps = this.steps;
+        this.counter = this.source.counter || 0;
+    }
 }
 
 export class MapState extends BranchState<MapNode> {
@@ -176,12 +217,13 @@ export abstract class RuleState<T extends RuleNode> extends NodeState<T> {
 
     constructor(source: T) {
         super(source);
+        this.steps = this.source.steps || -1;
         makeObservable(this);
     }
 
     @override
     sync() {
-        this.steps = this.source.steps || -1;
+        this.source.steps = this.steps;
         this.counter = this.source.counter || 0;
     }
 }

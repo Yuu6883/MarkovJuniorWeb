@@ -282,18 +282,26 @@ input[type="color"]::-webkit-color-swatch {
     margin-left: 1em;
 }
 
-.rule {
+.rule,
+.convchain-sample {
     display: flex;
     align-items: center;
     margin-top: 5px;
     --size: 1vw;
 }
 
-.rule[data-size="small"] {
+.convchain-sample {
+    margin-left: 15px;
+    margin-bottom: 10px;
+}
+
+.rule[data-size="small"],
+.convchain-sample[data-size="small"] {
     --size: 0.5vw;
 }
 
-.rule table {
+.rule table,
+.convchain-sample {
     border-spacing: 0px;
     border-collapse: collapse;
     flex-shrink: 0;
@@ -317,7 +325,8 @@ input[type="color"]::-webkit-color-swatch {
     border-color: rgba(238, 238, 238, 0.5);
 }
 
-.rule td {
+.rule td,
+.convchain-sample td {
     width: var(--size);
     height: var(--size);
     min-width: var(--size);

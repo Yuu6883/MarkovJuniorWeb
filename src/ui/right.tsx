@@ -5,7 +5,12 @@ import { ProgramContext } from ".";
 import { Helper } from "../helpers/helper";
 import { MapNode, RuleNode } from "../nodes";
 import { Rule } from "../rule";
-import { RuleState } from "../state";
+import {
+    ConvChainState,
+    ConvolutionState,
+    NodeState,
+    RuleState,
+} from "../state";
 
 const Palette = observer(() => {
     const model = useContext(ProgramContext).instance;
@@ -53,7 +58,7 @@ export const RightPanel = observer(() => {
             {model && (
                 <>
                     <Palette />
-                    <StateViz />
+                    <StateTree />
                 </>
             )}
         </div>
@@ -175,7 +180,65 @@ const RuleViz = ({
     );
 };
 
-const StateViz = observer(() => {
+const ConvChainViz = ({ state }: { state: ConvChainState }) => {
+    const { SMX, SMY, c0, c1, sample } = state;
+
+    const grid = useMemo(
+        () =>
+            Array.from({ length: SMY }, (_, y) => (
+                <tr key={y}>
+                    {Array.from({ length: SMX }, (_, x) => (
+                        <Cell value={sample[x + y * SMX] ? c1 : c0} />
+                    ))}
+                </tr>
+            )),
+        [SMX, SMY]
+    );
+
+    const shrink = SMX > 5 || SMY > 5;
+
+    return (
+        <table
+            className="convchain-sample"
+            data-size={shrink ? "small" : "normal"}
+        >
+            <tbody>{grid}</tbody>
+        </table>
+    );
+};
+
+const NodeStateViz = ({ state }: { state: NodeState }) => {
+    const n = state.source;
+
+    return n instanceof RuleNode || n instanceof MapNode ? (
+        <div className="rule-list">
+            {n.rules.map(
+                (r, key) =>
+                    r.original && (
+                        <RuleViz key={key} rule={r}>
+                            {!key &&
+                                (state instanceof RuleState ||
+                                    state instanceof ConvolutionState) &&
+                                state.steps > 0 && (
+                                    <label>
+                                        {state.counter}/{state.steps}
+                                    </label>
+                                )}
+                            {!key && r.p < 1 && (
+                                <label>p = {r.p.toFixed(4)}</label>
+                            )}
+                        </RuleViz>
+                    )
+            )}
+        </div>
+    ) : state instanceof ConvChainState ? (
+        <ConvChainViz state={state} />
+    ) : (
+        <></>
+    );
+};
+
+const StateTree = observer(() => {
     const model = useContext(ProgramContext).instance;
     const ref = useRef<HTMLDivElement>();
 
@@ -220,34 +283,7 @@ const StateViz = observer(() => {
                                     >
                                         {state.name}
                                     </label>
-                                    <div className="rule-list">
-                                        {(n instanceof RuleNode ||
-                                            n instanceof MapNode) && (
-                                            <>
-                                                {n.rules.map(
-                                                    (r, key) =>
-                                                        r.original && (
-                                                            <RuleViz
-                                                                key={key}
-                                                                rule={r}
-                                                            >
-                                                                {!key &&
-                                                                    state instanceof
-                                                                        RuleState &&
-                                                                    state.steps >
-                                                                        0 && (
-                                                                        <label>
-                                                                            {state.counter.toString()}
-                                                                            /
-                                                                            {state.steps.toString()}
-                                                                        </label>
-                                                                    )}
-                                                            </RuleViz>
-                                                        )
-                                                )}
-                                            </>
-                                        )}
-                                    </div>
+                                    <NodeStateViz state={state} />
                                 </div>
                             );
                         }

@@ -13,8 +13,9 @@ export class ConvChainNode extends Node {
     public c1: number;
     private substrate: Uint8Array;
     private substrateColor: number;
-    private counter: number;
-    private steps: number;
+
+    public counter: number;
+    public steps: number;
 
     public sample: Uint8Array;
     public SMX: number;
