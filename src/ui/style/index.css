@@ -64,10 +64,12 @@ h1 {
     overflow-x: hidden;
     overflow-y: hidden;
     transition: all 0.25s linear;
+    display: flex;
+    flex-direction: column;
 }
 
 #model-list {
-    max-height: calc(100% - 120px);
+    height: 100%;
     overflow-x: hidden;
     overflow-y: scroll;
     padding: 15px;
@@ -183,6 +185,22 @@ h1 {
     display: flex;
     flex-direction: column;
     transition: width 0.25s ease-in-out;
+}
+
+#search-model {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+input[type="text"] {
+    color: #eee;
+    font-size: 16px;
+    background-color: transparent;
+    outline: none;
+    border: solid 1px rgba(238, 238, 238, 0.5);
 }
 
 input[type="color"] {
