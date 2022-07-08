@@ -29,6 +29,7 @@ export type NodeStateInfo = {
     parent: NodeState;
     depth: number;
     index: number;
+    breakpoint: boolean;
 };
 
 export abstract class NodeState<T extends Node = Node> {
@@ -48,7 +49,7 @@ export abstract class NodeState<T extends Node = Node> {
         while (stack.length) {
             const { node, depth, parent, index } = stack.pop();
             const state = this.factory(node);
-            visited.push({ state, depth, index, parent });
+            visited.push({ state, depth, index, parent, breakpoint: false });
 
             if (node instanceof Branch) {
                 for (

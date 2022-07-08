@@ -213,14 +213,44 @@ input[type="color"]::-webkit-color-swatch {
     overflow-x: hidden;
     overflow-y: scroll;
     padding: 25px;
+    position: relative;
 }
 
 .node-state {
+    --color: #eee;
     display: flex;
 }
 
 .node-state[data-level-index="0"] {
     margin-top: 10px;
+}
+
+.node-state[data-highlight="true"] {
+    --color: cornflowerblue;
+}
+
+.node-state[data-highlight="true"][data-breakpoint="true"] {
+    --color: red;
+}
+
+.node-state[data-breakpoint="true"]::before {
+    content: "";
+    width: 12px;
+    height: 12px;
+    background-color: red;
+    border-radius: 50%;
+    position: absolute;
+    left: 0px;
+    transform: translateY(6px);
+}
+
+.node-state > label {
+    color: var(--color);
+    cursor: pointer;
+}
+
+.node-state:hover > label {
+    filter: drop-shadow(0 0 5px var(--color)) contrast(1) brightness(1.5);
 }
 
 .rule-list {

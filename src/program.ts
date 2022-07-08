@@ -22,6 +22,7 @@ import { Interpreter } from "./interpreter";
 import ModelsXML from "../static/models.xml";
 import PaletteXML from "../static/resources/palette.xml";
 import { NodeState, NodeStateInfo } from "./state";
+import { Node } from "./nodes";
 
 export type ProgramOutput = { name: string; buffer: ArrayBuffer };
 
@@ -98,6 +99,7 @@ export class Model {
     private modelDoc: Element;
 
     private ip: Interpreter;
+    private breakpoints: Set<Node> = new Set();
 
     @observable
     public renderer: Renderer;
@@ -310,22 +312,42 @@ export class Model {
         if (!this._curr) this._curr = this.ip?.run(this._seed, this._steps);
         if (!this._curr) return;
 
-        let result = this._curr.next();
+        const checkBreakpoint = () =>
+            runInAction(() => {
+                if (once) return false;
 
-        if (this._speed > 0) {
+                const br = this.ip.current;
+                if (!br) return false;
+                if (br.n < 0 || br.n >= br.children.length) return false;
+
+                if (
+                    this.breakpoints.has(br) ||
+                    this.breakpoints.has(br.children[br.n])
+                ) {
+                    this._paused = true;
+                    return true;
+                }
+                return false;
+            });
+
+        let result = this._curr.next();
+        const bp = checkBreakpoint();
+
+        if (!bp && this._speed > 0) {
             for (let i = 0; i < this._speed; i++) {
                 result = this._curr.next();
-
+                if (checkBreakpoint()) break;
                 // Cap per frame execution to 20ms/50fps
                 if (performance.now() - start > 20) break;
             }
         }
 
         this.curr_node_index = this.nodes.findIndex(({ state }) => {
-            const n = this.ip.current;
-            if (!n) return false;
-            if (n.n < 0 || n.n >= n.children.length) return state.source === n;
-            return state.source === n.children[n.n];
+            const br = this.ip.current;
+            if (!br) return false;
+            if (br.n < 0 || br.n >= br.children.length)
+                return state.source === br;
+            return state.source === br.children[br.n];
         });
 
         const end = performance.now();
@@ -400,6 +422,19 @@ export class Model {
         if (r instanceof VoxelPathTracer) return "voxel";
 
         return null;
+    }
+
+    @action
+    public toggleBreakpoint(index: number) {
+        const node = this.nodes[index];
+        if (!node) return;
+        node.breakpoint = !node.breakpoint;
+
+        if (node.breakpoint) {
+            this.breakpoints.add(node.state.source);
+        } else {
+            this.breakpoints.delete(node.state.source);
+        }
     }
 
     @action

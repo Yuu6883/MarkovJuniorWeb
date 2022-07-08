@@ -190,39 +190,45 @@ const StateViz = observer(() => {
             <>
                 <h4>Node Tree</h4>
                 <div id="state-viz" ref={ref}>
-                    {model.nodes.map(({ state, depth, index }, i) => {
-                        const n = state.source;
+                    {model.nodes.map(
+                        ({ state, depth, index, breakpoint }, i) => {
+                            const n = state.source;
 
-                        return (
-                            <div
-                                key={i}
-                                style={{
-                                    marginLeft: `${depth * 2}em`,
-                                    color:
-                                        model.curr_node_index === i
-                                            ? "cornflowerblue"
-                                            : "white",
-                                }}
-                                className="node-state"
-                                data-level-index={index}
-                            >
-                                <label>{state.name}</label>
-                                <div className="rule-list">
-                                    {(n instanceof RuleNode ||
-                                        n instanceof MapNode) &&
-                                        n.rules.map(
-                                            (r, key) =>
-                                                r.original && (
-                                                    <RuleViz
-                                                        key={key}
-                                                        rule={r}
-                                                    />
-                                                )
-                                        )}
+                            return (
+                                <div
+                                    key={i}
+                                    style={{
+                                        marginLeft: `${depth * 2}em`,
+                                    }}
+                                    className="node-state"
+                                    data-level-index={index}
+                                    data-highlight={model.curr_node_index === i}
+                                    data-breakpoint={breakpoint}
+                                >
+                                    <label
+                                        onClick={() =>
+                                            model.toggleBreakpoint(i)
+                                        }
+                                    >
+                                        {state.name}
+                                    </label>
+                                    <div className="rule-list">
+                                        {(n instanceof RuleNode ||
+                                            n instanceof MapNode) &&
+                                            n.rules.map(
+                                                (r, key) =>
+                                                    r.original && (
+                                                        <RuleViz
+                                                            key={key}
+                                                            rule={r}
+                                                        />
+                                                    )
+                                            )}
+                                    </div>
                                 </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        }
+                    )}
                 </div>
             </>
         )
