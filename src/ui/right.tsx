@@ -9,6 +9,7 @@ import {
     ConvChainState,
     ConvolutionState,
     NodeState,
+    PathState,
     RuleState,
 } from "../state";
 
@@ -207,6 +208,62 @@ const ConvChainViz = ({ state }: { state: ConvChainState }) => {
     );
 };
 
+const PathViz = ({ state }: { state: PathState }) => {
+    return (
+        <div className="path-state">
+            <div>
+                <label>from</label>
+                <table>
+                    <tbody>
+                        <tr>
+                            {state.from.map((v, i) => (
+                                <Cell key={i} value={v} />
+                            ))}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div>
+                <label>to</label>
+                <table>
+                    <tbody>
+                        <tr>
+                            {state.to.map((v, i) => (
+                                <Cell key={i} value={v} />
+                            ))}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div>
+                <label>on</label>
+                <table>
+                    <tbody>
+                        <tr>
+                            {state.on.map((v, i) => (
+                                <Cell key={i} value={v} />
+                            ))}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div>
+                <label>colored</label>
+                <table>
+                    <tbody>
+                        <tr>
+                            <Cell value={state.colored} />
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+};
+
 const NodeStateViz = ({ state }: { state: NodeState }) => {
     const n = state.source;
 
@@ -233,6 +290,8 @@ const NodeStateViz = ({ state }: { state: NodeState }) => {
         </div>
     ) : state instanceof ConvChainState ? (
         <ConvChainViz state={state} />
+    ) : state instanceof PathState ? (
+        <PathViz state={state} />
     ) : (
         <></>
     );

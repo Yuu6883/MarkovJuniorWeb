@@ -20,6 +20,12 @@ export class Helper {
         return 0xff;
     }
 
+    public static nonZeroPositions(w: number) {
+        const result: number[] = [];
+        for (let p = 0; p < 32; p++, w >>= 1) if ((w & 1) == 1) result.push(p);
+        return result;
+    }
+
     public static sampleWeights(weights: Float64Array, r: number) {
         let sum = 0;
         for (let i = 0; i < weights.length; i++) sum += weights[i];

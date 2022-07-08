@@ -1,4 +1,5 @@
 import { action, makeObservable, observable, override } from "mobx";
+import { Helper } from "./helpers/helper";
 import { Interpreter } from "./interpreter";
 import {
     AllNode,
@@ -196,8 +197,23 @@ export class MapState extends BranchState<MapNode> {
 }
 
 export class PathState extends NodeState<PathNode> {
+    @observable
+    public from: number[];
+    @observable
+    public to: number[];
+    @observable
+    public on: number[];
+    @observable
+    public colored: number;
+
     constructor(source: PathNode) {
         super(source);
+
+        this.from = Helper.nonZeroPositions(source.start);
+        this.to = Helper.nonZeroPositions(source.finish);
+        this.on = Helper.nonZeroPositions(source.substrate);
+        this.colored = source.value;
+
         makeObservable(this);
     }
 

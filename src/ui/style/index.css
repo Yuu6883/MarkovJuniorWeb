@@ -283,14 +283,34 @@ input[type="color"]::-webkit-color-swatch {
 }
 
 .rule,
-.convchain-sample {
+.convchain-sample,
+.path-state {
     display: flex;
     align-items: center;
     margin-top: 5px;
     --size: 1vw;
 }
 
-.convchain-sample {
+.path-state {
+    flex-direction: column;
+    align-items: baseline;
+}
+
+.path-state > div {
+    display: inline-flex;
+    width: 100%;
+}
+
+.path-state > div > label {
+    margin-right: 10px;
+}
+
+.path-state table {
+    margin-left: auto;
+}
+
+.convchain-sample,
+.path-state {
     margin-left: 15px;
     margin-bottom: 10px;
 }
@@ -326,7 +346,8 @@ input[type="color"]::-webkit-color-swatch {
 }
 
 .rule td,
-.convchain-sample td {
+.convchain-sample td,
+.path-state td {
     width: var(--size);
     height: var(--size);
     min-width: var(--size);
