@@ -399,9 +399,9 @@ const ApplyRule = (
     state: Uint8Array,
     MX: number
 ) => {
-    for (let dy = 0; dy < rule.IMY; dy++)
-        for (let dx = 0; dx < rule.IMX; dx++)
-            state[x + dx + (y + dy) * MX] = rule.output[dx + dy * rule.IMX];
+    for (let dy = 0; dy < rule.OMY; dy++)
+        for (let dx = 0; dx < rule.OMX; dx++)
+            state[x + dx + (y + dy) * MX] = rule.output[dx + dy * rule.OMX];
 };
 
 const ApplySolution = (
