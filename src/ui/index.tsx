@@ -2,6 +2,7 @@ import { makeObservable } from "mobx";
 import { createContext } from "react";
 import { createRoot } from "react-dom/client";
 import { Program } from "../program";
+import { AssemblyScript } from "../wasm/as";
 import { ControlPanel } from "./center";
 import { LeftPanel } from "./left";
 import { MobileSelect } from "./mobile";
@@ -22,6 +23,8 @@ const App = () => {
         </ProgramContext.Provider>
     );
 };
+
+AssemblyScript.generate([]);
 
 const root = createRoot(document.getElementById("app"));
 root.render(<App />);

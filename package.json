@@ -5,8 +5,8 @@
     "main": "index.js",
     "scripts": {
         "start": "webpack serve --mode=development",
-        "compile-c": "cd src/wasm/ && ./compile.sh",
-        "compile-as": "cd src/wasm/as && asc observation.ts -O3 --noAssert --importMemory -o ../bin/v2.wasm",
+        "compile-c": "cd src/wasm/c-source && ./compile.sh",
+        "compile-as": "cd src/wasm/as && bash compile.sh",
         "build": "webpack build --mode=production"
     },
     "keywords": [],

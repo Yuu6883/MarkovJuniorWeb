@@ -11,5 +11,5 @@ clang \
     -Wl,--lto-O3 \
     -Wl,--import-memory \
     -Wl,--allow-undefined \
-    -o bin/v1.wasm \
-    c-source/test.c
+    -o ../bin/v1.wasm \
+    test.c

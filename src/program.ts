@@ -269,7 +269,7 @@ export class Model {
         if (this.loading) return Promise.resolve(false);
         this.loading = true;
 
-        return this._loadPromise.then(async (loaded) => {
+        return this._loadPromise.then((loaded) => {
             if (!loaded) return false;
 
             this._steps = params?.steps || -1;

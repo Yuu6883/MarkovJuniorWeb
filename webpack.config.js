@@ -64,7 +64,7 @@ module.exports = (_, argv) => ({
                 ],
             },
             {
-                test: /\.xml$/,
+                test: /\.(as|xml)$/,
                 type: "asset/source",
             },
             {
@@ -73,6 +73,9 @@ module.exports = (_, argv) => ({
                 use: "glslify-loader",
             },
         ],
+    },
+    experiments: {
+        topLevelAwait: true,
     },
     plugins: [
         new HtmlWebpackPlugin({
