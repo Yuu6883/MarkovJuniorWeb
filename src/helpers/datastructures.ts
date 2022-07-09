@@ -1,4 +1,4 @@
-declare type TypedArray =
+export declare type TypedArray =
     | Uint8Array
     | Int8Array
     | Uint16Array
@@ -8,8 +8,9 @@ declare type TypedArray =
     | Float32Array
     | Float64Array;
 
-interface TypedArrayConstructor<T> {
+export interface TypedArrayConstructor<T> {
     new (length: number): T;
+    new (buffer: ArrayBuffer, offset?: number, length?: number): T;
 }
 
 export class BoolArray {
@@ -479,11 +480,9 @@ export class PriorityQueue<T> {
         return this.heap[top];
     }
 
-    enqueue(...values: T[]) {
-        values.forEach((value) => {
-            this.heap.push(value);
-            this._siftUp();
-        });
+    enqueue(value: T) {
+        this.heap.push(value);
+        this._siftUp();
         return this.size;
     }
 

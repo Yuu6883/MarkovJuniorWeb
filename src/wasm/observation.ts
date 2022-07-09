@@ -1,0 +1,231 @@
+import { Array2D, BoolArray2D } from "../helpers/datastructures";
+import { vec4 } from "../helpers/helper";
+import { Rule } from "../rule";
+import { NativeSearch } from "./search";
+
+export class NativeObservation {
+    private static get lib() {
+        return NativeSearch.lib;
+    }
+
+    public static computeForwardPotentials(
+        pot_ptr: number,
+        pot_len: number,
+        state: Uint8Array,
+        MX: number,
+        MY: number,
+        MZ: number,
+        rules: Rule[]
+    ) {
+        this.lib.memset(pot_ptr, -1, pot_len);
+
+        // TODO:
+        // for (let i = 0; i < state.length; i++) potentials.set(i, state[i], 0);
+
+        this.computePotentials(pot_ptr, pot_len, MX, MY, MZ, rules, false);
+    }
+
+    public static computeBackwardPotentials(
+        pot_ptr: number,
+        pot_len: number,
+        fut_ptr: number,
+        fut_len: number,
+        MX: number,
+        MY: number,
+        MZ: number,
+        rules: Rule[]
+    ) {
+        // TODO:
+        // for (let c = 0; c < potentials.ROWS; c++) {
+        //     const potential = potentials.row(c);
+        //     for (let i = 0; i < future.length; i++)
+        //         potential[i] = (future[i] & (1 << c)) !== 0 ? 0 : -1;
+        // }
+
+        this.computePotentials(pot_ptr, pot_len, MX, MY, MZ, rules, true);
+    }
+
+    private static computePotentials(
+        pot_ptr: number,
+        pot_len: number,
+        MX: number,
+        MY: number,
+        MZ: number,
+        rules: Rule[],
+        backwards: boolean
+    ) {
+        // TODO: rewrite in C, without external js calls?
+        // const queue: vec4[] = [];
+        // for (let c = 0; c < potentials.ROWS; c++) {
+        //     const potential = potentials.row(c);
+        //     for (let i = 0; i < potential.length; i++) {
+        //         if (!potential[i]) {
+        //             queue.push([
+        //                 c,
+        //                 i % MX,
+        //                 ~~((i % (MX * MY)) / MX),
+        //                 ~~(i / (MX * MY)),
+        //             ]);
+        //         }
+        //     }
+        // }
+        // const matchMask = new BoolArray2D(potentials.COLS, rules.length);
+        // while (queue.length) {
+        //     const [value, x, y, z] = queue.shift();
+        //     const i = x + y * MX + z * MX * MY;
+        //     const t = potentials.get(i, value);
+        //     for (let r = 0; r < rules.length; r++) {
+        //         const rule = rules[r];
+        //         const shifts = backwards
+        //             ? rule.oshifts[value]
+        //             : rule.ishifts[value];
+        //         for (const [shiftx, shifty, shiftz] of shifts) {
+        //             const sx = x - shiftx;
+        //             const sy = y - shifty;
+        //             const sz = z - shiftz;
+        //             if (
+        //                 sx < 0 ||
+        //                 sy < 0 ||
+        //                 sz < 0 ||
+        //                 sx + rule.IMX > MX ||
+        //                 sy + rule.IMY > MY ||
+        //                 sz + rule.IMZ > MZ
+        //             )
+        //                 continue;
+        //             let si = sx + sy * MX + sz * MX * MY;
+        //             if (
+        //                 !matchMask.get(si, r) &&
+        //                 this.forwardMatches(
+        //                     rule,
+        //                     sx,
+        //                     sy,
+        //                     sz,
+        //                     potentials,
+        //                     t,
+        //                     MX,
+        //                     MY,
+        //                     backwards
+        //                 )
+        //             ) {
+        //                 matchMask.set(si, r, true);
+        //                 this.applyForward(
+        //                     rule,
+        //                     sx,
+        //                     sy,
+        //                     sz,
+        //                     potentials,
+        //                     t,
+        //                     MX,
+        //                     MY,
+        //                     queue,
+        //                     backwards
+        //                 );
+        //             }
+        //         }
+        //     }
+        // }
+    }
+
+    private static forwardMatches(
+        rule: Rule,
+        x: number,
+        y: number,
+        z: number,
+        potentials: Array2D<Int32Array>,
+        t: number,
+        MX: number,
+        MY: number,
+        backwards: boolean
+    ) {
+        let dz = 0,
+            dy = 0,
+            dx = 0;
+        const a = backwards ? rule.output : rule.binput;
+        for (let di = 0; di < a.length; di++) {
+            const value = a[di];
+            if (value != 0xff) {
+                const current = potentials.get(
+                    x + dx + (y + dy) * MX + (z + dz) * MX * MY,
+                    value
+                );
+                if (current > t || current === -1) return false;
+            }
+            dx++;
+            if (dx == rule.IMX) {
+                dx = 0;
+                dy++;
+                if (dy == rule.IMY) {
+                    dy = 0;
+                    dz++;
+                }
+            }
+        }
+        return true;
+    }
+
+    private static applyForward(
+        rule: Rule,
+        x: number,
+        y: number,
+        z: number,
+        potentials: Array2D<Int32Array>,
+        t: number,
+        MX: number,
+        MY: number,
+        q: vec4[],
+        backwards: boolean
+    ) {
+        const a = backwards ? rule.binput : rule.output;
+        for (let dz = 0; dz < rule.IMZ; dz++) {
+            const zdz = z + dz;
+            for (let dy = 0; dy < rule.IMY; dy++) {
+                const ydy = y + dy;
+                for (let dx = 0; dx < rule.IMX; dx++) {
+                    const xdx = x + dx;
+                    const idi = xdx + ydy * MX + zdz * MX * MY;
+                    const di = dx + dy * rule.IMX + dz * rule.IMX * rule.IMY;
+                    const o = a[di];
+                    if (o !== 0xff && potentials.get(idi, o) === -1) {
+                        potentials.set(idi, o, t + 1);
+                        q.push([o, xdx, ydy, zdz]);
+                    }
+                }
+            }
+        }
+    }
+
+    public static forwardPointwise(
+        potentials: Array2D<Int32Array>,
+        future: Int32Array
+    ) {
+        let sum = 0;
+        for (let i = 0; i < future.length; i++) {
+            let f = future[i];
+            let min = 1000,
+                argmin = -1;
+            for (let c = 0; c < potentials.ROWS; c++, f >>= 1) {
+                const potential = potentials.get(i, c);
+                if ((f & 1) == 1 && potential >= 0 && potential < min) {
+                    min = potential;
+                    argmin = c;
+                }
+            }
+            if (argmin < 0) return -1;
+            sum += min;
+        }
+        return sum;
+    }
+
+    public static backwardPointwise(
+        potentials: Array2D<Int32Array>,
+        present: Uint8Array
+    ) {
+        let sum = 0;
+        for (let i = 0; i < present.length; i++) {
+            const potential = potentials.get(i, present[i]);
+            if (potential < 0) return -1;
+            sum += potential;
+        }
+        return sum;
+    }
+}
