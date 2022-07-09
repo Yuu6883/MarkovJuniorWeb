@@ -440,8 +440,10 @@ const ConvoRuleViz = observer(({ rule }: { rule: ConvolutionRule }) => (
 const ConvolutionViz = observer(({ state }: { state: ConvolutionState }) => (
     <>
         {state.steps > 0 && (
-            <div>
-                {state.counter}/{state.steps}
+            <div style={{ marginLeft: "20px" }}>
+                <label>
+                    {state.counter}/{state.steps}
+                </label>
             </div>
         )}
         <div className="convo-rule-list">
