@@ -50,6 +50,7 @@ export function queue_capacity(q: queue): u32 {
     return q.capacity;
 }
 
+// @ts-expect-error
 @inline
 function queue_data(q: queue): usize {
     return changetype<usize>(q) + offsetof<queue>();

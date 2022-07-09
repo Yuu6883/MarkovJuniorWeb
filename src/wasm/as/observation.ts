@@ -68,6 +68,7 @@ export function bd_pointwise(p: potential_t, present: usize) : i32 {
     return sum;
 }
 
+// @ts-expect-error
 @inline
 function push_vec(q: queue_t, v: u32, x: u32, y: u32, z: u32): void {
     const item_ptr = queue_push(q);
@@ -77,6 +78,7 @@ function push_vec(q: queue_t, v: u32, x: u32, y: u32, z: u32): void {
     store<u32>(item_ptr, z, 3 * sizeof<u32>());
 }
 
+// @ts-expect-error
 @inline
 function compute_potential(
     p: potential_t,

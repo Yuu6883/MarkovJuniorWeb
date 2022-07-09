@@ -25,6 +25,7 @@ export function new_bool_2d(mx: u32, my: u32): bool_2d {
     return mat;
 }
 
+// @ts-expect-error
 @inline
 function bool_2d_data(mat: bool_2d) : usize {
     return changetype<usize>(mat) + offsetof<bool_2d>();

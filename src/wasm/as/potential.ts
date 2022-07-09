@@ -22,11 +22,13 @@ export function new_potential(mx: u32, my: u32): potential {
     return mat;
 }
 
+// @ts-expect-error
 @inline
 function potential_data(mat: potential) : usize {
     return changetype<usize>(mat) + offsetof<potential>();
 }
 
+// @ts-expect-error
 @inline
 export function potential_get(mat: potential, x: u32, y: u32) : i32 {
     const offset: u32 = y * mat.mx + x;
@@ -35,6 +37,7 @@ export function potential_get(mat: potential, x: u32, y: u32) : i32 {
     return load<i32>(ptr + offset * sizeof<i32>());
 }
 
+// @ts-expect-error
 @inline
 export function potential_set(mat: potential, x: u32, y: u32, value: i32) : void {
     const offset: u32 = y * mat.mx + x;
