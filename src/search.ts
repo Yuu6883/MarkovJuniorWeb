@@ -210,20 +210,18 @@ export class Search {
         return result;
     }
 
-    private static oneChildStates(
+    private static *oneChildStates(
         state: Uint8Array,
         MX: number,
         MY: number,
         rules: Rule[]
     ) {
-        const result: Uint8Array[] = [];
         for (const rule of rules) {
             for (let y = 0; y < MY; y++)
                 for (let x = 0; x < MX; x++)
                     if (Matches(rule, x, y, state, MX, MY))
-                        result.push(Applied(rule, x, y, state, MX));
+                        yield Applied(rule, x, y, state, MX);
         }
-        return result;
     }
 
     private static enumerate(
