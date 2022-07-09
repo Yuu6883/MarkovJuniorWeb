@@ -7,6 +7,8 @@ class bool_2d {
     my: u32;
 }
 
+export type bool_2d_t = bool_2d;
+
 export function new_bool_2d(mx: u32, my: u32): bool_2d {
     if (mx <= 0 || my <= 0) abort();
 

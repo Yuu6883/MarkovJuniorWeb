@@ -6,7 +6,7 @@
     "scripts": {
         "start": "webpack serve --mode=development",
         "compile-c": "cd src/wasm/ && ./compile.sh",
-        "compile-as": "cd src/wasm/ && asc as/queue.ts as/bool_2d.ts -O3 --noAssert --importMemory -o bin/v2.wasm",
+        "compile-as": "cd src/wasm/as && asc observation.ts -O3 --noAssert --importMemory -o ../bin/v2.wasm",
         "build": "webpack build --mode=production"
     },
     "keywords": [],

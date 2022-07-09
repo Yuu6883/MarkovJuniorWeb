@@ -2,71 +2,78 @@ import { malloc } from "./common";
 
 @final
 @unmanaged
-class queue_t {
+class queue {
     start: u32;
     len: u32;
     capacity: u32;
     elem: u32;
 }
 
-export function new_queue(elem: u32, capacity: u32): queue_t {
+export type queue_t = queue;
+
+export function new_queue(elem: u32, capacity: u32): queue {
     if (elem <= 0 || capacity <= 0) abort();
 
-    const ptr = malloc(offsetof<queue_t>() + capacity * elem);
-    const queue = changetype<queue_t>(ptr);
+    const ptr = malloc(offsetof<queue>() + capacity * elem);
+    const q = changetype<queue>(ptr);
 
-    queue.start = 0;
-    queue.len = 0;
-    queue.elem = elem;
-    queue.capacity = capacity;
+    q.start = 0;
+    q.len = 0;
+    q.elem = elem;
+    q.capacity = capacity;
 
-    return queue;
+    return q;
 }
 
-export function queue_full(queue: queue_t): bool {
-    return queue.len >= queue.capacity;
+export function queue_clear(q: queue): void {
+    q.start = 0;
+    q.len = 0;
 }
 
-export function queue_empty(queue: queue_t): bool {
-    return queue.len == 0;
+export function queue_full(q: queue): bool {
+    return q.len >= q.capacity;
 }
 
-export function queue_len(queue: queue_t): u32 {
-    return queue.len;
+export function queue_empty(q: queue): bool {
+    return q.len == 0;
 }
 
-export function queue_elem(queue: queue_t): u32 {
-    return queue.elem;
+export function queue_len(q: queue): u32 {
+    return q.len;
 }
 
-export function queue_capacity(queue: queue_t): u32 {
-    return queue.capacity;
+export function queue_elem(q: queue): u32 {
+    return q.elem;
+}
+
+export function queue_capacity(q: queue): u32 {
+    return q.capacity;
 }
 
 @inline
-function queue_data(queue: queue_t): usize {
-    return changetype<usize>(queue) + offsetof<queue_t>();
+function queue_data(q: queue): usize {
+    return changetype<usize>(q) + offsetof<queue>();
 }
 
-export function queue_push(queue: queue_t): usize {
-    if (queue_full(queue)) abort();
+export function queue_push(q: queue): usize {
+    if (queue_full(q)) abort();
 
-    const data = queue_data(queue);
-    const ptr = data + queue.elem * ((queue.start + queue.len) % queue.capacity);
+    const data = queue_data(q);
+    const ptr: usize = data + q.elem * ((q.start + q.len) % q.capacity);
 
-    queue.len++;
+    q.len++;
 
     return ptr;
 }
 
-export function queue_pop(queue: queue_t): usize {
-    if (queue_empty(queue)) abort();
+export function queue_pop(q: queue): usize {
+    if (queue_empty(q)) abort();
 
-    const data = queue_data(queue);
-    const ptr = data + queue.elem * queue.start;
+    const data = queue_data(q);
+    const ptr = data + q.elem * q.start;
     
-    queue.start = (queue.start + 1) % queue.capacity;
-    queue.len--;
+    q.start = (q.start + 1) % q.capacity;
+    q.len--;
 
     return ptr;
 }
