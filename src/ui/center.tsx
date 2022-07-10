@@ -1,6 +1,7 @@
 import { saveAs } from "file-saver";
 import { observer } from "mobx-react-lite";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
+import ReactTooltip from "react-tooltip";
 import { ProgramContext } from ".";
 import { VoxelPathTracer } from "../render";
 
@@ -11,6 +12,11 @@ export const ControlPanel = observer(() => {
     const prog = useContext(ProgramContext);
 
     const model = prog.instance;
+
+    useEffect(() => {
+        ReactTooltip.hide();
+        ReactTooltip.rebuild();
+    }, [model?.running, model?.paused, model?.renderType]);
 
     return (
         <div id="center-column">
@@ -38,6 +44,9 @@ export const ControlPanel = observer(() => {
                                                 ? model.resume()
                                                 : model.pause();
                                         }}
+                                        data-tip={
+                                            model.paused ? "Resume" : "Pause"
+                                        }
                                     >
                                         {model.paused ? (
                                             <i className="fa-solid fa-play"></i>
@@ -47,17 +56,24 @@ export const ControlPanel = observer(() => {
                                     </button>
                                 ) : (
                                     <>
-                                        <button onClick={() => model.start()}>
+                                        <button
+                                            onClick={() => model.start()}
+                                            data-tip="Play"
+                                        >
                                             <i className="fa-solid fa-play"></i>
                                         </button>
                                     </>
                                 )}
-                                <button onClick={() => model.step()}>
+                                <button
+                                    onClick={() => model.step()}
+                                    data-tip="Step"
+                                >
                                     <i className="fa-solid fa-forward-step"></i>
                                 </button>
                                 <button
                                     onClick={() => model.randomize()}
                                     disabled={model.running}
+                                    data-tip="Randomize Seed"
                                 >
                                     <i className="fa-solid fa-dice"></i>
                                 </button>
@@ -70,6 +86,7 @@ export const ControlPanel = observer(() => {
                                                 model.output.name
                                             )
                                         }
+                                        data-tip="Download Output (.vox)"
                                     >
                                         <i className="fa-solid fa-download"></i>
                                     </button>
@@ -85,6 +102,11 @@ export const ControlPanel = observer(() => {
                                                         : "voxel"
                                                 )
                                             }
+                                            data-tip={
+                                                model.renderType === "voxel"
+                                                    ? "Isometric View"
+                                                    : "3D View"
+                                            }
                                         >
                                             {model.renderType === "voxel" ? (
                                                 <i className="fa-solid fa-cubes"></i>
@@ -98,7 +120,10 @@ export const ControlPanel = observer(() => {
                                         id="debug"
                                         onClick={() => model.debug()}
                                     >
-                                        <i className="fa-solid fa-bug"></i>
+                                        <i
+                                            className="fa-solid fa-bug"
+                                            data-tip="Debug 😭"
+                                        ></i>
                                     </button>
                                 )}
                             </div>

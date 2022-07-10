@@ -253,22 +253,16 @@ input[type="color"]::-webkit-color-swatch {
     position: relative;
 }
 
+.tooltip {
+    filter: drop-shadow(0 0 2px #eee);
+    border-radius: 0%;
+}
+
 .node-state {
     --color: #eee;
     display: flex;
     flex-wrap: wrap;
-}
-
-.node-state[data-level-index="0"] {
-    margin-top: 10px;
-}
-
-.node-state[data-highlight="true"] {
-    --color: cornflowerblue;
-}
-
-.node-state[data-highlight="true"][data-breakpoint="true"] {
-    --color: red;
+    transition: color 0.25s linear;
 }
 
 .breakpoint {
@@ -298,6 +292,29 @@ input[type="color"]::-webkit-color-swatch {
     margin-right: 5px;
 }
 
+.node-state > label > i {
+    color: #ccc;
+    margin-left: 10px;
+    margin-right: 0px;
+    cursor: none;
+}
+
+.node-state > label > i:hover {
+    color: #eee;
+}
+
+.node-state[data-level-index="0"] {
+    margin-top: 10px;
+}
+
+.node-state[data-highlight="true"] {
+    --color: cornflowerblue !important;
+}
+
+.node-state[data-highlight="true"][data-breakpoint="true"] {
+    --color: red !important;
+}
+
 .convo-rule i {
     color: var(--color);
     margin-left: 5px;
@@ -309,13 +326,13 @@ input[type="color"]::-webkit-color-swatch {
     margin-right: 10px;
 }
 
-.node-state > label {
+.node-state > label > span {
     color: var(--color);
     cursor: pointer;
 }
 
-.node-state:hover > label {
-    filter: drop-shadow(0 0 5px var(--color)) contrast(1) brightness(1.5);
+.node-state > label > span:hover {
+    color: #fff;
 }
 
 .rule-list,
@@ -470,6 +487,17 @@ input[type="color"]::-webkit-color-swatch {
 #title {
     overflow-y: hidden;
     transition: all 0.25s linear;
+}
+
+#title i {
+    font-size: 24px;
+    cursor: pointer;
+    color: #ddd;
+    transition: color 0.2s linear;
+}
+
+#title i:hover {
+    color: #fff;
 }
 
 @media only screen and (max-height: 500px) {

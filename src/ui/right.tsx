@@ -1,10 +1,11 @@
 import { observer } from "mobx-react-lite";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import ReactTooltip from "react-tooltip";
 import { ProgramContext } from ".";
 import { Field } from "../field";
 
 import { Helper } from "../helpers/helper";
-import { ConvolutionRule, MapNode, RuleNode } from "../nodes";
+import { ConvolutionRule, RuleNode } from "../nodes";
 import { Observation } from "../observation";
 import { Rule } from "../rule";
 import {
@@ -47,6 +48,7 @@ const Palette = observer(() => {
                                 })
                             );
                         }}
+                        data-tip={chars.charAt(k)}
                     />
                 ))}
             </div>
@@ -523,6 +525,11 @@ const StateTree = observer(() => {
         });
     }, [model.curr_node_index]);
 
+    useEffect(() => {
+        ReactTooltip.hide();
+        ReactTooltip.rebuild();
+    }, [model.nodes.length]);
+
     return (
         !!model.nodes.length && (
             <>
@@ -544,10 +551,20 @@ const StateTree = observer(() => {
                                     className="breakpoint"
                                     onClick={() => model.toggleBreakpoint(i)}
                                 />
-                                <label
-                                    onClick={() => model.toggleBreakpoint(i)}
-                                >
-                                    {state.name}
+                                <label>
+                                    <span
+                                        onClick={() =>
+                                            model.toggleBreakpoint(i)
+                                        }
+                                    >
+                                        {state.name}
+                                    </span>
+                                    {state.source.comment && (
+                                        <i
+                                            className="fa-solid fa-comment-dots"
+                                            data-tip={state.source.comment}
+                                        ></i>
+                                    )}
                                 </label>
                                 <NodeStateViz state={state} />
                             </div>

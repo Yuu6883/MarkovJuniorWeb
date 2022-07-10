@@ -1,5 +1,6 @@
 import { makeObservable } from "mobx";
 import { createContext } from "react";
+import ReactTooltip from "react-tooltip";
 import { createRoot } from "react-dom/client";
 import { Program } from "../program";
 import { ControlPanel } from "./center";
@@ -19,6 +20,7 @@ const App = () => {
             <ControlPanel />
             <RightPanel />
             <MobileSelect />
+            <ReactTooltip className="tooltip" />
         </ProgramContext.Provider>
     );
 };

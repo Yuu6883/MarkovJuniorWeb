@@ -20,7 +20,17 @@ export const LeftPanel = observer(() => {
 
     return (
         <div id="left-column">
-            <h1 id="title">MarkovJunior</h1>
+            <h1 id="title">
+                MarkovJunior{" "}
+                <i
+                    className="fa-brands fa-github"
+                    onClick={() =>
+                        window.open(
+                            "https://github.com/Yuu6883/MarkovJuniorWeb"
+                        )
+                    }
+                ></i>
+            </h1>
             <div id="search-model">
                 <div id="input-holder">
                     <input
