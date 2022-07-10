@@ -1,6 +1,11 @@
-import { bool_2d_t, bool_2d_clear } from "./bool_2d";
+import { bool_2d_t, bool_2d_get, bool_2d_set, bool_2d_clear } from "./bool_2d";
+import { log_push, log_rule_match, log_set_2d, log_u32 } from "./common";
 import { potential_t, potential_fill, potential_get, potential_set } from "./potential";
 import { queue_clear, queue_empty, queue_pop, queue_push, queue_t } from "./queue";
+
+export { new_queue, queue_t } from "./queue";
+export { new_bool_2d, bool_2d_t } from "./bool_2d";
+export { new_potential, potential_fill, potential_t } from "./potential";
 
 export function compute_fd_potential(
     p: potential_t,
@@ -28,10 +33,10 @@ export function compute_bd_potential(
     MZ: u32
 ): void {
     for (let c: u32 = 0; c < p.my; c++) {
-        const row_ptr: usize = c * p.mx;
         for (let i: u32 = 0; i < p.mx; i++) {
             const o = i * sizeof<i32>();
-            store<i32>(row_ptr + o, (load<i32>(goal + o) & (1 << c)) !== 0 ? 0 : -1);
+            const v = (load<i32>(goal + o) & (1 << c)) !== 0 ? 0 : -1;
+            potential_set(p, i, c, v);
         }
     }
     compute_potential(p, q, mask, MX, MY, MZ, true);
@@ -78,6 +83,8 @@ function push_vec(q: queue_t, v: u32, x: u32, y: u32, z: u32): void {
     store<u32>(item_ptr, z, 3 * sizeof<u32>());
 }
 
+/*functions*/
+
 // @ts-expect-error
 @inline
 function compute_potential(
@@ -92,9 +99,8 @@ function compute_potential(
     queue_clear(q);
 
     for (let c: u32 = 0; c < p.my; c++) {
-        const row_ptr: usize = c * p.mx;
         for (let i: u32 = 0; i < p.mx; i++) {
-            if (!load<i32>(row_ptr + i * sizeof<i32>())) {
+            if (!potential_get(p, i, c)) {
                 push_vec(q, c, i % MX, (i % (MX * MY)) / MX, i / (MX * MY));
             }
         }
@@ -111,6 +117,6 @@ function compute_potential(
         const i = x + y * MX + z * MX * MY;
         const t = potential_get(p, i, value);
 
-        /*GENERATE*/
+        /*unroll*/
     }
 }

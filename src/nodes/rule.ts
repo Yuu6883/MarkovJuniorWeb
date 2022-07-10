@@ -10,6 +10,9 @@ import { SymmetryHelper } from "../helpers/symmetry";
 import { Observation } from "../observation";
 import { Rule } from "../rule";
 import { Search } from "../search";
+import { WasmInstance } from "../wasm";
+import { AssemblyScript } from "../wasm/as";
+import { NativeSearch } from "../wasm/search";
 
 import { Node, AllNode, RunState } from "./";
 
@@ -42,6 +45,7 @@ export abstract class RuleNode extends Node {
     public visited = 0;
     private searching: Generator<number, Uint8Array[]>;
     private searchTries = 0;
+    public lib: WasmInstance;
 
     protected override async load(
         elem: Element,
@@ -134,6 +138,7 @@ export abstract class RuleNode extends Node {
                 this.limit = parseInt(elem.getAttribute("limit")) || -1;
                 this.depthCoefficient =
                     parseFloat(elem.getAttribute("depthCoefficient")) || 0.5;
+                this.lib = await AssemblyScript.generate(this.rules);
             } else if (!this.potentials) {
                 this.potentials = new Array2D(
                     Int32Array,
@@ -230,24 +235,50 @@ export abstract class RuleNode extends Node {
                     }
 
                     this.trajectory = null;
+
                     // start searching
-                    this.searching = Search.run(
-                        grid.state,
-                        this.future,
-                        this.rules,
-                        grid.MX,
-                        grid.MY,
-                        grid.MZ,
-                        grid.C,
-                        this instanceof AllNode,
-                        this.limit,
-                        this.depthCoefficient,
-                        this.ip.rng.int32()
-                    );
+                    if (this.lib) {
+                        console.log("native-search");
+                        this.searching = NativeSearch.run(
+                            this.lib,
+                            grid.state,
+                            this.future,
+                            this.rules,
+                            grid.MX,
+                            grid.MY,
+                            grid.MZ,
+                            grid.C,
+                            this instanceof AllNode,
+                            this.limit,
+                            this.depthCoefficient,
+                            this.ip.rng.int32()
+                        );
+                        try {
+                            this.searching.next();
+                        } catch (e) {
+                            console.error(e);
+                        }
+                    } else {
+                        console.log("legacy-search");
+                        this.searching = Search.run(
+                            grid.state,
+                            this.future,
+                            this.rules,
+                            grid.MX,
+                            grid.MY,
+                            grid.MZ,
+                            grid.C,
+                            this instanceof AllNode,
+                            this.limit,
+                            this.depthCoefficient,
+                            this.ip.rng.int32()
+                        );
+                    }
                 }
 
                 let result = this.searching.next();
-                for (let _ = 0; _ < 256; _++) {
+                const step = this.lib ? 512 : 256;
+                for (let _ = 0; _ < step; _++) {
                     result = this.searching.next();
                     if (result.done) break;
                 }

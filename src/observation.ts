@@ -59,8 +59,10 @@ export class Observation {
     ) {
         for (let c = 0; c < potentials.ROWS; c++) {
             const potential = potentials.row(c);
-            for (let i = 0; i < future.length; i++)
-                potential[i] = (future[i] & (1 << c)) !== 0 ? 0 : -1;
+            for (let i = 0; i < future.length; i++) {
+                const v = (future[i] & (1 << c)) !== 0 ? 0 : -1;
+                potential[i] = v;
+            }
         }
         this.computePotentials(potentials, MX, MY, MZ, rules, true);
     }
@@ -79,12 +81,13 @@ export class Observation {
             const potential = potentials.row(c);
             for (let i = 0; i < potential.length; i++) {
                 if (!potential[i]) {
-                    queue.push([
+                    const args: vec4 = [
                         c,
                         i % MX,
                         ~~((i % (MX * MY)) / MX),
                         ~~(i / (MX * MY)),
-                    ]);
+                    ];
+                    queue.push(args);
                 }
             }
         }
@@ -114,7 +117,7 @@ export class Observation {
                         sz + rule.IMZ > MZ
                     )
                         continue;
-                    let si = sx + sy * MX + sz * MX * MY;
+                    const si = sx + sy * MX + sz * MX * MY;
                     if (
                         !matchMask.get(si, r) &&
                         this.forwardMatches(
@@ -163,8 +166,7 @@ export class Observation {
             dy = 0,
             dx = 0;
         const a = backwards ? rule.output : rule.binput;
-        for (let di = 0; di < a.length; di++) {
-            const value = a[di];
+        for (const value of a) {
             if (value != 0xff) {
                 const current = potentials.get(
                     x + dx + (y + dy) * MX + (z + dz) * MX * MY,

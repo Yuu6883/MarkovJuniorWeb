@@ -24,7 +24,5 @@ const App = () => {
     );
 };
 
-AssemblyScript.generate([]);
-
 const root = createRoot(document.getElementById("app"));
 root.render(<App />);

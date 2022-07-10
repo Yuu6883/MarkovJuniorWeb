@@ -1,17 +1,23 @@
 import seedrandom, { PRNG } from "seedrandom";
 import { WasmInstance } from ".";
-import { Array2D, HashMap, PriorityQueue } from "../helpers/datastructures";
+import { HashMap, PriorityQueue } from "../helpers/datastructures";
 import { Helper } from "../helpers/helper";
-import { Observation } from "../observation";
 import { Rule } from "../rule";
 
+import type {
+    new_queue as new_queue_t,
+    new_bool_2d as new_bool_2d_t,
+    new_potential as new_potential_t,
+    potential_fill as potential_fill_t,
+    compute_fd_potential as compute_fd_potential_t,
+    compute_bd_potential as compute_bd_potential_t,
+    fd_pointwise as fd_pointwise_t,
+    bd_pointwise as bd_pointwise_t,
+} from "./as/observation";
+
 export class NativeSearch {
-    public static lib: WasmInstance;
-
-    private static state_pool: Uint8Array[] = [];
-    private static alloc_state(size: number) {}
-
     public static *run(
+        lib: WasmInstance,
         present: Uint8Array,
         future: Int32Array,
         rules: Rule[],
@@ -24,53 +30,72 @@ export class NativeSearch {
         depthCoefficient: number,
         seed: number
     ): Generator<number, Uint8Array[]> {
-        const lib = this.lib;
         const PL = present.length;
+
+        const {
+            new_queue,
+            new_bool_2d,
+            new_potential,
+            potential_fill,
+            compute_fd_potential,
+            compute_bd_potential,
+            fd_pointwise,
+            bd_pointwise,
+        }: {
+            new_queue: typeof new_queue_t;
+            new_bool_2d: typeof new_bool_2d_t;
+            new_potential: typeof new_potential_t;
+            potential_fill: typeof potential_fill_t;
+            compute_fd_potential: typeof compute_fd_potential_t;
+            compute_bd_potential: typeof compute_bd_potential_t;
+            fd_pointwise: typeof fd_pointwise_t;
+            bd_pointwise: typeof bd_pointwise_t;
+        } = lib.exports;
+
+        lib.reset();
 
         const present_ptr = lib.malloc(PL);
         lib.copy_from_external(present, present_ptr);
 
-        const bp_ptr = lib.malloc(PL * C);
-        lib.memset(bp_ptr, -1, PL * C);
-        const fp_ptr = lib.malloc(PL * C);
-        lib.memset(fp_ptr, -1, PL * C);
+        const temp_state_ptr = lib.malloc(PL);
+        const temp_state_ptr_parent = lib.malloc(PL);
 
-        const bpotentials = new Array2D(Int32Array, PL, C, -1);
-        const fpotentials = new Array2D(Int32Array, PL, C, -1);
+        const future_ptr = lib.malloc(future.byteLength);
+        lib.copy_from_external(future, future_ptr);
 
-        Observation.computeBackwardPotentials(
-            bpotentials,
-            future,
-            MX,
-            MY,
-            MZ,
-            rules
+        const bpotentials = new_potential(PL, C);
+        potential_fill(bpotentials, -1);
+
+        const fpotentials = new_potential(PL, C);
+        potential_fill(fpotentials, -1);
+
+        const queue = new_queue(16, PL * C);
+        const mask = new_bool_2d(PL, rules.length);
+
+        console.log(
+            `
+present_ptr = ${present_ptr},
+future_ptr = ${future_ptr},
+bpotentials = ${bpotentials},
+fpotentials = ${fpotentials},
+queue = ${queue},
+mask = ${mask}`
         );
-        const rootBackwardEstimate = Observation.backwardPointwise(
-            bpotentials,
-            present
-        );
-        Observation.computeForwardPotentials(
-            fpotentials,
-            present,
-            MX,
-            MY,
-            MZ,
-            rules
-        );
-        const rootForwardEstimate = Observation.forwardPointwise(
-            fpotentials,
-            future
-        );
+
+        compute_bd_potential(bpotentials, queue, mask, future_ptr, MX, MY, MZ);
+        const rootBackwardEstimate = bd_pointwise(bpotentials, present_ptr);
+
+        compute_fd_potential(fpotentials, queue, mask, present_ptr, MX, MY, MZ);
+        const rootForwardEstimate = fd_pointwise(fpotentials, future_ptr);
+
+        // console.log(
+        //     `root estimate = (${rootBackwardEstimate}, ${rootForwardEstimate})`
+        // );
 
         if (rootBackwardEstimate < 0 || rootForwardEstimate < 0) {
             console.error("INCORRECT PROBLEM");
             return null;
         }
-
-        // console.log(
-        //     `root estimate = (${rootBackwardEstimate}, ${rootForwardEstimate})`
-        // );
 
         if (!rootBackwardEstimate) return [];
         const rootBoard = new Board(
@@ -101,6 +126,8 @@ export class NativeSearch {
             const parentIndex = frontier.dequeue().v;
             const parentBoard = database[parentIndex];
 
+            lib.copy_from_external(parentBoard.state, temp_state_ptr_parent);
+
             const children = all
                 ? this.allChildStates(parentBoard.state, MX, MY, rules)
                 : this.oneChildStates(parentBoard.state, MX, MY, rules);
@@ -125,21 +152,23 @@ export class NativeSearch {
                         }
                     }
                 } else {
-                    const childBackwardEstimate = Observation.backwardPointwise(
+                    lib.copy_from_external(childState, temp_state_ptr);
+                    const childBackwardEstimate = bd_pointwise(
                         bpotentials,
-                        childState
+                        temp_state_ptr
                     );
-                    Observation.computeForwardPotentials(
+                    compute_fd_potential(
                         fpotentials,
-                        childState,
+                        queue,
+                        mask,
+                        temp_state_ptr,
                         MX,
                         MY,
-                        MZ,
-                        rules
+                        MZ
                     );
-                    const childForwardEstimate = Observation.forwardPointwise(
+                    const childForwardEstimate = fd_pointwise(
                         fpotentials,
-                        future
+                        future_ptr
                     );
 
                     if (childBackwardEstimate < 0 || childForwardEstimate < 0)
@@ -225,20 +254,18 @@ export class NativeSearch {
         return result;
     }
 
-    private static oneChildStates(
+    private static *oneChildStates(
         state: Uint8Array,
         MX: number,
         MY: number,
         rules: Rule[]
     ) {
-        const result: Uint8Array[] = [];
         for (const rule of rules) {
             for (let y = 0; y < MY; y++)
                 for (let x = 0; x < MX; x++)
                     if (Matches(rule, x, y, state, MX, MY))
-                        result.push(Applied(rule, x, y, state, MX));
+                        yield Applied(rule, x, y, state, MX);
         }
-        return result;
     }
 
     private static enumerate(
@@ -333,9 +360,8 @@ const Matches = (
 
     let dy = 0,
         dx = 0;
-    for (let di = 0; di < rule.input.length; di++) {
-        if ((rule.input[di] & (1 << state[x + dx + (y + dy) * MX])) === 0)
-            return false;
+    for (const i of rule.input) {
+        if ((i & (1 << state[x + dx + (y + dy) * MX])) === 0) return false;
         dx++;
         if (dx === rule.IMX) {
             dx = 0;

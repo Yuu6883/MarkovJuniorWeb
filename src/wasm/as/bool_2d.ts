@@ -31,6 +31,8 @@ function bool_2d_data(mat: bool_2d) : usize {
     return changetype<usize>(mat) + offsetof<bool_2d>();
 }
 
+// @ts-expect-error
+@inline
 export function bool_2d_get(mat: bool_2d, x: u32, y: u32) : bool {
     const offset: u32 = y * mat.mx + x;
     const mask: u8 = 1 << u8(offset % 8);
@@ -39,6 +41,8 @@ export function bool_2d_get(mat: bool_2d, x: u32, y: u32) : bool {
     return bool(load<u8>(data + (offset >>> 3)) & mask);
 }
 
+// @ts-expect-error
+@inline
 export function bool_2d_set(mat: bool_2d, x: u32, y: u32, value: bool) : void {
     const offset: u32 = y * mat.mx + x;
     const mask: u8 = 1 << u8(offset % 8);
@@ -49,22 +53,30 @@ export function bool_2d_set(mat: bool_2d, x: u32, y: u32, value: bool) : void {
     store<u8>(ptr, value ? (pre | mask) : (pre & (0xFF ^ mask)));
 }
 
+// @ts-expect-error
+@inline
 export function bool_2d_fill(mat: bool_2d) : void {
     const total: usize = mat.mx * mat.my;
     const size: usize = (total & 7 ? 1 : 0) + (total >>> 3);
     memory.fill(bool_2d_data(mat), 0xFF, size);
 }
 
+// @ts-expect-error
+@inline
 export function bool_2d_clear(mat: bool_2d) : void {
     const total: usize = mat.mx * mat.my;
     const size: usize = (total & 7 ? 1 : 0) + (total >>> 3);
     memory.fill(bool_2d_data(mat), 0x0, size);
 }
 
+// @ts-expect-error
+@inline
 export function bool_2d_x(mat: bool_2d) : u32 {
     return mat.mx;
 }
 
+// @ts-expect-error
+@inline
 export function bool_2d_y(mat: bool_2d) : u32 {
     return mat.my;
 }

@@ -1,3 +1,4 @@
 node_modules/*
 build/*
 src/wasm/bin/*
+*.map

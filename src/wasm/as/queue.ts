@@ -11,15 +11,15 @@ class queue {
 
 export type queue_t = queue;
 
-export function new_queue(elem: u32, capacity: u32): queue {
-    if (elem <= 0 || capacity <= 0) abort();
+export function new_queue(bytes_per_elem: u32, capacity: u32): queue {
+    if (bytes_per_elem <= 0 || capacity <= 0) abort();
 
-    const ptr = malloc(offsetof<queue>() + capacity * elem);
+    const ptr = malloc(offsetof<queue>() + capacity * bytes_per_elem);
     const q = changetype<queue>(ptr);
 
     q.start = 0;
     q.len = 0;
-    q.elem = elem;
+    q.elem = bytes_per_elem;
     q.capacity = capacity;
 
     return q;
