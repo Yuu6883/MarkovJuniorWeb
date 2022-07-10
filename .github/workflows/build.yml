@@ -18,6 +18,9 @@ jobs:
             - name: Install
               run: npm i
 
+            - name: Compile
+              run: npm run compile-as
+
             - name: Build
               run: npm run build
 
