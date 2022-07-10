@@ -1,5 +1,7 @@
 #!/bin/bash
 
+mkdir -p ../bin
+
 for f in *.ts; do 
     cp -- "$f" ../bin/"${f%.ts}.as"
 done
