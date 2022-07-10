@@ -9,6 +9,7 @@ declare type Shift = vec3[][];
 export class Rule {
     public readonly IO_DIM: Int32Array;
 
+    public readonly wildcard: number;
     public input: Int32Array;
     public output: Uint8Array;
     public binput: Uint8Array;
@@ -62,12 +63,12 @@ export class Rule {
             for (let c = 0; c < C; c++) this.oshifts[c] = lists[c].concat([]);
         }
 
-        const wildcard = (1 << C) - 1;
+        this.wildcard = (1 << C) - 1;
         this.binput = new Uint8Array(input.length);
         for (let i = 0; i < input.length; i++) {
             const w = input[i];
             this.binput[i] =
-                w === wildcard ? 0xff : Helper.firstNonZeroPosition(w);
+                w === this.wildcard ? 0xff : Helper.firstNonZeroPosition(w);
         }
     }
 

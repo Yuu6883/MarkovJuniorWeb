@@ -81,6 +81,42 @@ const Cell = observer(({ value }: { value: number }) => {
     );
 });
 
+const UnionCell = observer(
+    ({ value, wildcard }: { value: number; wildcard: number }) => {
+        const colors = useContext(ProgramContext).instance.renderer.colorHex;
+
+        const transparent = value === wildcard;
+        const pot = !(value & (value - 1));
+        let background: string;
+
+        if (pot) {
+            background = colors[Math.log2(value)];
+        } else if (!transparent) {
+            const arr: string[] = [];
+            for (let i = 1, j = 0; i < wildcard; i <<= 1, j++) {
+                if (value & i) arr.push(colors[j]);
+            }
+            background = `linear-gradient(135deg, ${arr
+                .map(
+                    (col, i) =>
+                        `${col} ${(100 / arr.length) * i}%, ${col} ${
+                            (100 / arr.length) * (i + 1)
+                        }%`
+                )
+                .join(", ")})`;
+        }
+
+        return (
+            <td
+                data-transparent={transparent}
+                style={{
+                    background,
+                }}
+            ></td>
+        );
+    }
+);
+
 const RuleViz = observer(
     ({ rule, children }: { rule: Rule; children?: React.ReactNode }) => {
         const [IMX, IMY, IMZ, OMX, OMY, OMZ] = rule.IO_DIM;
@@ -101,10 +137,11 @@ const RuleViz = observer(
                             {Array.from({ length: IMY }, (_, y) => (
                                 <tr key={y}>
                                     {Array.from({ length: IMX }, (_, x) => (
-                                        <Cell
+                                        <UnionCell
                                             key={x}
+                                            wildcard={rule.wildcard}
                                             value={
-                                                rule.binput[
+                                                rule.input[
                                                     x + y * IMX + z * IMX * IMY
                                                 ]
                                             }
