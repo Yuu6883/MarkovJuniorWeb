@@ -39,8 +39,6 @@ export class ParallelNode extends RuleNode {
                             dx + dy * rule.OMX + dz * rule.OMX * rule.OMY
                         ];
 
-                    if (isNaN(newvalue)) debugger;
-
                     let idi = x + dx + (y + dy) * MX + (z + dz) * MX * MY;
                     if (newvalue !== 0xff && newvalue !== grid.state[idi]) {
                         this.newstate[idi] = newvalue;
