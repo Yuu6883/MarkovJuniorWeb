@@ -8,8 +8,11 @@ import {
 import { Helper } from "../helpers/helper";
 import { SymmetryHelper } from "../helpers/symmetry";
 import { Observation } from "../observation";
+import { Program } from "../program";
 import { Rule } from "../rule";
 import { Search } from "../search";
+import { Optimization } from "../wasm/optimization";
+import { NativeSearch } from "../wasm/search";
 
 import { Node, AllNode, RunState } from "./";
 
@@ -42,6 +45,8 @@ export abstract class RuleNode extends Node {
     public visited = 0;
     private searching: Generator<number, Uint8Array[]>;
     private searchTries = 0;
+
+    private preObserve: Uint8Array;
 
     protected override async load(
         elem: Element,
@@ -134,6 +139,7 @@ export abstract class RuleNode extends Node {
                 this.limit = parseInt(elem.getAttribute("limit")) || -1;
                 this.depthCoefficient =
                     parseFloat(elem.getAttribute("depthCoefficient")) || 0.5;
+                this.rules.map((r) => Optimization.load_rule(r));
             } else if (!this.potentials) {
                 this.potentials = new Array2D(
                     Int32Array,
@@ -155,7 +161,12 @@ export abstract class RuleNode extends Node {
         this.lastMatchedTurn = -1;
         this.counter = 0;
         this.futureComputed = false;
+        this.searchTries = 0;
         this.last.fill(0);
+
+        this.searching?.throw(new Error("reset"));
+        this.searching = null;
+        this.preObserve = null;
     }
 
     protected add(
@@ -188,7 +199,6 @@ export abstract class RuleNode extends Node {
     }
 
     public override run() {
-        // console.log(this.source);
         this.last.fill(0);
 
         if (this.steps > 0 && this.counter >= this.steps) return RunState.FAIL;
@@ -219,6 +229,15 @@ export abstract class RuleNode extends Node {
                 );
             } else {
                 if (!this.searching) {
+                    if (!this.preObserve) {
+                        this.preObserve = new Uint8Array(
+                            this.grid.state.length
+                        );
+                        this.preObserve.set(this.grid.state);
+                    } else {
+                        this.grid.state.set(this.preObserve);
+                    }
+
                     if (
                         !Observation.computeFutureSetPresent(
                             this.future,
@@ -226,12 +245,15 @@ export abstract class RuleNode extends Node {
                             this.observations
                         )
                     ) {
+                        this.preObserve = null;
                         return RunState.FAIL;
                     }
 
                     this.trajectory = null;
                     // start searching
-                    this.searching = Search.run(
+                    this.searching = (
+                        Optimization.supported ? NativeSearch : Search
+                    ).run(
                         grid.state,
                         this.future,
                         this.rules,
@@ -242,15 +264,12 @@ export abstract class RuleNode extends Node {
                         this instanceof AllNode,
                         this.limit,
                         this.depthCoefficient,
-                        this.ip.rng.int32()
+                        this.ip.rng.int32(),
+                        true // viz
                     );
                 }
 
                 let result = this.searching.next();
-                for (let _ = 0; _ < 256; _++) {
-                    result = this.searching.next();
-                    if (result.done) break;
-                }
 
                 if (!result.done && typeof result.value === "number") {
                     this.visited = result.value;
@@ -261,12 +280,26 @@ export abstract class RuleNode extends Node {
 
                     if (!this.trajectory) {
                         this.searchTries++;
-                        // TODO: stop this node from running if too many tries?
-                        console.error("no trajectory found");
-                        return RunState.FAIL;
+
+                        const limit = this.limit < 0 ? 1 : 20;
+                        if (this.searchTries >= limit) {
+                            console.error(
+                                `no trajectory found after ${this.searchTries} attempts`
+                            );
+                            return RunState.FAIL;
+                        } else {
+                            // Program.instance.renderer.forcedState = null;
+                            console.log(
+                                `[${this.searchTries}/${limit}] failed`
+                            );
+                            return RunState.HALT;
+                        }
                     } else {
+                        this.preObserve = null;
                         this.futureComputed = true;
                     }
+                } else {
+                    console.error(result);
                 }
             }
         }

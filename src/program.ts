@@ -23,6 +23,7 @@ import ModelsXML from "../static/models.xml";
 import PaletteXML from "../static/resources/palette.xml";
 import { NodeState, NodeStateInfo } from "./state";
 import { Node } from "./nodes";
+import { Optimization } from "./wasm/optimization";
 
 export type ProgramOutput = { name: string; buffer: ArrayBuffer };
 
@@ -174,6 +175,8 @@ export class Model {
         this.renderer.canvas.id = "model-canvas";
 
         this._loadPromise = (async () => {
+            await Optimization.loadPromise;
+
             const path = `models/${name}.xml`;
             const mdoc = (this.modelDoc = await Loader.xml(path));
 
@@ -205,7 +208,13 @@ export class Model {
                 for (const { state } of this.nodes) state.sync();
 
                 this.renderer.palette = customPalette;
-                this._seed = seeds?.[0] || Program.meta.int32();
+
+                const qs = new URLSearchParams(location.search);
+                const qsSeed = parseInt(qs.get("seed"));
+
+                this._seed = isNaN(qsSeed)
+                    ? seeds?.[0] || Program.meta.int32()
+                    : qsSeed;
             });
 
             const [state, chars, FX, FY, FZ] = this.ip.state();

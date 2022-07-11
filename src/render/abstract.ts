@@ -11,6 +11,7 @@ export abstract class Renderer {
     protected colors = new Uint8Array();
 
     private _cache: Uint8Array;
+    public forcedState: Uint8Array;
 
     public abstract get canvas(): HTMLCanvasElement;
 
@@ -51,9 +52,13 @@ export abstract class Renderer {
 
     public render(state = this._cache) {
         if (!state) return;
-
         this._cache = state;
-        this._render(state);
+
+        if (this.forcedState) {
+            this._render(this.forcedState);
+        } else {
+            this._render(state);
+        }
     }
 
     abstract update(MX: number, MY: number, MZ: number): void;

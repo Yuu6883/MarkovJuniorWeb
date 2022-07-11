@@ -284,7 +284,7 @@ const ObserveViz = ({ c, obs }: { c: number; obs: Observation }) => (
         <table>
             <tbody>
                 <tr>
-                    <Cell value={obs.to} />
+                    <UnionCell value={obs.to} wildcard={(1 << 30) - 1} />
                 </tr>
             </tbody>
         </table>

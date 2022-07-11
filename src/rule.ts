@@ -10,6 +10,8 @@ export class Rule {
     public readonly IO_DIM: Int32Array;
 
     public readonly wildcard: number;
+    public readonly C: number;
+
     public input: Int32Array;
     public output: Uint8Array;
     public binput: Uint8Array;
@@ -29,6 +31,7 @@ export class Rule {
     ) {
         this.input = input;
         this.output = output;
+        this.C = C;
         this.IO_DIM = new Int32Array(IO_DIM); // copy
         this.p = p;
 

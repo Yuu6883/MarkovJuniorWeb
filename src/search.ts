@@ -2,6 +2,7 @@ import seedrandom, { PRNG } from "seedrandom";
 import { Array2D, HashMap, PriorityQueue } from "./helpers/datastructures";
 import { Helper } from "./helpers/helper";
 import { Observation } from "./observation";
+import { Program } from "./program";
 import { Rule } from "./rule";
 
 export class Search {
@@ -16,7 +17,8 @@ export class Search {
         all: boolean,
         limit: number,
         depthCoefficient: number,
-        seed: number
+        seed: number,
+        viz: number
     ): Generator<number, Uint8Array[]> {
         const PL = present.length;
 
@@ -53,6 +55,50 @@ export class Search {
             return null;
         }
 
+        /*
+        console.log("future: ");
+
+        for (let y = 0; y < MY; y++) {
+            let str = "";
+            for (let x = 0; x < MX; x++) {
+                str += future[x + y * MX].toString().padStart(3, " ");
+            }
+            console.log(str);
+        }
+
+        console.log("bpotential");
+        for (let c = 0; c < bpotentials.ROWS; c++) {
+            console.log(`c = ${c}`);
+
+            const row = bpotentials.row(c);
+
+            for (let y = 0; y < MY; y++) {
+                let str = "";
+                for (let x = 0; x < MX; x++) {
+                    str += row[x + y * MX].toString().padStart(3, " ");
+                }
+                console.log(str);
+            }
+            console.log();
+        }
+
+        console.log("fpotential");
+        for (let c = 0; c < fpotentials.ROWS; c++) {
+            console.log(`c = ${c}`);
+
+            const row = fpotentials.row(c);
+
+            for (let y = 0; y < MY; y++) {
+                let str = "";
+                for (let x = 0; x < MX; x++) {
+                    str += row[x + y * MX].toString().padStart(3, " ");
+                }
+                console.log(str);
+            }
+            console.log();
+        }
+        */
+
         // console.log(
         //     `root estimate = (${rootBackwardEstimate}, ${rootForwardEstimate})`
         // );
@@ -81,6 +127,7 @@ export class Search {
         frontier.enqueue({ v: 0, p: rootBoard.rank(rng, depthCoefficient) });
 
         let record = rootBackwardEstimate + rootForwardEstimate;
+        let now = performance.now();
 
         while (frontier.size > 0 && (limit < 0 || database.length < limit)) {
             const parentIndex = frontier.dequeue().v;
@@ -147,12 +194,13 @@ export class Search {
                             database
                         ).reverse();
 
+                        if (viz) Program.instance.renderer.forcedState = null;
                         yield visited.size;
                         return trajectory.map((b) => b.state);
                     } else {
                         if (
                             limit < 0 &&
-                            childBackwardEstimate + childForwardEstimate <=
+                            childBackwardEstimate + childForwardEstimate <
                                 record
                         ) {
                             record =
@@ -161,6 +209,10 @@ export class Search {
                             const log = `found a state of record estimate ${record} = ${childBackwardEstimate} + ${childForwardEstimate}`;
                             console.debug(log);
                             // PrintState(childState, MX, MY);
+
+                            if (viz)
+                                Program.instance.renderer.forcedState =
+                                    childState;
                         }
 
                         frontier.enqueue({
@@ -171,7 +223,10 @@ export class Search {
                 }
             }
 
-            yield visited.size;
+            if (viz && performance.now() - now > 50) {
+                yield visited.size;
+                now = performance.now();
+            }
         }
 
         return null;
