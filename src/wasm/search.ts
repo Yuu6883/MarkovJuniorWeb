@@ -297,7 +297,7 @@ export class NativeSearch {
                 )) {
                     let childIndex = visited.get(childState);
 
-                    if (childIndex in database) {
+                    if (childIndex !== null) {
                         const oldBoard = database[childIndex];
                         if (parentBoard.depth + 1 < oldBoard.depth) {
                             oldBoard.depth = parentBoard.depth + 1;
