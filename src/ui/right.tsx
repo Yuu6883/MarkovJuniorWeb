@@ -320,7 +320,8 @@ const RuleNodeViz = observer(
                                             {state.searchedState > 0 && (
                                                 <label>
                                                     Searched{" "}
-                                                    {state.searchedState} states
+                                                    {state.searchedState.toLocaleString()}{" "}
+                                                    states
                                                 </label>
                                             )}
                                         </>
