@@ -52,16 +52,15 @@ export class NativeSearch {
         const rule_len = rules.length;
 
         const zobrist_table_ptr = lib.malloc(
-            elem * C * Int32Array.BYTES_PER_ELEMENT
+            elem * C * BigUint64Array.BYTES_PER_ELEMENT
         );
         {
             const zobrist_table = lib.typed_array(
-                Int32Array,
+                BigUint64Array,
                 zobrist_table_ptr,
                 elem * C
             );
-            for (let i = 0; i < zobrist_table.length; i++)
-                zobrist_table[i] = rng.int32();
+            crypto.getRandomValues(zobrist_table);
         }
 
         const future_ptr = lib.malloc(future.byteLength);
@@ -193,6 +192,7 @@ export class NativeSearch {
             });
 
             let record = rootBD + rootFD;
+            const amounts = new Uint32Array(elem);
 
             while (
                 frontier.size > 0 &&
@@ -205,7 +205,8 @@ export class NativeSearch {
                     parentBoard.state,
                     MX,
                     MY,
-                    rules
+                    rules,
+                    amounts
                 )) {
                     let childIndex = visited.get(childState);
                     if (childIndex in database) {
@@ -279,11 +280,11 @@ export class NativeSearch {
                     }
                 }
 
-                if (viz && performance.now() - now > 50) {
+                if (viz && Date.now() - now > 50) {
                     Program.instance.renderer.forcedState = recordState;
 
                     yield visited.size;
-                    now = performance.now();
+                    now = Date.now();
                 }
             }
         } else {
@@ -465,10 +466,11 @@ export class NativeSearch {
         state: Uint8Array,
         MX: number,
         MY: number,
-        rules: Rule[]
+        rules: Rule[],
+        amounts: Uint32Array
     ) {
         const list: [Rule, number][] = [];
-        const amounts = new Int32Array(state.length);
+        amounts.fill(0);
 
         for (let i = 0; i < state.length; i++) {
             const x = i % MX,
@@ -537,18 +539,20 @@ export class NativeSearch {
         children: Uint8Array[],
         solution: [Rule, number][],
         tiles: [Rule, number][],
-        amounts: Int32Array,
+        amounts: Uint32Array,
         mask: Uint8Array,
         state: Uint8Array,
         MX: number
     ) {
         const I = Helper.maxPositiveIndex(amounts);
-        const X = I % MX,
-            Y = ~~(I / MX);
+
         if (I < 0) {
             children.push(ApplySolution(state, solution, MX));
             return;
         }
+
+        const X = I % MX,
+            Y = ~~(I / MX);
 
         const cover: [Rule, number][] = [];
         for (let l = 0; l < tiles.length; l++) {
@@ -557,21 +561,21 @@ export class NativeSearch {
                 cover.push([rule, i]);
         }
 
-        for (const [rule, i] of cover) {
-            solution.push([rule, i]);
+        for (const [rule1, i1] of cover) {
+            solution.push([rule1, i1]);
 
             const intersecting: number[] = [];
             for (let l = 0; l < tiles.length; l++)
                 if (mask[l]) {
-                    const [rule1, i1] = tiles[l];
+                    const [rule2, i2] = tiles[l];
                     if (
                         Overlap(
-                            rule,
-                            i % MX,
-                            ~~(i / MX),
                             rule1,
                             i1 % MX,
-                            ~~(i1 / MX)
+                            ~~(i1 / MX),
+                            rule2,
+                            i2 % MX,
+                            ~~(i2 / MX)
                         )
                     )
                         intersecting.push(l);
@@ -687,7 +691,7 @@ const Hide = (
     l: number,
     unhide: boolean,
     tiles: [Rule, number][],
-    amounts: Int32Array,
+    amounts: Uint32Array,
     mask: Uint8Array,
     MX: number
 ) => {

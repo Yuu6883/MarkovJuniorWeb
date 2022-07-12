@@ -7,8 +7,8 @@ bool eq(uint8_t* a, uint8_t* b, uint32_t size) {
     return true;
 }
 
-int32_t hash(uint8_t* a, int32_t* table, uint32_t size) {
-    int32_t h = 0;
+uint64_t hash(uint8_t* a, uint64_t* table, uint32_t size) {
+    uint64_t h = 0;
     for (uint32_t i = 0; i < size; i++) {
         h ^= table[a[i] * size + i];
     }

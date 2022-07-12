@@ -421,6 +421,8 @@ export class HashMap<K, T> {
             this.map.set(hash, [{ k: this.copyFunc(k), v }]);
             this._size++;
         } else {
+            // very lucky or hashFunc is bad
+            console.log(`hash collision: ${hash}`);
             const index = list.findIndex((o) => this.eqFunc(k, o.k));
             if (index < 0) {
                 list.push({ k: this.copyFunc(k), v });
