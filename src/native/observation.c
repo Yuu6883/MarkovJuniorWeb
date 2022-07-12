@@ -216,8 +216,8 @@ int32_t bd_points(int16_t* potentials, uint8_t* present, uint16_t C, uint32_t el
     return sum;
 }
 
-bool match_and_apply(rule_t* rule, uint16_t x, uint16_t y, 
-    uint16_t MX, uint16_t MY, uint32_t elem, uint8_t* state, uint8_t* out) {
+bool match_rule(rule_t* rule, uint16_t x, uint16_t y, 
+    uint16_t MX, uint16_t MY, uint32_t elem, uint8_t* state) {
     if (x + rule->imx > MX || y + rule->imy > MY) return false;
 
     {
@@ -233,16 +233,78 @@ bool match_and_apply(rule_t* rule, uint16_t x, uint16_t y,
             }
         }
     }
-    
-    memcpy(out, state, elem);
-    
-    for (uint16_t dz = 0; dz < rule->omz; dz++)
-        for (uint16_t dy = 0; dy < rule->omy; dy++)
+
+    return true;
+}
+
+void apply_rule(rule_t* rule, uint16_t x, uint16_t y, 
+    uint16_t MX, uint16_t MY, uint32_t elem, uint8_t* state, uint8_t* out) {
+
+    for (uint16_t dz = 0; dz < rule->omz; dz++) {
+        for (uint16_t dy = 0; dy < rule->omy; dy++) {
             for (uint16_t dx = 0; dx < rule->omx; dx++) {
                 uint8_t newValue =
                     rule->output[dx + dy * rule->omx + dz * rule->omx * rule->omy];
                 if (newValue != 0xff) out[x + dx + (y + dy) * MX] = newValue;
             }
+        }
+    }
+}
 
+int32_t max_pos_index(int32_t* amounts, uint32_t len) {
+    int32_t max = -1,
+        argmax = -1;
+    for (uint32_t i = 0; i < len; i++) {
+        int32_t amount = amounts[i];
+        if (amount > 0 && amount > max) {
+            max = amount;
+            argmax = i;
+        }
+    }
+    return argmax;
+}
+
+bool match_and_apply(rule_t* rule, uint16_t x, uint16_t y, 
+    uint16_t MX, uint16_t MY, uint32_t elem, board_t* board_in, board_t* board_out) {
+
+    uint8_t* in = (uint8_t*) board_in + sizeof(board_t);
+
+    if (!match_rule(rule, x, y, MX, MY, elem, in)) return false;
+
+    uint8_t* out = (uint8_t*) board_out + sizeof(board_t);
+    memcpy(out, in, elem);
+    apply_rule(rule, x, y, MX, MY, elem, in, out);
     return true;
+}
+
+void copy(uint8_t* src, uint8_t* dst, uint32_t len) {
+    memcpy(dst, src, len);
+}
+
+bool inside_rule(rule_t* rule, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
+    return x2 <= x1 && x1 < x2 + rule->imx && y2 <= y1 && y1 < y2 + rule->imy;
+}
+
+bool rule_overlap(rule_t* rule0, uint16_t x0, uint16_t y0, 
+    rule_t* rule1, uint16_t x1, uint16_t y1) {
+    for (uint16_t dy = 0; dy < rule0->imy; dy++)
+        for (uint16_t dx = 0; dx < rule0->imx; dx++)
+            if (inside_rule(rule1, x0 + dx, y0 + dy, x1, y1)) return true;
+    return false;
+}
+
+void incre_rule(rule_t* rule, uint16_t x, uint16_t y, uint16_t MX, int32_t* amounts) {
+    for (uint16_t dy = 0; dy < rule->imy; dy++)
+        for (uint16_t dx = 0; dx < rule->imx; dx++)
+            amounts[x + dx + (y + dy) * MX]++;
+}
+
+void decre_rule(rule_t* rule, uint16_t x, uint16_t y, uint16_t MX, int32_t* amounts) {
+    for (uint16_t dy = 0; dy < rule->imy; dy++)
+        for (uint16_t dx = 0; dx < rule->imx; dx++)
+            amounts[x + dx + (y + dy) * MX]--;
+}
+
+void clear_amounts(int32_t* amounts, uint32_t elem) {
+    memset(amounts, 0, elem * sizeof(int32_t));
 }
