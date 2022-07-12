@@ -68,6 +68,10 @@ h1 {
     flex-direction: column;
 }
 
+#left-column h1 {
+    font-size: 24px;
+}
+
 #model-list {
     height: 100%;
     overflow-x: hidden;
@@ -180,11 +184,13 @@ h1 {
 }
 
 #right-column {
+    min-width: 0px;
     width: 100%;
     max-width: 600px;
     display: flex;
     flex-direction: column;
     transition: width 0.25s ease-in-out;
+    margin-left: 25px;
 }
 
 #search-model {
@@ -192,6 +198,7 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-top: 10px;
     margin-bottom: 15px;
 }
 
@@ -242,7 +249,8 @@ input[type="color"]::-webkit-color-swatch {
 }
 
 #palette-container {
-    padding: 25px;
+    padding-top: 60px;
+    padding-bottom: 5px;
 }
 
 #state-viz {
@@ -430,7 +438,7 @@ input[type="color"]::-webkit-color-swatch {
     margin-right: 5px;
 }
 
-@media only screen and (max-width: 750px) {
+@media only screen and (max-width: 800px) {
     button {
         padding: 5px 5px;
         max-width: 35vw;
@@ -442,10 +450,6 @@ input[type="color"]::-webkit-color-swatch {
         min-width: 0;
     }
 
-    #right-column {
-        display: none;
-    }
-
     #center-column {
         width: 100%;
     }
@@ -453,6 +457,10 @@ input[type="color"]::-webkit-color-swatch {
     #vox-download,
     #debug {
         display: none;
+    }
+
+    #state-viz {
+        padding: 5px;
     }
 
     #center-column canvas {
@@ -479,14 +487,33 @@ input[type="color"]::-webkit-color-swatch {
         padding: 5px;
     }
 
-    .rule td {
+    #right-column {
+        margin-left: 5px;
+    }
+
+    .rule td:not([data-transparent="true"]) {
         border: none !important;
+    }
+
+    h4 {
+        margin: 5px;
+    }
+
+    .node-state i {
+        font-size: 10px;
+    }
+}
+
+@media only screen and (max-width: 600px) {
+    #right-column {
+        display: none;
     }
 }
 
 #title {
-    overflow-y: hidden;
     transition: all 0.25s linear;
+    white-space: nowrap;
+    margin-bottom: 0px;
 }
 
 #title i {
@@ -504,6 +531,7 @@ input[type="color"]::-webkit-color-swatch {
     #title {
         max-height: 0px;
         margin: 0px;
+        opacity: 0;
     }
 
     #speed {
@@ -512,6 +540,24 @@ input[type="color"]::-webkit-color-swatch {
 
     #model-list {
         max-height: 95vh;
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    #search-model {
+        margin-bottom: 8px;
+    }
+
+    #model-list > div {
+        padding: 2px;
+    }
+
+    #state-viz {
+        padding: 5px;
+    }
+
+    #right-column {
+        margin-left: 5px;
     }
 }
 
