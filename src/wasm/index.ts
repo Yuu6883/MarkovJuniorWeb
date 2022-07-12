@@ -93,7 +93,7 @@ export class WasmInstance {
     }
 
     copy_from_external(src: TypedArray, ptr: number, len = src.length) {
-        return new (src.constructor as TypedArrayConstructor<TypedArray>)(
+        new (src.constructor as TypedArrayConstructor<TypedArray>)(
             this.memory.buffer,
             ptr,
             len

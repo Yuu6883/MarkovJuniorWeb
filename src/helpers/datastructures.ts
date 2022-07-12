@@ -407,8 +407,14 @@ export class HashMap<K, T> {
         return obj ? obj.v : null;
     }
 
-    set(k: K, v: T) {
-        const hash = this.hashFunc(k);
+    greedy_get(hash: number, eq: (k: K) => boolean) {
+        const list = this.map.get(hash);
+        if (!list) return null;
+        const obj = list.find((o) => eq(o.k));
+        return obj ? obj.v : null;
+    }
+
+    set(k: K, v: T, hash = this.hashFunc(k)) {
         const list = this.map.get(hash);
 
         if (!list) {

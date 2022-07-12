@@ -18,7 +18,7 @@ export class Search {
         limit: number,
         depthCoefficient: number,
         seed: number,
-        viz: number
+        viz: boolean
     ): Generator<number, Uint8Array[]> {
         const PL = present.length;
 

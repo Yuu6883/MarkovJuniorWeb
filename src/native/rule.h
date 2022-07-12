@@ -51,13 +51,11 @@ rule_t* new_rule(uint16_t imx, uint16_t imy, uint16_t imz,
     rule->o_len = omx * omy * omz;
 
     rule->c = c;
-
-    size_t ielem = imx * imy * imz;
-    size_t oelem = omx * omy * omz;
     
-    rule->binput = (uint8_t*) malloc(ielem * sizeof(uint8_t));
-    rule->output = (uint8_t*) malloc(oelem * sizeof(uint8_t));
-    rule->input = (int32_t*) malloc(ielem * sizeof(int32_t));
+    rule->binput = (uint8_t*) malloc(rule->i_len * sizeof(uint8_t));
+    rule->output = (uint8_t*) malloc(rule->o_len * sizeof(uint8_t));
+
+    rule->input = (int32_t*) malloc(rule->i_len * sizeof(int32_t));
 
     rule->ishift_offset_table = (uint16_t*) malloc((c + 1) * sizeof(uint16_t));
     rule->oshift_offset_table = (uint16_t*) malloc((c + 1) * sizeof(uint16_t));

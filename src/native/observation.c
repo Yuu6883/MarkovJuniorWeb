@@ -2,6 +2,7 @@
 #include "queue.h"
 #include "bool_2d.h"
 #include "pool.h"
+#include "board.h"
 
 size_t ptr_size() { return sizeof(void*); }
 
@@ -13,7 +14,7 @@ inline void push(queue_t* queue, uint16_t c, uint16_t x, uint16_t y, uint16_t z)
     item[3] = z;    
 }
 
-bool match(rule_t* rule, int32_t x, int32_t y, int32_t z,
+inline bool match_potential(rule_t* rule, int32_t x, int32_t y, int32_t z,
     int32_t* potentials, int32_t t, 
     uint16_t MX, uint16_t MY, 
     uint32_t elem, bool bd) {
@@ -45,7 +46,7 @@ bool match(rule_t* rule, int32_t x, int32_t y, int32_t z,
     return true;
 }
 
-void apply(rule_t* rule, int32_t x, int32_t y, int32_t z, 
+inline void apply_potential(rule_t* rule, int32_t x, int32_t y, int32_t z, 
     int32_t* potential, int32_t t, 
     uint16_t MX, uint16_t MY, 
     uint32_t elem, queue_t* queue, bool bd) {
@@ -82,6 +83,7 @@ void compute_fd(int32_t* potential, uint8_t* state,
     for (uint16_t i = 0; i < elem; i++) {
         uint8_t c = state[i];
         potential[c * elem + i] = 0;
+
         push(queue, c, i % MX, (i % (MX * MY)) / MX, i / (MX * MY));
     }
 
@@ -112,9 +114,11 @@ void compute_fd(int32_t* potential, uint8_t* state,
                     sz + rule->imz > MZ) continue;
 
                 uint32_t si = sx + sy * MX + sz * MX * MY;
-                if (!bool_2d_get(mask, si, r) && match(rule, sx, sy, sz, potential, t, MX, MY, elem, false)) {
+                if (!bool_2d_get(mask, si, r) && 
+                    match_potential(rule, sx, sy, sz, potential, t, MX, MY, elem, false)) {
+                        
                     bool_2d_set(mask, si, r, true);
-                    apply(rule, sx, sy, sz, potential, t, MX, MY, elem, queue, false);
+                    apply_potential(rule, sx, sy, sz, potential, t, MX, MY, elem, queue, false);
                 }
             });
         }
@@ -140,14 +144,6 @@ void compute_bd(int32_t* potential, int32_t* future,
     }
 
     bool_2d_clear(mask);
-
-    // for (uint16_t r = 0; r < rule_len; r++) {
-    //     rule_t* rule = rules[r];
-
-    //     for (uint16_t c = 0; c < C; c++) {
-
-    //     }
-    // }
 
     while (queue->len > 0) {
         uint16_t* item = (uint16_t*) queue_pop(queue);
@@ -175,10 +171,10 @@ void compute_bd(int32_t* potential, int32_t* future,
 
                 uint32_t si = sx + sy * MX + sz * MX * MY;
                 if (!bool_2d_get(mask, si, r) && 
-                    match(rule, sx, sy, sz, potential, t, MX, MY, elem, true)) {
+                    match_potential(rule, sx, sy, sz, potential, t, MX, MY, elem, true)) {
 
                     bool_2d_set(mask, si, r, true);
-                    apply(rule, sx, sy, sz, potential, t, MX, MY, elem, queue, true);
+                    apply_potential(rule, sx, sy, sz, potential, t, MX, MY, elem, queue, true);
                 }
             });
         }
@@ -220,35 +216,33 @@ int32_t bd_points(int32_t* potentials, uint8_t* present, uint16_t C, uint32_t el
     return sum;
 }
 
-bool match_rule(rule_t* rule, uint16_t x, uint16_t y, 
-    uint16_t MX, uint16_t MY, uint32_t elem, uint8_t* state) {
-    if (x + rule->imx > MX || y + rule->imx > MY) return false;
+bool match_and_apply(rule_t* rule, uint16_t x, uint16_t y, 
+    uint16_t MX, uint16_t MY, uint32_t elem, uint8_t* state, uint8_t* out) {
+    if (x + rule->imx > MX || y + rule->imy > MY) return false;
 
-    uint16_t dy = 0, dx = 0;
-    for (uint16_t di = 0; di < rule->i_len; di++) {
-        if ((rule->input[di] & (1 << state[x + dx + (y + dy) * MX])) == 0)
-            return false;
+    {
+        uint16_t dy = 0, dx = 0;
+        for (uint16_t di = 0; di < rule->i_len; di++) {
+            if ((rule->input[di] & (1 << state[x + dx + (y + dy) * MX])) == 0)
+                return false;
 
-        dx++;
-        if (dx == rule->imx) {
-            dx = 0;
-            dy++;
+            dx++;
+            if (dx == rule->imx) {
+                dx = 0;
+                dy++;
+            }
         }
     }
     
-    return true;
-}
-
-void apply_rule(rule_t* rule, uint16_t x, uint16_t y, uint16_t MX, 
-    uint8_t* state, uint8_t* new_state, uint32_t elem) {
-
-    memcpy(new_state, state, elem);
+    memcpy(out, state, elem);
     
     for (uint16_t dz = 0; dz < rule->omz; dz++)
         for (uint16_t dy = 0; dy < rule->omy; dy++)
             for (uint16_t dx = 0; dx < rule->omx; dx++) {
                 uint8_t newValue =
                     rule->output[dx + dy * rule->omx + dz * rule->omx * rule->omy];
-                if (newValue != 0xff) new_state[x + dx + (y + dy) * MX] = newValue;
+                if (newValue != 0xff) out[x + dx + (y + dy) * MX] = newValue;
             }
+
+    return true;
 }
