@@ -15,7 +15,7 @@ inline void push(queue_t* queue, uint16_t c, uint16_t x, uint16_t y, uint16_t z)
 }
 
 inline bool match_potential(rule_t* rule, int32_t x, int32_t y, int32_t z,
-    int32_t* potentials, int32_t t, 
+    int16_t* potentials, int32_t t, 
     uint16_t MX, uint16_t MY, 
     uint32_t elem, bool bd) {
     
@@ -47,7 +47,7 @@ inline bool match_potential(rule_t* rule, int32_t x, int32_t y, int32_t z,
 }
 
 inline void apply_potential(rule_t* rule, int32_t x, int32_t y, int32_t z, 
-    int32_t* potential, int32_t t, 
+    int16_t* potential, int32_t t, 
     uint16_t MX, uint16_t MY, 
     uint32_t elem, queue_t* queue, bool bd) {
 
@@ -71,7 +71,7 @@ inline void apply_potential(rule_t* rule, int32_t x, int32_t y, int32_t z,
     }
 }
 
-void compute_fd(int32_t* potential, uint8_t* state, 
+void compute_fd(int16_t* potential, uint8_t* state, 
     queue_t* queue, bool_2d* mask,
     uint16_t MX, uint16_t MY, uint16_t MZ, uint16_t C, 
     rule_t** rules, uint16_t rule_len) {
@@ -125,7 +125,7 @@ void compute_fd(int32_t* potential, uint8_t* state,
     }
 }
 
-void compute_bd(int32_t* potential, int32_t* future, 
+void compute_bd(int16_t* potential, int32_t* future, 
     queue_t* queue, bool_2d* mask,
     uint16_t MX, uint16_t MY, uint16_t MZ, uint16_t C, 
     rule_t** rules, uint16_t rule_len) {
@@ -135,7 +135,7 @@ void compute_bd(int32_t* potential, int32_t* future,
     size_t elem = MX * MY * MZ;
 
     for (uint16_t c = 0; c < C; c++) {
-        int32_t* row = potential + elem * c;
+        int16_t* row = potential + elem * c;
         for (uint16_t i = 0; i < elem; i++) {
             int32_t m = future[i] & (1 << c);
             row[i] = m != 0 ? 0 : -1;
@@ -181,7 +181,7 @@ void compute_bd(int32_t* potential, int32_t* future,
     }
 }
 
-int32_t fd_points(int32_t* potentials, int32_t* future, uint16_t C, uint32_t elem) {
+int32_t fd_points(int16_t* potentials, int32_t* future, uint16_t C, uint32_t elem) {
     int32_t sum = 0;
 
     for (uint32_t i = 0; i < elem; i++) {
@@ -204,7 +204,7 @@ int32_t fd_points(int32_t* potentials, int32_t* future, uint16_t C, uint32_t ele
     return sum;
 }
 
-int32_t bd_points(int32_t* potentials, uint8_t* present, uint16_t C, uint32_t elem) {
+int32_t bd_points(int16_t* potentials, uint8_t* present, uint16_t C, uint32_t elem) {
     int32_t sum = 0;
 
     for (uint32_t i = 0; i < elem; i++) {

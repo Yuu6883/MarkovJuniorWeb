@@ -69,8 +69,8 @@ export class NativeSearch {
         const state_ptr = lib.malloc(present.byteLength);
         lib.copy_from_external(present, state_ptr);
 
-        const bp = lib.malloc(elem * C * Int32Array.BYTES_PER_ELEMENT);
-        const fp = lib.malloc(elem * C * Int32Array.BYTES_PER_ELEMENT);
+        const bp = lib.malloc(elem * C * Int16Array.BYTES_PER_ELEMENT);
+        const fp = lib.malloc(elem * C * Int16Array.BYTES_PER_ELEMENT);
 
         const queue = bin.new_queue(
             4 * Uint16Array.BYTES_PER_ELEMENT,
@@ -168,7 +168,7 @@ export class NativeSearch {
         if (!rootBD) return [];
 
         let recordState: Uint8Array = null;
-        let now = performance.now();
+        let now = Date.now();
 
         const interval = setInterval(() => {
             // console.log(`queue length: ${frontier.size}`);
@@ -449,11 +449,11 @@ export class NativeSearch {
 
                 if (result) return result;
 
-                if (viz && performance.now() - now > 50) {
+                if (viz && Date.now() - now > 50) {
                     Program.instance.renderer.forcedState = recordState;
 
                     yield visited.size;
-                    now = performance.now();
+                    now = Date.now();
                 }
             }
         }
@@ -507,11 +507,10 @@ export class NativeSearch {
         const bin = lib.exports;
         const board_size = bin.board_size();
 
-        for (let r = 0; r < rule_ptrs.length; r++) {
-            const rule_ptr = rule_ptrs[r];
-
-            for (let y = 0; y < MY; y++) {
-                for (let x = 0; x < MX; x++) {
+        for (let y = 0; y < MY; y++) {
+            for (let x = 0; x < MX; x++) {
+                for (let r = 0; r < rule_ptrs.length; r++) {
+                    const rule_ptr = rule_ptrs[r];
                     if (
                         bin.match_and_apply(
                             rule_ptr,

@@ -8,6 +8,7 @@ clang \
     -O3 \
     -flto \
     -nostdlib \
+    -Wno-implicit-function-declaration \
     -Wl,--no-entry \
     -Wl,--export-all \
     -Wl,--lto-O3 \
