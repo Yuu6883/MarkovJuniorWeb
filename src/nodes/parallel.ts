@@ -16,13 +16,7 @@ export class ParallelNode extends RuleNode {
         return true;
     }
 
-    protected override add(
-        r: number,
-        x: number,
-        y: number,
-        z: number,
-        maskr: BoolArray2DRow
-    ): void {
+    protected override add(r: number, x: number, y: number, z: number): void {
         const ip = this.ip;
         const grid = this.grid;
 

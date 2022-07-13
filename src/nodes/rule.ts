@@ -1,14 +1,9 @@
 import { Field } from "../field";
 import { Grid } from "../grid";
-import {
-    Array2D,
-    BoolArray2D,
-    BoolArray2DRow,
-} from "../helpers/datastructures";
+import { Array2D, BoolArray2D } from "../helpers/datastructures";
 import { Helper } from "../helpers/helper";
 import { SymmetryHelper } from "../helpers/symmetry";
 import { Observation } from "../observation";
-import { Program } from "../program";
 import { Rule } from "../rule";
 import { Search } from "../search";
 import { Optimization } from "../wasm/optimization";
@@ -82,21 +77,13 @@ export abstract class RuleNode extends Node {
                 console.error(e, `unknown rule symmetry ${ruleSymmetryString}`);
                 return null;
             }
-            for (const r of rule.symmetries(ruleSymmetry, grid.MZ === 1))
+            for (const r of rule.symmetries(ruleSymmetry, grid.MZ === 1)) {
                 ruleList.push(r);
-
-            // ruleList.map((r) =>
-            //     console.log(
-            //         `dim: ${r.IO_DIM.join(",")}, input: ${r.input.join(
-            //             ","
-            //         )}, output: ${r.output.join(",")}`
-            //     )
-            // );
+                RuleNode.compile(r, grid.MX, grid.MY, grid.MZ);
+            }
         }
         this.rules = ruleList.concat([]);
         this.last = new Uint8Array(this.rules.length);
-
-        // console.log(`RuleNode has ${this.rules.length} rules`);
 
         this.steps = parseInt(elem.getAttribute("steps")) || 0;
         this.temperature = parseFloat(elem.getAttribute("temperature")) || 0;
@@ -116,7 +103,6 @@ export abstract class RuleNode extends Node {
                 grid.C
             );
             this.potentials.fill(0);
-            // console.log(`RuleNode has ${this.fields.length} fields`);
         }
 
         const eobs = [...Helper.childrenByTag(elem, "observe")];
@@ -148,10 +134,6 @@ export abstract class RuleNode extends Node {
                 );
             }
             this.future = new Int32Array(grid.state.length);
-
-            // console.log(
-            //     `RuleNode has ${this.observations.length} observations`
-            // );
         }
 
         return true;
@@ -169,14 +151,12 @@ export abstract class RuleNode extends Node {
         this.preObserve = null;
     }
 
-    protected add(
-        r: number,
-        x: number,
-        y: number,
-        z: number,
-        maskr: BoolArray2DRow
-    ) {
-        maskr.set(x + y * this.grid.MX + z * this.grid.MX * this.grid.MY, true);
+    protected add(r: number, x: number, y: number, z: number) {
+        this.matchMask.set(
+            x + y * this.grid.MX + z * this.grid.MX * this.grid.MY,
+            r,
+            true
+        );
 
         // Reuse array
         const offset = this.matchCount << 2;
@@ -198,12 +178,8 @@ export abstract class RuleNode extends Node {
         this.matchCount++;
     }
 
-    public override run() {
-        this.last.fill(0);
-
-        if (this.steps > 0 && this.counter >= this.steps) return RunState.FAIL;
-
-        const grid = this.grid;
+    private observe() {
+        const { grid } = this;
         const { MX, MY, MZ } = grid;
 
         if (this.observations && !this.futureComputed) {
@@ -304,6 +280,20 @@ export abstract class RuleNode extends Node {
             }
         }
 
+        return null;
+    }
+
+    public override run() {
+        this.last.fill(0);
+
+        if (this.steps > 0 && this.counter >= this.steps) return RunState.FAIL;
+
+        const { grid, matchMask } = this;
+        const { MX, MY, MZ, state } = grid;
+
+        const status = this.observe();
+        if (status !== null) return status;
+
         if (this.lastMatchedTurn >= 0) {
             const ip = this.ip;
             for (
@@ -315,7 +305,6 @@ export abstract class RuleNode extends Node {
                 const value = grid.state[x + y * MX + z * MX * MY];
                 for (let r = 0; r < this.rules.length; r++) {
                     const rule = this.rules[r];
-                    const maskr = this.matchMask.row(r);
                     const shifts = rule.ishifts[value];
                     for (const [shiftx, shifty, shiftz] of shifts) {
                         const sx = x - shiftx;
@@ -333,8 +322,11 @@ export abstract class RuleNode extends Node {
                             continue;
                         const si = sx + sy * MX + sz * MX * MY;
 
-                        if (!maskr.get(si) && grid.matches(rule, sx, sy, sz))
-                            this.add(r, sx, sy, sz, maskr);
+                        if (
+                            !matchMask.get(si, r) &&
+                            rule.jit_match_kernel(state, sx, sy, sz)
+                        )
+                            this.add(r, sx, sy, sz);
                     }
                 }
             }
@@ -363,8 +355,8 @@ export abstract class RuleNode extends Node {
                                 )
                                     continue;
 
-                                if (grid.matches(rule, sx, sy, sz))
-                                    this.add(r, sx, sy, sz, maskr);
+                                if (rule.jit_match_kernel(state, sx, sy, sz))
+                                    this.add(r, sx, sy, sz);
                             }
                         }
             }
@@ -387,5 +379,80 @@ export abstract class RuleNode extends Node {
         }
 
         return RunState.SUCCESS;
+    }
+
+    private static compile(rule: Rule, MX: number, MY: number, MZ: number) {
+        const { input, output, IO_DIM } = rule;
+
+        const [IMX, IMY, IMZ, OMX, OMY, OMZ] = IO_DIM;
+
+        // jit_match_kernel
+        {
+            let dz = 0;
+            let dy = 0;
+            let dx = 0;
+
+            const code: string[] = [];
+
+            for (let di = 0; di < input.length; di++) {
+                code.push(
+                    `if ((${
+                        input[di]
+                    } & (1 << state[x + ${dx} + (y + ${dy}) * ${MX} + (z + ${dz}) * ${
+                        MX * MY
+                    }])) === 0) return false;`
+                );
+
+                dx++;
+                if (dx === IMX) {
+                    dx = 0;
+                    dy++;
+                    if (dy === IMY) {
+                        dy = 0;
+                        dz++;
+                    }
+                }
+            }
+
+            code.push("return true;");
+            rule.jit_match_kernel = <typeof rule.jit_match_kernel>(
+                new Function(
+                    "state",
+                    "x",
+                    "y",
+                    "z",
+                    code.map((line) => " ".repeat(4) + line).join("\n")
+                )
+            );
+        }
+
+        // jit_apply_one_kernel
+        {
+            const code: string[] = [];
+            for (let dz = 0; dz < OMZ; dz++) {
+                for (let dy = 0; dy < OMY; dy++) {
+                    for (let dx = 0; dx < OMX; dx++) {
+                        const newValue = output[dx + dy * OMX + dz * OMX * OMY];
+                        if (newValue !== 0xff) {
+                            code.push(`
+        {
+            const sx = x + ${dx};
+            const sy = y + ${dy};
+            const sz = z + ${dz};
+            const si = sx + sy * ${MX} + sz * ${MX * MY};
+            const oldValue = state[si];
+            if (oldValue != ${newValue}) {
+                state[si] = ${newValue};
+                changes.push([sx, sy, sz]);
+            }
+        }`);
+                        }
+                    }
+                }
+            }
+            rule.jit_apply_one_kernel = <typeof rule.jit_apply_one_kernel>(
+                new Function("state", "x", "y", "z", "changes", code.join("\n"))
+            );
+        }
     }
 }

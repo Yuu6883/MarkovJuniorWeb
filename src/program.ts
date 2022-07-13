@@ -320,6 +320,8 @@ export class Model {
         if (!once && this._paused) return;
 
         const start = performance.now();
+        const start_low_prec = Date.now();
+
         if (!this._curr) this._curr = this.ip?.run(this._seed, this._steps);
         if (!this._curr) return;
 
@@ -348,11 +350,16 @@ export class Model {
             for (let i = 0; i < this._speed; i++) {
                 result = this._curr.next();
                 if (checkBreakpoint()) break;
+
                 // Cap per frame execution to 20ms/50fps
-                if (performance.now() - start > 20) break;
+                if (Date.now() - start_low_prec > 20) break;
             }
         }
 
+        const end = performance.now();
+        this._timer += end - start;
+
+        // Update UI hooks should not be timed
         this.curr_node_index = this.nodes.findIndex(({ state }) => {
             const br = this.ip.current;
             if (!br) return false;
@@ -362,9 +369,6 @@ export class Model {
         });
 
         for (const { state } of this.nodes) state.sync();
-
-        const end = performance.now();
-        this._timer += end - start;
 
         if (result.done) {
             this._curr = null;

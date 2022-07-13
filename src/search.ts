@@ -127,7 +127,7 @@ export class Search {
         frontier.enqueue({ v: 0, p: rootBoard.rank(rng, depthCoefficient) });
 
         let record = rootBackwardEstimate + rootForwardEstimate;
-        let now = performance.now();
+        let now = Date.now();
 
         while (frontier.size > 0 && (limit < 0 || database.length < limit)) {
             const parentIndex = frontier.dequeue().v;
@@ -223,9 +223,9 @@ export class Search {
                 }
             }
 
-            if (viz && performance.now() - now > 50) {
+            if (viz && Date.now() - now > 50) {
                 yield visited.size;
-                now = performance.now();
+                now = Date.now();
             }
         }
 

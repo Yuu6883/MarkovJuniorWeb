@@ -87,7 +87,8 @@ export class Grid {
         return sum;
     }
 
-    // Wasm optimizable?
+    // Replaced by Rule.jit_match_kernel
+    /*
     public matches(rule: Rule, x: number, y: number, z: number): boolean {
         const { MX, MY, state } = this;
         const { input, IMX, IMY } = rule;
@@ -117,4 +118,5 @@ export class Grid {
         }
         return true;
     }
+    */
 }

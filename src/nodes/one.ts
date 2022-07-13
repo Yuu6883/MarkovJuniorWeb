@@ -31,9 +31,8 @@ export class OneNode extends RuleNode {
         }
     }
 
+    // Replaced by rule.jit_apply_one_kernel
     public apply(rule: Rule, x: number, y: number, z: number) {
-        // console.log(`Applying rule`);
-
         const grid = this.grid;
         const { MX, MY } = grid;
         const changes = this.ip.changes;
@@ -77,13 +76,19 @@ export class OneNode extends RuleNode {
         if (R < 0) return RunState.FAIL;
         else {
             this.last[R] = 1;
-            this.apply(this.rules[R], X, Y, Z);
+            this.rules[R].jit_apply_one_kernel(
+                this.grid.state,
+                X,
+                Y,
+                Z,
+                this.ip.changes
+            );
             this.counter++;
             return RunState.SUCCESS;
         }
     }
 
-    randomMatch(rng: PRNG): Uint32Array | vec4 {
+    randomMatch(rng: PRNG): vec4 {
         const { grid, matchMask, matches } = this;
 
         if (this.potentials) {
@@ -107,7 +112,7 @@ export class OneNode extends RuleNode {
                     offset0 + 4
                 );
                 let i = x + y * grid.MX + z * grid.MX * grid.MY;
-                if (!grid.matches(this.rules[r], x, y, z)) {
+                if (!this.rules[r].jit_match_kernel(grid.state, x, y, z)) {
                     this.matchMask.set(i, r, false);
                     this.matchCount--;
 
@@ -149,15 +154,25 @@ export class OneNode extends RuleNode {
                     }
                 }
             }
-            return argmax >= 0
-                ? this.matches.subarray(argmax << 2, (argmax << 2) + 4)
-                : INVALID;
+
+            if (argmax < 0) return INVALID;
+            const o = argmax << 2;
+            return [
+                matches[o + 0],
+                matches[o + 1],
+                matches[o + 2],
+                matches[o + 3],
+            ];
         } else {
             while (this.matchCount > 0) {
                 const matchIndex = range(rng, this.matchCount);
                 const offset0 = matchIndex << 2;
 
-                const [r, x, y, z] = matches.subarray(offset0, offset0 + 4);
+                const r = matches[offset0 + 0];
+                const x = matches[offset0 + 1];
+                const y = matches[offset0 + 2];
+                const z = matches[offset0 + 3];
+
                 const i = x + y * grid.MX + z * grid.MX * grid.MY;
 
                 matchMask.set(i, r, false);
@@ -166,7 +181,8 @@ export class OneNode extends RuleNode {
                 const offset1 = this.matchCount << 2;
                 this.matches.copyWithin(offset0, offset1, offset1 + 4);
 
-                if (grid.matches(this.rules[r], x, y, z)) return [r, x, y, z];
+                if (this.rules[r].jit_match_kernel(grid.state, x, y, z))
+                    return [r, x, y, z];
             }
             return INVALID;
         }

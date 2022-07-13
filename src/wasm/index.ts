@@ -59,7 +59,8 @@ export class WasmInstance {
         const delta = this.ptr - this.memory.buffer.byteLength;
 
         if (delta >= 0) {
-            this.memory.grow(1 + (delta >>> 16));
+            const grow_min = 16; // grow 1 MB at least
+            this.memory.grow(Math.min(grow_min, 1 + (delta >>> 16)));
             this.view = new DataView(this.memory.buffer);
         }
 

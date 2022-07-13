@@ -41,16 +41,15 @@ export class MapNode extends Branch {
 
         this.ND.set([NX, NY, NZ, DX, DY, DZ]);
 
-        this.newgrid = Grid.build(
+        const newgrid = (this.newgrid = Grid.build(
             elem,
             ~~((NX * grid.MX) / DX),
             ~~((NY * grid.MY) / DY),
             ~~((NZ * grid.MZ) / DZ)
-        );
-        if (!this.newgrid) return false;
+        ));
+        if (!newgrid) return false;
 
-        if (!(await super.load(elem, parentSymmetry, this.newgrid)))
-            return false;
+        if (!(await super.load(elem, parentSymmetry, newgrid))) return false;
         const symmetry = SymmetryHelper.getSymmetry(
             grid.MZ === 1,
             elem.getAttribute("symmetry"),
@@ -58,16 +57,27 @@ export class MapNode extends Branch {
         );
 
         for (const e of Helper.childrenByTag(elem, "rule")) {
-            const rule = await Rule.load(e, grid, this.newgrid);
+            const rule = await Rule.load(e, grid, newgrid);
             rule.original = true;
             if (!rule) return false;
-            rule.symmetries(symmetry, grid.MZ === 1).forEach((r) =>
-                this.rules.push(r)
-            );
+            for (const r of rule.symmetries(symmetry, grid.MZ === 1)) {
+                this.rules.push(r);
+                MapNode.compile(
+                    r,
+                    grid.MX,
+                    grid.MY,
+                    grid.MZ,
+                    newgrid.MX,
+                    newgrid.MY,
+                    newgrid.MZ
+                );
+            }
         }
         return true;
     }
 
+    // Replaced by jit_map_match_kernel and jit_map_apply_kernel
+    /*
     static matches(
         rule: Rule,
         x: number,
@@ -129,30 +139,27 @@ export class MapNode extends Branch {
                     if (o != 0xff) state[sx + sy * MX + sz * MX * MY] = o;
                 }
     }
+    */
 
     public override run() {
         if (this.n >= 0) return super.run();
 
-        const grid = this.grid;
-        const newgrid = this.newgrid;
+        const { grid, newgrid } = this;
         const [NX, NY, NZ, DX, DY, DZ] = this.ND;
         const { MZ, MY, MX, state } = grid;
+        const { state: newstate } = newgrid;
 
         newgrid.clear();
         for (const rule of this.rules) {
             for (let z = 0; z < MZ; z++)
                 for (let y = 0; y < MY; y++)
                     for (let x = 0; x < MX; x++)
-                        if (MapNode.matches(rule, x, y, z, state, MX, MY, MZ))
-                            MapNode.apply(
-                                rule,
+                        if (rule.jit_map_match_kernel(state, x, y, z))
+                            rule.jit_map_apply_kernel(
+                                newstate,
                                 ~~((x * NX) / DX),
                                 ~~((y * NY) / DY),
-                                ~~((z * NZ) / DZ),
-                                newgrid.state,
-                                newgrid.MX,
-                                newgrid.MY,
-                                newgrid.MZ
+                                ~~((z * NZ) / DZ)
                             );
         }
 
@@ -165,5 +172,87 @@ export class MapNode extends Branch {
     public override reset() {
         super.reset();
         this.n = -1;
+    }
+
+    private static compile(
+        rule: Rule,
+        MX: number,
+        MY: number,
+        MZ: number,
+        NX: number,
+        NY: number,
+        NZ: number
+    ) {
+        const { input, output, IO_DIM } = rule;
+
+        const [IMX, IMY, IMZ, OMX, OMY, OMZ] = IO_DIM;
+
+        // jit_map_match_kernel
+        {
+            const code: string[] = [];
+
+            for (let dz = 0; dz < IMZ; dz++) {
+                for (let dy = 0; dy < IMY; dy++) {
+                    for (let dx = 0; dx < IMX; dx++) {
+                        const inputWave = input[dx + dy * IMX + dz * IMX * IMY];
+                        code.push(`
+        {
+            const sx = (x + ${dx}) % ${MX};
+            const sy = (y + ${dy}) % ${MY};
+            const sz = (z + ${dz}) % ${MZ};
+
+            if (
+                (${inputWave} &
+                    (1 << state[sx + sy * ${MX} + sz * ${MX * MY}])) ===
+                0
+            )
+                return false;
+        }`);
+                    }
+                }
+            }
+
+            code.push("return true;");
+            rule.jit_map_match_kernel = <typeof rule.jit_map_match_kernel>(
+                new Function(
+                    "state",
+                    "x",
+                    "y",
+                    "z",
+                    code.map((line) => " ".repeat(4) + line).join("\n")
+                )
+            );
+        }
+
+        // jit_map_apply_kernel
+        {
+            const code: string[] = [];
+
+            for (let dz = 0; dz < OMZ; dz++) {
+                for (let dy = 0; dy < OMY; dy++) {
+                    for (let dx = 0; dx < OMX; dx++) {
+                        const o = output[dx + dy * OMX + dz * OMX * OMY];
+                        if (o === 0xff) continue;
+                        code.push(`
+        {
+            const sx = (x + ${dx}) % ${NX};
+            const sy = (y + ${dy}) % ${NY};
+            const sz = (z + ${dz}) % ${NZ};
+            state[sx + sy * ${NX} + sz * ${NX * NY}] = ${o};
+        }`);
+                    }
+                }
+            }
+
+            rule.jit_map_apply_kernel = <typeof rule.jit_map_apply_kernel>(
+                new Function(
+                    "state",
+                    "x",
+                    "y",
+                    "z",
+                    code.map((line) => " ".repeat(4) + line).join("\n")
+                )
+            );
+        }
     }
 }

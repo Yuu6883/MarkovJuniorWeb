@@ -22,6 +22,35 @@ export class Rule {
 
     public original: boolean;
 
+    public jit_match_kernel?: (
+        state: Uint8Array,
+        x: number,
+        y: number,
+        z: number
+    ) => boolean;
+
+    public jit_apply_one_kernel?: (
+        state: Uint8Array,
+        x: number,
+        y: number,
+        z: number,
+        changes: vec3[]
+    ) => void;
+
+    public jit_map_match_kernel?: (
+        state: Uint8Array,
+        x: number,
+        y: number,
+        z: number
+    ) => boolean;
+
+    public jit_map_apply_kernel?: (
+        state: Uint8Array,
+        x: number,
+        y: number,
+        z: number
+    ) => void;
+
     constructor(
         input: Int32Array,
         output: Uint8Array,
