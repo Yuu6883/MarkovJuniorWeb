@@ -146,8 +146,8 @@ export const ControlPanel = observer(() => {
                     <input
                         id="speed-bar"
                         type="range"
-                        min={-200}
-                        max={200}
+                        min={-100}
+                        max={100}
                         step={1}
                         value={model.speed}
                         onChange={(e) => (model.speed = e.target.valueAsNumber)}
