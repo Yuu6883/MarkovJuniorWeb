@@ -19,8 +19,8 @@ export default class Camera {
         return this._distance;
     }
 
-    public azimuth = 0;
-    public incline = 0;
+    public azimuth = -45;
+    public incline = 30;
 
     public readonly center = new Float32Array(3);
 
@@ -93,8 +93,8 @@ export default class Camera {
 
         this._distance = 10;
         this.maxDistance = 1000;
-        this.azimuth = 0;
-        this.incline = 0;
+        this.azimuth = -45;
+        this.incline = 30;
 
         this.center.fill(0);
         this.update();
