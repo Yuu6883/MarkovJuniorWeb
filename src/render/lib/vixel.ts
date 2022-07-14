@@ -4,6 +4,8 @@ import Camera from "./camera";
 import { ReadonlyVec3, vec2, vec3 } from "gl-matrix";
 import { FramebufferColorDataType, Regl } from "regl";
 
+const MAX_SAMPLE = 4096;
+
 export class Vixel {
     private readonly _canvas: HTMLCanvasElement;
     private readonly _renderer: any;
@@ -13,7 +15,7 @@ export class Vixel {
     public readonly stage: Stage;
 
     private readonly _ground = {
-        color: <vec3>[1, 1, 1],
+        color: <vec3>[0.8, 0.8, 0.8],
         rough: 1,
         metal: 0,
     };
@@ -48,7 +50,7 @@ export class Vixel {
     }
 
     get sampleCount() {
-        return this._renderer.sampleCount();
+        return <number>this._renderer.sampleCount();
     }
 
     ground(color: ReadonlyVec3, r: number, m: number) {
@@ -99,7 +101,7 @@ export class Vixel {
             this._renderDirty = false;
         }
 
-        if (this._renderer.sampleCount() >= 1024) return;
+        if (this._renderer.sampleCount() >= MAX_SAMPLE) return;
 
         this._renderer.sample(this.stage, this.camera, {
             groundColor: this._ground.color,
@@ -113,12 +115,18 @@ export class Vixel {
             dofMag: this._dof.magnitude,
             count: count,
         });
+
+        this.ocd = true;
     }
 
-    display() {
-        if (this._renderer.sampleCount() >= 1024) return;
+    private ocd = true;
 
-        this._renderer.display();
+    display(fxaa: boolean) {
+        const total = this._renderer.sampleCount();
+        if (total >= MAX_SAMPLE && !this.ocd) return;
+
+        if (total >= MAX_SAMPLE) this.ocd = false;
+        this._renderer.display(total / MAX_SAMPLE, fxaa);
     }
 
     destroy() {

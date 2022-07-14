@@ -2,7 +2,7 @@ import { Renderer } from "./abstract";
 import regl from "regl";
 import { Vixel } from "./lib/vixel";
 import CameraRotator from "./lib/input";
-import { action, makeObservable, override } from "mobx";
+import { makeObservable, observable, override } from "mobx";
 
 export class VoxelPathTracer extends Renderer {
     private static readonly canvas = document.createElement("canvas");
@@ -42,7 +42,12 @@ export class VoxelPathTracer extends Renderer {
 
     private raf = 0;
     private readonly vixel: Vixel;
-    public samples = 16;
+    public readonly samples = 16;
+
+    @observable
+    public dynamicSamples = 1;
+
+    public fxaa = true;
 
     private MX: number;
     private MY: number;
@@ -61,8 +66,9 @@ export class VoxelPathTracer extends Renderer {
         );
         VoxelPathTracer.cam_ctrl.camera = this.vixel.camera;
 
-        this.vixel.dof(0.5, 0.25);
-        this.vixel.sun(17, (1.5 * Math.PI) / 2, 1, 1);
+        this.vixel.dof(0.5, 0);
+        // 10am, good time to go to sleep
+        this.vixel.sun(10, (1.5 * Math.PI) / 2, 1, 0.05);
 
         this.clear();
         this.raf = requestAnimationFrame(() => this.loop());
@@ -72,7 +78,7 @@ export class VoxelPathTracer extends Renderer {
 
     private loop() {
         this.vixel.sample(this.samples);
-        this.vixel.display();
+        this.vixel.display(this.fxaa);
         this.raf = requestAnimationFrame(() => this.loop());
     }
 
@@ -144,5 +150,9 @@ export class VoxelPathTracer extends Renderer {
     override dispose() {
         cancelAnimationFrame(this.raf);
         this.vixel.destroy();
+    }
+
+    public get sampleCount() {
+        return this.vixel.sampleCount;
     }
 }

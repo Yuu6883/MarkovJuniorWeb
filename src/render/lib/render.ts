@@ -1,7 +1,7 @@
 import { vec3 } from "gl-matrix";
 import createAtmosphereRenderer from "regl-atmosphere-envmap";
 import { PingPongTextures } from "./pingpong";
-import { FramebufferColorDataType, Regl, Texture2D } from "regl";
+import { Framebuffer2D, FramebufferColorDataType, Regl, Texture2D } from "regl";
 
 import SampleVert from "./glsl/sample.vert";
 import SampleFrag from "./glsl/sample.frag";
@@ -15,6 +15,7 @@ const TexCache: {
     t3Sphere?: Texture2D;
     tUniform1?: Texture2D;
     tUniform2?: Texture2D;
+    previewFBO?: Framebuffer2D;
 } = {};
 
 export const clearTexCache = () => {
@@ -22,11 +23,13 @@ export const clearTexCache = () => {
     TexCache.t3Sphere && TexCache.t3Sphere.destroy();
     TexCache.tUniform1 && TexCache.tUniform1.destroy();
     TexCache.tUniform2 && TexCache.tUniform2.destroy();
+    TexCache.previewFBO && TexCache.previewFBO.destroy();
 
     TexCache.t2Sphere = null;
     TexCache.t3Sphere = null;
     TexCache.tUniform1 = null;
     TexCache.tUniform2 = null;
+    TexCache.previewFBO = null;
 };
 
 const Renderer = (regl: Regl, colorType: FramebufferColorDataType) => {
@@ -123,6 +126,12 @@ const Renderer = (regl: Regl, colorType: FramebufferColorDataType) => {
         });
     })();
 
+    TexCache.previewFBO ||= regl.framebuffer({
+        width: canvas.width,
+        height: canvas.height,
+        colorType,
+    });
+
     // @ts-expect-error
     const prop = (name: string) => regl.prop(name);
 
@@ -159,6 +168,7 @@ const Renderer = (regl: Regl, colorType: FramebufferColorDataType) => {
             groundRoughness: prop("groundRoughness"),
             groundMetalness: prop("groundMetalness"),
             bounds: prop("bounds"),
+            renderPreview: prop("renderPreview"),
         },
         depth: {
             enable: false,
@@ -177,7 +187,11 @@ const Renderer = (regl: Regl, colorType: FramebufferColorDataType) => {
         },
         uniforms: {
             source: prop("source"),
+            preview: prop("preview"),
             fraction: prop("fraction"),
+            complete: prop("complete"),
+            resolution: prop("resolution"),
+            enable_fxaa: prop("enable_fxaa"),
             tUniform1: TexCache.tUniform1,
             tUniform1Res: [TexCache.tUniform1.width, TexCache.tUniform1.height],
         },
@@ -244,8 +258,9 @@ const Renderer = (regl: Regl, colorType: FramebufferColorDataType) => {
                 groundMetalness: opts.groundMetalness,
                 dofDist: opts.dofDist,
                 dofMag: opts.dofMag,
+                renderPreview: sampleCount === 0,
                 source: pingpong.ping,
-                destination: pingpong.pong,
+                destination: sampleCount ? pingpong.pong : TexCache.previewFBO,
                 viewport: {
                     x: 0,
                     y: 0,
@@ -253,14 +268,22 @@ const Renderer = (regl: Regl, colorType: FramebufferColorDataType) => {
                     height: canvas.height,
                 },
             });
+
             pingpong.swap();
             sampleCount++;
+
+            if (sampleCount === 1) break;
         }
     }
 
-    function display() {
+    function display(complete: number, fxaa: boolean) {
         cmdDisplay({
             source: pingpong.ping,
+            preview: TexCache.previewFBO,
+            complete,
+            fraction: Math.pow(Math.min(1.0, sampleCount / 512), 2),
+            resolution: [canvas.width, canvas.height],
+            enable_fxaa: fxaa,
             viewport: {
                 x: 0,
                 y: 0,
@@ -285,6 +308,11 @@ const Renderer = (regl: Regl, colorType: FramebufferColorDataType) => {
                 height: canvas.height,
                 colorType,
             });
+            TexCache.previewFBO({
+                width: canvas.width,
+                height: canvas.height,
+                colorType,
+            });
             w = canvas.width;
             h = canvas.height;
         }
@@ -295,9 +323,9 @@ const Renderer = (regl: Regl, colorType: FramebufferColorDataType) => {
 
     return {
         context: regl,
-        sample: sample,
-        display: display,
-        reset: reset,
+        sample,
+        display,
+        reset,
         sampleCount: () => sampleCount,
         destroy: () => {
             pingpong.ping.destroy();

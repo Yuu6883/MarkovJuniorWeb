@@ -5,9 +5,10 @@ uniform mat4 invpv;
 uniform vec3 eye, bounds, lightPosition, groundColor;
 uniform vec2 res, tOffset, invResRand;
 uniform float resStage, lightRadius, groundRoughness, groundMetalness, dofDist, dofMag, lightIntensity;
+uniform bool renderPreview;
 
 const float epsilon = 0.0001;
-const int nBounces = 4;
+const int nBounces = 5;
 
 float randUniform1(inout vec2 randOffset) {
     float r = texture2D(tUniform1, randOffset + tOffset).r;
@@ -206,10 +207,54 @@ bool intersect(vec3 r0, vec3 r, inout VoxelData vd) {
     return false;
 }
 
+// Cheap ver
+vec3 preview() {
+    vec4 ndc = vec4(
+        2.0 * gl_FragCoord.xy / res - 1.0,
+        2.0 * gl_FragCoord.z - 1.0,
+        1.0
+    );
+
+    vec4 clip = invpv * ndc;
+    vec3 p3d = clip.xyz / clip.w;
+    vec3 ray = normalize(p3d - eye);
+    vec3 r0 = eye;
+
+    VoxelData vd = airData(floor(r0));
+
+    if (intersect(r0, ray, vd)) {
+        if (vd.emission > 0.0) {
+            return vd.rgb;
+        }
+
+        float tVoxel = 0.0;
+        rayAABB(r0, ray, vd.xyz, vd.xyz + 1.0, tVoxel);
+        vec3 r1 = r0 + tVoxel * ray;
+        vec3 n = rayAABBNorm(r1, vd.xyz);
+        vec3 rLight = normalize(lightPosition - r1);
+        // Fix skyColor by offseting the normal upward
+        vec3 color = vd.rgb * (skyColor(r1, normalize(n + vec3(0.0, 0.2, 0.0)), 0.0) + 0.3);
+        r1 -= ray * epsilon;
+        vd = voxelData(floor(r1));
+        if (intersect(r1, rLight, vd)) {
+            if (vd.xyz.y != -1.0) {
+                color *= 0.5;
+            }
+        }
+        return color;
+    }
+
+    return skyColor(r0, ray, 1.0);
+}
 
 void main() {
 
     vec4 src = texture2D(source, gl_FragCoord.xy / res);
+
+    if (renderPreview) {
+        gl_FragColor = vec4(preview(), 1) + src;
+        return;
+    }
 
     vec2 randOffset = vec2(0.0);
 

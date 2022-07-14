@@ -139,6 +139,7 @@ export class Model {
     public curr_node_index = -1;
 
     public readonly DIM = new Int32Array([-1, -1, -1]);
+    private last_render = performance.now();
 
     constructor(key: string) {
         this.key = key;
@@ -320,7 +321,6 @@ export class Model {
         if (!once && this._paused) return;
 
         const start = performance.now();
-        const start_low_prec = Date.now();
 
         if (!this._curr) this._curr = this.ip?.run(this._seed, this._steps);
         if (!this._curr) return;
@@ -352,7 +352,7 @@ export class Model {
                 if (checkBreakpoint()) break;
 
                 // Cap per frame execution to 20ms/50fps
-                if (Date.now() - start_low_prec > 20) break;
+                if (performance.now() - start > 20) break;
             }
         }
 
@@ -369,10 +369,25 @@ export class Model {
         });
 
         {
-            const highlightState = this.nodes[this.curr_node_index].state;
+            const highlightState = this.nodes[this.curr_node_index]?.state;
             for (const { state } of this.nodes) {
                 state.isCurrent = state === highlightState;
                 state.sync();
+            }
+        }
+
+        if (this.renderer instanceof VoxelPathTracer) {
+            const dt = performance.now() - this.last_render;
+            this.last_render = performance.now();
+
+            if (dt > 1000 / 30) {
+                this.renderer.dynamicSamples = Math.max(
+                    1,
+                    this.renderer.dynamicSamples - 1
+                );
+            } else if (dt < 1000 / 60) {
+                if (this.renderer.sampleCount > 1)
+                    this.renderer.dynamicSamples++;
             }
         }
 
