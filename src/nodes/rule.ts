@@ -334,7 +334,6 @@ export abstract class RuleNode extends Node {
             this.matchCount = 0;
             for (let r = 0; r < this.rules.length; r++) {
                 const rule = this.rules[r];
-                const maskr = this.matchMask?.row(r);
                 for (let z = rule.IMZ - 1; z < MZ; z += rule.IMZ)
                     for (let y = rule.IMY - 1; y < MY; y += rule.IMY)
                         for (let x = rule.IMX - 1; x < MX; x += rule.IMX) {
