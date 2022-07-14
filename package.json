@@ -18,6 +18,7 @@
         "@types/three": "^0.141.0",
         "copy-webpack-plugin": "^11.0.0",
         "css-loader": "^6.7.1",
+        "file-loader": "^6.2.0",
         "file-saver": "^2.0.5",
         "gl-matrix": "^3.4.3",
         "glslify": "^7.1.1",
