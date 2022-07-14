@@ -120,7 +120,15 @@ const UnionCell = observer(
 );
 
 const RuleViz = observer(
-    ({ rule, children }: { rule: Rule; children?: React.ReactNode }) => {
+    ({
+        rule,
+        active,
+        children,
+    }: {
+        rule: Rule;
+        active: boolean;
+        children?: React.ReactNode;
+    }) => {
         const [IMX, IMY, IMZ, OMX, OMY, OMZ] = rule.IO_DIM;
 
         const iGrid = useMemo(
@@ -207,7 +215,7 @@ const RuleViz = observer(
                 >
                     {iGrid}
                 </div>
-                <i className="fa-solid fa-arrow-right"></i>
+                <i data-active={active} className="fa-solid fa-arrow-right"></i>
                 <div
                     className="grid"
                     style={{
@@ -297,13 +305,24 @@ const RuleNodeViz = observer(
             <>
                 <div className="rule-list">
                     {state.node.rules.map(
-                        (r, key) =>
+                        (r, index) =>
                             r.original && (
-                                <RuleViz key={key} rule={r}>
+                                <RuleViz
+                                    active={
+                                        state instanceof RuleState
+                                            ? Boolean(
+                                                  state.lastMatchedRuleIndices &
+                                                      (1 << index)
+                                              )
+                                            : true
+                                    }
+                                    key={index}
+                                    rule={r}
+                                >
                                     {r.p < 1 && (
                                         <label>p = {r.p.toFixed(4)}</label>
                                     )}
-                                    {!key && state instanceof RuleState && (
+                                    {!index && state instanceof RuleState && (
                                         <>
                                             {state.steps > 0 && (
                                                 <label>
@@ -317,10 +336,12 @@ const RuleNodeViz = observer(
                                                     {state.temperature}
                                                 </label>
                                             )}
-                                            {state.searchedState > 0 && (
+                                            {!isNaN(state.searchedState) && (
                                                 <label>
                                                     Searched{" "}
-                                                    {state.searchedState.toLocaleString()}{" "}
+                                                    {state.searchedState > 0
+                                                        ? state.searchedState.toLocaleString()
+                                                        : "loading"}{" "}
                                                     states
                                                 </label>
                                             )}

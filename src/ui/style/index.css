@@ -362,6 +362,15 @@ input[type="color"]::-webkit-color-swatch {
     --size: 1vw;
 }
 
+.rule i[data-active] {
+    color: #eee;
+    opacity: 0.5;
+}
+
+.rule i[data-active="true"] {
+    opacity: 1;
+}
+
 .path-state {
     flex-direction: column;
     align-items: baseline;
