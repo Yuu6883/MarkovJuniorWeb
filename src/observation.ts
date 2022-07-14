@@ -74,25 +74,9 @@ export class Observation {
         backwards: boolean
     ) {
         const queue: vec4[] = [];
-
-        for (let c = 0; c < potentials.ROWS; c++) {
-            const potential = potentials.row(c);
-            for (let i = 0; i < potential.length; i++) {
-                if (!potential[i]) {
-                    queue.push([
-                        c,
-                        i % MX,
-                        ~~((i % (MX * MY)) / MX),
-                        ~~(i / (MX * MY)),
-                    ]);
-                }
-            }
-        }
-
         const matchMask = new BoolArray2D(potentials.COLS, rules.length);
 
-        while (queue.length) {
-            const [value, x, y, z] = queue.shift();
+        const proc = (value: number, x: number, y: number, z: number) => {
             const i = x + y * MX + z * MX * MY;
             const t = potentials.get(i, value);
             for (let r = 0; r < rules.length; r++) {
@@ -145,6 +129,26 @@ export class Observation {
                     }
                 }
             }
+        };
+
+        // Why queue here when it will be dequeued and execute in the exact same order
+        for (let c = 0; c < potentials.ROWS; c++) {
+            const potential = potentials.row(c);
+            for (let i = 0; i < potential.length; i++) {
+                if (!potential[i]) {
+                    proc(
+                        c,
+                        i % MX,
+                        ~~((i % (MX * MY)) / MX),
+                        ~~(i / (MX * MY))
+                    );
+                }
+            }
+        }
+
+        while (queue.length) {
+            const [value, x, y, z] = queue.shift();
+            proc(value, x, y, z);
         }
     }
 
