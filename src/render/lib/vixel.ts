@@ -4,7 +4,7 @@ import Camera from "./camera";
 import { ReadonlyVec3, vec2, vec3 } from "gl-matrix";
 import { FramebufferColorDataType, Regl } from "regl";
 
-const MAX_SAMPLE = 4096;
+const MAX_SAMPLE = 4096 * 4; // eh
 
 export class Vixel {
     private readonly _canvas: HTMLCanvasElement;
@@ -138,8 +138,10 @@ export class Vixel {
         const total = this._renderer.sampleCount();
         if (total >= MAX_SAMPLE && !this.ocd) return;
 
-        if (total >= MAX_SAMPLE) this.ocd = false;
-        this._renderer.display(total / MAX_SAMPLE, fxaa);
+        if (total >= MAX_SAMPLE) {
+            this.ocd = false;
+            this._renderer.display(0, fxaa);
+        } else this._renderer.display(total / MAX_SAMPLE, fxaa);
     }
 
     destroy() {
