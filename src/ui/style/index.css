@@ -109,10 +109,12 @@ h1 {
 
 #center-column canvas {
     align-self: center;
-    min-width: 50%;
+    min-width: 30%;
     min-height: 50%;
     width: calc(100vh - 210px);
     height: calc(100vh - 210px);
+    max-width: 90%;
+    max-height: 80%;
     object-fit: contain;
     margin: auto;
 }
@@ -184,8 +186,8 @@ h1 {
 }
 
 #right-column {
-    min-width: 0px;
-    width: 100%;
+    min-width: 250px;
+    width: 80%;
     max-width: 600px;
     display: flex;
     flex-direction: column;
@@ -459,6 +461,10 @@ input[type="color"]::-webkit-color-swatch {
         min-width: 0;
     }
 
+    #mobile-select {
+        top: 10px;
+    }
+
     #center-column {
         width: 100%;
     }
@@ -475,17 +481,15 @@ input[type="color"]::-webkit-color-swatch {
     #center-column canvas {
         min-width: 100px;
         min-height: 100px;
+        width: 90%;
+        height: 100%;
         max-width: 90%;
         max-height: 90%;
-        object-fit: cover;
+        object-fit: contain;
     }
 
     #model-select {
         opacity: 0;
-    }
-
-    #mobile-select {
-        top: 25px;
     }
 
     #speed {
@@ -544,7 +548,8 @@ input[type="color"]::-webkit-color-swatch {
     }
 
     #speed {
-        bottom: 20px;
+        margin-bottom: 10px;
+        height: 40px;
     }
 
     #model-list {
@@ -559,6 +564,22 @@ input[type="color"]::-webkit-color-swatch {
 
     #model-list > div {
         padding: 2px;
+    }
+
+    #controls {
+        padding-bottom: 10px;
+    }
+
+    #controls p {
+        margin: 5px;
+    }
+
+    #controls h3 {
+        margin: 12px;
+    }
+
+    #palette-container {
+        padding-top: 45px;
     }
 
     #state-viz {
