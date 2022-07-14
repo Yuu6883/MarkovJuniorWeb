@@ -21,36 +21,57 @@ import {
 
 export type NodeWithDepth = {
     node: Node;
-    parent: NodeState;
+    parentIndex: number;
     depth: number;
     index: number;
+    isLastChild: boolean;
 };
+
 export type NodeStateInfo = {
     state: NodeState;
-    parent: NodeState;
+    parentIndex: number;
     depth: number;
     index: number;
     breakpoint: boolean;
+    isLastChild: boolean;
 };
 
 export abstract class NodeState<T extends Node = Node> {
-    public source: T;
+    public node: T;
+    @observable
+    public isCurrent: boolean;
 
-    constructor(source: T) {
-        this.source = source;
+    constructor(node: T) {
+        this.node = node;
+        this.isCurrent = false;
         makeObservable(this);
     }
 
     public static traverse(ip: Interpreter) {
         const visited: NodeStateInfo[] = [];
         const stack: NodeWithDepth[] = [
-            { node: ip.root, depth: 0, index: 0, parent: null },
+            {
+                node: ip.root,
+                depth: 0,
+                index: 0,
+                parentIndex: -1,
+                isLastChild: false,
+            },
         ];
 
         while (stack.length) {
-            const { node, depth, parent, index } = stack.pop();
+            const { node, depth, parentIndex, index, isLastChild } =
+                stack.pop();
             const state = this.factory(node);
-            visited.push({ state, depth, index, parent, breakpoint: false });
+
+            visited.push({
+                state,
+                depth,
+                index,
+                parentIndex,
+                isLastChild,
+                breakpoint: false,
+            });
 
             if (node instanceof Branch) {
                 for (
@@ -62,7 +83,8 @@ export abstract class NodeState<T extends Node = Node> {
                         node: node.children[index],
                         depth: depth + 1,
                         index,
-                        parent: state,
+                        parentIndex: visited.length - 1,
+                        isLastChild: index === node.children.length - 1,
                     });
                 }
             }
@@ -100,8 +122,8 @@ abstract class BranchState<T extends Branch> extends NodeState<T> {
     @observable
     public index: number;
 
-    constructor(source: T) {
-        super(source);
+    constructor(node: T) {
+        super(node);
         makeObservable(this);
     }
 
@@ -141,28 +163,28 @@ export class ConvChainState extends NodeState<ConvChainNode> {
         return "convchain";
     }
 
-    constructor(source: ConvChainNode) {
-        super(source);
-        this.steps = this.source.steps || -1;
-        this.c0 = this.source.c0;
-        this.c1 = this.source.c1;
-        this.SMX = this.source.SMX;
-        this.SMY = this.source.SMY;
+    constructor(node: ConvChainNode) {
+        super(node);
+        this.steps = this.node.steps || -1;
+        this.c0 = this.node.c0;
+        this.c1 = this.node.c1;
+        this.SMX = this.node.SMX;
+        this.SMY = this.node.SMY;
 
-        this.sample = new Uint8Array(this.source.sample.length);
-        this.sample.set(this.source.sample);
+        this.sample = new Uint8Array(this.node.sample.length);
+        this.sample.set(this.node.sample);
 
         makeObservable(this);
     }
 
     @override
     sync() {
-        this.source.steps = this.steps;
+        this.node.steps = this.steps;
 
-        this.source.c0 = this.c0;
-        this.source.c1 = this.c1;
+        this.node.c0 = this.c0;
+        this.node.c1 = this.c1;
 
-        this.counter = this.source.counter || 0;
+        this.counter = this.node.counter || 0;
     }
 }
 
@@ -173,20 +195,20 @@ export class ConvolutionState extends NodeState<ConvolutionNode> {
     public counter = 0;
 
     get name(): string {
-        return `convolution-${this.source.neighborhood.toLowerCase()}`;
+        return `convolution-${this.node.neighborhood.toLowerCase()}`;
     }
 
-    constructor(source: ConvolutionNode) {
-        super(source);
-        this.steps = this.source.steps || -1;
+    constructor(node: ConvolutionNode) {
+        super(node);
+        this.steps = this.node.steps || -1;
 
         makeObservable(this);
     }
 
     @override
     sync() {
-        this.source.steps = this.steps;
-        this.counter = this.source.counter || 0;
+        this.node.steps = this.steps;
+        this.counter = this.node.counter || 0;
     }
 }
 
@@ -206,13 +228,13 @@ export class PathState extends NodeState<PathNode> {
     @observable
     public colored: number;
 
-    constructor(source: PathNode) {
-        super(source);
+    constructor(node: PathNode) {
+        super(node);
 
-        this.from = Helper.nonZeroPositions(source.start);
-        this.to = Helper.nonZeroPositions(source.finish);
-        this.on = Helper.nonZeroPositions(source.substrate);
-        this.colored = source.value;
+        this.from = Helper.nonZeroPositions(node.start);
+        this.to = Helper.nonZeroPositions(node.finish);
+        this.on = Helper.nonZeroPositions(node.substrate);
+        this.colored = node.value;
 
         makeObservable(this);
     }
@@ -237,24 +259,24 @@ export abstract class RuleState<T extends RuleNode> extends NodeState<T> {
     @observable
     public searchedState: number;
 
-    constructor(source: T) {
-        super(source);
+    constructor(node: T) {
+        super(node);
 
-        this.temperature = this.source.temperature;
-        this.search = this.source.search;
-        this.searchedState = this.source.visited;
-        this.steps = this.source.steps || -1;
+        this.temperature = this.node.temperature;
+        this.search = this.node.search;
+        this.searchedState = this.node.visited;
+        this.steps = this.node.steps || -1;
 
         makeObservable(this);
     }
 
     @override
     sync() {
-        this.source.steps = this.steps;
-        this.counter = this.source.counter || 0;
+        this.node.steps = this.steps;
+        this.counter = this.node.counter || 0;
 
         if (this.search) {
-            this.searchedState = this.source.visited;
+            this.searchedState = this.node.visited;
         }
     }
 }
@@ -278,8 +300,8 @@ export class ParallelState extends RuleState<ParallelNode> {
 }
 
 export abstract class WFCState<T extends WFCNode> extends NodeState<T> {
-    constructor(source: T) {
-        super(source);
+    constructor(node: T) {
+        super(node);
         makeObservable(this);
     }
 
@@ -289,12 +311,12 @@ export abstract class WFCState<T extends WFCNode> extends NodeState<T> {
 
 export class TileState extends WFCState<TileNode> {
     get name(): string {
-        return `wfc-tile: ${this.source.name.toLowerCase()}`;
+        return `wfc-tile: ${this.node.name.toLowerCase()}`;
     }
 }
 
 export class OverlapState extends WFCState<OverlapNode> {
     get name(): string {
-        return `wfc-overlap: ${this.source.name.toLowerCase()}`;
+        return `wfc-overlap: ${this.node.name.toLowerCase()}`;
     }
 }

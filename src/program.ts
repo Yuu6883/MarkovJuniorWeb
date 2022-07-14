@@ -346,7 +346,7 @@ export class Model {
         let result = this._curr.next();
         const bp = checkBreakpoint();
 
-        if (!bp && this._speed > 0) {
+        if (!bp && !once && this._speed > 0) {
             for (let i = 0; i < this._speed; i++) {
                 result = this._curr.next();
                 if (checkBreakpoint()) break;
@@ -364,11 +364,17 @@ export class Model {
             const br = this.ip.current;
             if (!br) return false;
             if (br.n < 0 || br.n >= br.children.length)
-                return state.source === br;
-            return state.source === br.children[br.n];
+                return state.node === br;
+            return state.node === br.children[br.n];
         });
 
-        for (const { state } of this.nodes) state.sync();
+        {
+            const highlightState = this.nodes[this.curr_node_index].state;
+            for (const { state } of this.nodes) {
+                state.isCurrent = state === highlightState;
+                state.sync();
+            }
+        }
 
         if (result.done) {
             this._curr = null;
@@ -448,9 +454,9 @@ export class Model {
         node.breakpoint = !node.breakpoint;
 
         if (node.breakpoint) {
-            this.breakpoints.add(node.state.source);
+            this.breakpoints.add(node.state.node);
         } else {
-            this.breakpoints.delete(node.state.source);
+            this.breakpoints.delete(node.state.node);
         }
     }
 

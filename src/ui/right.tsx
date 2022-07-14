@@ -296,7 +296,7 @@ const RuleNodeViz = observer(
         return (
             <>
                 <div className="rule-list">
-                    {state.source.rules.map(
+                    {state.node.rules.map(
                         (r, key) =>
                             r.original && (
                                 <RuleViz key={key} rule={r}>
@@ -330,9 +330,9 @@ const RuleNodeViz = observer(
                             )
                     )}
                 </div>
-                {state instanceof RuleState && state.source.fields && (
+                {state instanceof RuleState && state.node.fields && (
                     <div className="field-list">
-                        {state.source.fields.map(
+                        {state.node.fields.map(
                             (field, i) =>
                                 field && (
                                     <FieldViz key={i} c={i} field={field} />
@@ -340,9 +340,9 @@ const RuleNodeViz = observer(
                         )}
                     </div>
                 )}
-                {state instanceof RuleState && state.source.observations && (
+                {state instanceof RuleState && state.node.observations && (
                     <div className="field-list">
-                        {state.source.observations.map(
+                        {state.node.observations.map(
                             (obs, i) =>
                                 obs && <ObserveViz key={i} c={i} obs={obs} />
                         )}
@@ -487,7 +487,7 @@ const ConvolutionViz = observer(({ state }: { state: ConvolutionState }) => (
             </div>
         )}
         <div className="convo-rule-list">
-            {state.source.rules.map((r, key) => (
+            {state.node.rules.map((r, key) => (
                 <ConvoRuleViz key={key} rule={r} />
             ))}
         </div>
@@ -512,6 +512,8 @@ const StateTree = observer(() => {
     const model = useContext(ProgramContext).instance;
     const ref = useRef<HTMLDivElement>();
 
+    // const [viz, setViz] = useState(true);
+
     useEffect(() => {
         const list = ref.current;
         if (!list) return;
@@ -534,6 +536,13 @@ const StateTree = observer(() => {
     return (
         !!model.nodes.length && (
             <>
+                {/* <label data-selected={viz} onClick={() => setViz(true)}>
+                        Visualized
+                    </label>
+                    <label> / </label>
+                    <label data-selected={!viz} onClick={() => setViz(false)}>
+                        XML
+                    </label> */}
                 <h4>Node Tree</h4>
                 <div id="state-viz" ref={ref}>
                     {model.nodes.map(
@@ -545,7 +554,7 @@ const StateTree = observer(() => {
                                 }}
                                 className="node-state"
                                 data-level-index={index}
-                                data-highlight={model.curr_node_index === i}
+                                data-highlight={state.isCurrent}
                                 data-breakpoint={breakpoint}
                             >
                                 <pre
@@ -560,10 +569,10 @@ const StateTree = observer(() => {
                                     >
                                         {state.name}
                                     </span>
-                                    {state.source.comment && (
+                                    {state.node.comment && (
                                         <i
                                             className="fa-solid fa-comment-dots"
-                                            data-tip={state.source.comment}
+                                            data-tip={state.node.comment}
                                         ></i>
                                     )}
                                 </label>
