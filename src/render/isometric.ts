@@ -206,6 +206,7 @@ const black = 0;
 
 declare type FragFunc = (x: number, y: number) => number;
 
+// Generate function table, used to color the voxel edges
 const frag_funcs = new Array<string>(8);
 frag_funcs[0] = "x == 1 && y <= 0 ? C1 : expr";
 frag_funcs[1] = "x == 0 && y <= 0 ? C1 : expr";

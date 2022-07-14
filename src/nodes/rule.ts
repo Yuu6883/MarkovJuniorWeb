@@ -30,7 +30,7 @@ export abstract class RuleNode extends Node {
     public search: boolean;
     protected futureComputed: boolean;
     protected future: Int32Array;
-    protected trajectory: Array2D<Uint8Array>; // TODO: maybe not array2d
+    protected trajectory: Array2D<Uint8Array>;
 
     private limit: number;
     private depthCoefficient: number;

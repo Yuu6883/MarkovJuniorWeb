@@ -512,8 +512,6 @@ const StateTree = observer(() => {
     const model = useContext(ProgramContext).instance;
     const ref = useRef<HTMLDivElement>();
 
-    // const [viz, setViz] = useState(true);
-
     useEffect(() => {
         const list = ref.current;
         if (!list) return;

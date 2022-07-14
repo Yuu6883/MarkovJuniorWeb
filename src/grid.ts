@@ -1,5 +1,4 @@
 import { Helper } from "./helpers/helper";
-import { Rule } from "./rule";
 
 export class Grid {
     public state: Uint8Array;

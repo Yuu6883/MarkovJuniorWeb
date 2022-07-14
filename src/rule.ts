@@ -77,7 +77,6 @@ export class Rule {
                 }
 
         this.ishifts = Array.from({ length: C });
-        // TODO: do we need to deep copy the inner array as well?
         for (let c = 0; c < C; c++) this.ishifts[c] = lists[c].concat([]);
 
         if (OMX === IMX && OMY === IMY && OMZ === IMZ) {

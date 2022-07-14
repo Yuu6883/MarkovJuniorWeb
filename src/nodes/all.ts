@@ -11,7 +11,7 @@ export class AllNode extends RuleNode {
         grid: Grid
     ) {
         if (!(await super.load(elem, parentSymmetry, grid))) return false;
-        this.matches = new Uint32Array(1024);
+        this.matches = new Uint32Array(8 * 1024);
         this.matchMask = new BoolArray2D(grid.state.length, this.rules.length);
         this.matchMask.clear();
         return true;
@@ -69,7 +69,7 @@ export class AllNode extends RuleNode {
 
         if (this.trajectory) {
             if (this.counter >= this.trajectory.ROWS) return RunState.FAIL;
-            // console.log(`[ALL] Set state to trajectory [${this.counter}]`);
+
             grid.state.set(this.trajectory.row(this.counter));
             this.counter++;
             return RunState.SUCCESS;

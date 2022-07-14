@@ -122,10 +122,6 @@ export class NativeSearch {
         let recordState: Uint8Array = null;
         let now = Date.now();
 
-        const interval = setInterval(() => {
-            // console.log(`queue length: ${frontier.size}`);
-        }, 1000);
-
         // Bottom up tree traversal
         const traverse = (board_ptr: number) => {
             const result: number[] = [];

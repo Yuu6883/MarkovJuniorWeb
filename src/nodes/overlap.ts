@@ -161,19 +161,19 @@ export class OverlapNode extends WFCNode {
         this.propagator = new Array(4);
         for (let d = 0; d < 4; d++) {
             this.propagator[d] = new Array(P);
-            for (let t = 0; t < P; t++) {
+            for (let t1 = 0; t1 < P; t1++) {
                 const list: number[] = [];
                 for (let t2 = 0; t2 < P; t2++)
                     if (
                         agrees(
-                            this.patterns.row(t),
+                            this.patterns.row(t1),
                             this.patterns.row(t2),
                             OverlapNode.DX[d],
                             OverlapNode.DY[d]
                         )
                     )
                         list.push(t2);
-                this.propagator[d][t] = new Int32Array(list);
+                this.propagator[d][t1] = new Int32Array(list);
             }
         }
 
@@ -206,7 +206,7 @@ export class OverlapNode extends WFCNode {
         return await super.load(elem, parentSymmetry, grid);
     }
 
-    // No idea why this is x20 slower than C# (2000ms vs 100ms, WaveFlower)
+    // A bit slower than C# (130ms vs 90ms, WaveFlower)
     public override updateState() {
         const { newgrid, wave, patterns, P, N, votes } = this;
         const { MX, MY } = newgrid;
