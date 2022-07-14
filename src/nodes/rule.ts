@@ -13,7 +13,7 @@ import { NativeSearch } from "../wasm/search";
 import { Node, AllNode, RunState } from "./";
 
 export abstract class RuleNode extends Node {
-    public rules: Rule[];
+    public readonly rules: Rule[] = [];
     public counter: number;
     public steps: number;
 
@@ -61,13 +61,15 @@ export abstract class RuleNode extends Node {
             return null;
         }
 
-        const ruleList: Rule[] = [];
         const rules = [...Helper.childrenByTag(elem, "rule")];
         const ruleElements = rules.length > 0 ? rules : [elem];
-        for (const e of ruleElements) {
+
+        const tasks: Promise<Rule[]>[] = ruleElements.map(async (e) => {
             const rule = await Rule.load(e, grid, grid);
-            if (!rule) return false;
+            if (!rule) return null;
+
             rule.original = true;
+            const ruleList: Rule[] = [];
 
             const ruleSymmetryString = e.getAttribute("symmetry");
             const ruleSymmetry = SymmetryHelper.getSymmetry(
@@ -83,8 +85,14 @@ export abstract class RuleNode extends Node {
                 ruleList.push(r);
                 RuleNode.compile(r, grid.MX, grid.MY, grid.MZ);
             }
-        }
-        this.rules = ruleList.concat([]);
+
+            return ruleList;
+        });
+
+        const ruleLists = await Promise.all(tasks);
+        if (ruleLists.some((list) => !list)) return false;
+        this.rules.splice(0, this.rules.length, ...ruleLists.flat());
+
         this.last = 0;
 
         this.steps = parseInt(elem.getAttribute("steps")) || 0;

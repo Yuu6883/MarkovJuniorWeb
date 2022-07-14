@@ -88,7 +88,7 @@ export abstract class Node {
 
 export abstract class Branch extends Node {
     public parent: Branch;
-    public children: Node[] = [];
+    public readonly children: Node[] = [];
     public n: number;
 
     protected override async load(
@@ -108,18 +108,30 @@ export abstract class Branch extends Node {
             return false;
         }
 
+        const tasks: Promise<Node>[] = [];
         for (const child of Helper.collectionIter(elem.children)) {
             if (!Node.VALID_TAGS.includes(child.tagName)) continue;
-
-            const node = await Node.factory(child, symmetry, this.ip, grid);
-            if (!node) return false;
-            if (node instanceof Branch)
-                node.parent =
-                    node instanceof MapNode || node instanceof WFCNode
-                        ? null
-                        : this;
-            this.children.push(node);
+            tasks.push(
+                (async () => {
+                    const node = await Node.factory(
+                        child,
+                        symmetry,
+                        this.ip,
+                        grid
+                    );
+                    if (!node) return null;
+                    if (node instanceof Branch)
+                        node.parent =
+                            node instanceof MapNode || node instanceof WFCNode
+                                ? null
+                                : this;
+                    return node;
+                })()
+            );
         }
+        const nodes = await Promise.all(tasks);
+        if (nodes.some((n) => !n)) return false;
+        this.children.splice(0, this.children.length, ...nodes);
         return true;
     }
 
@@ -148,7 +160,7 @@ export class MarkovNode extends Branch {
     constructor(child?: Node, ip?: Interpreter) {
         super();
 
-        if (child) this.children = [child];
+        if (child) this.children.push(child);
         this.ip = ip;
         this.grid = ip?.grid;
     }

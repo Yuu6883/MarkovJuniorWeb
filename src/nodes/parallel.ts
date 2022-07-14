@@ -1,6 +1,4 @@
 import { Grid } from "../grid";
-import { BoolArray2DRow } from "../helpers/datastructures";
-
 import { RuleNode, RunState } from "./";
 
 export class ParallelNode extends RuleNode {

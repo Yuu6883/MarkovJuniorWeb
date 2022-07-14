@@ -11,7 +11,7 @@ const readScale = (s: string): [number, number] => {
 };
 
 export class MapNode extends Branch {
-    public rules: Rule[] = [];
+    public readonly rules: Rule[] = [];
 
     private newgrid: Grid;
     private ND = new Int32Array(6);
@@ -56,23 +56,37 @@ export class MapNode extends Branch {
             parentSymmetry
         );
 
+        const tasks: Promise<Rule[]>[] = [];
+
         for (const e of Helper.childrenByTag(elem, "rule")) {
-            const rule = await Rule.load(e, grid, newgrid);
-            rule.original = true;
-            if (!rule) return false;
-            for (const r of rule.symmetries(symmetry, grid.MZ === 1)) {
-                this.rules.push(r);
-                MapNode.compile(
-                    r,
-                    grid.MX,
-                    grid.MY,
-                    grid.MZ,
-                    newgrid.MX,
-                    newgrid.MY,
-                    newgrid.MZ
-                );
-            }
+            tasks.push(
+                (async () => {
+                    const rule = await Rule.load(e, grid, newgrid);
+                    rule.original = true;
+                    if (!rule) return null;
+
+                    const rules: Rule[] = [];
+                    for (const r of rule.symmetries(symmetry, grid.MZ === 1)) {
+                        rules.push(r);
+                        MapNode.compile(
+                            r,
+                            grid.MX,
+                            grid.MY,
+                            grid.MZ,
+                            newgrid.MX,
+                            newgrid.MY,
+                            newgrid.MZ
+                        );
+                    }
+                    return rules;
+                })()
+            );
         }
+
+        const ruleLists = await Promise.all(tasks);
+        if (ruleLists.some((list) => !list)) return false;
+        this.rules.splice(0, this.rules.length, ...ruleLists.flat());
+
         return true;
     }
 

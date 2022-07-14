@@ -103,7 +103,7 @@ export class TileNode extends WFCNode {
         ];
         let ind = 0;
 
-        for (const etile of etiles) {
+        const tasks = etiles.map(async (etile) => {
             const tilename = etile.getAttribute("name");
             const weight = parseFloat(etile.getAttribute("weight")) || 1;
 
@@ -145,7 +145,11 @@ export class TileNode extends WFCNode {
                 ind++;
             }
             positions.set(tilename, position);
-        }
+            return true;
+        });
+
+        const result = await Promise.all(tasks);
+        if (result.some((loaded) => !loaded)) return false;
 
         // console.log([...positions.keys()]);
 
