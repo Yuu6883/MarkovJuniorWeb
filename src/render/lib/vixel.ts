@@ -35,6 +35,8 @@ export class Vixel {
     private oldDim: vec2;
 
     private frame = 0;
+    private last_render = performance.now();
+    private dynamicSamples = 1;
 
     constructor(
         canvas: HTMLCanvasElement,
@@ -79,7 +81,7 @@ export class Vixel {
         this._renderDirty = true;
     }
 
-    sample(count: number) {
+    sample() {
         this.frame++;
 
         if (
@@ -103,6 +105,17 @@ export class Vixel {
 
         if (this._renderer.sampleCount() >= MAX_SAMPLE) return;
 
+        const dt = performance.now() - this.last_render;
+        this.last_render = performance.now();
+
+        if (dt > 1000 / 30) {
+            this.dynamicSamples = Math.max(1, this.dynamicSamples - 1);
+        } else if (dt < 1000 / 60) {
+            if (this.sampleCount > 1) {
+                this.dynamicSamples = Math.min(32, this.dynamicSamples + 1);
+            }
+        }
+
         this._renderer.sample(this.stage, this.camera, {
             groundColor: this._ground.color,
             groundRoughness: this._ground.rough,
@@ -113,7 +126,7 @@ export class Vixel {
             lightIntensity: this._sun.intensity,
             dofDist: this._dof.distance,
             dofMag: this._dof.magnitude,
-            count: count,
+            count: this.dynamicSamples,
         });
 
         this.ocd = true;

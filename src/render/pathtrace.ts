@@ -44,9 +44,6 @@ export class VoxelPathTracer extends Renderer {
     private readonly vixel: Vixel;
     public readonly samples = 16;
 
-    @observable
-    public dynamicSamples = 1;
-
     public fxaa = true;
 
     private MX: number;
@@ -77,7 +74,7 @@ export class VoxelPathTracer extends Renderer {
     }
 
     private loop() {
-        this.vixel.sample(this.samples);
+        this.vixel.sample();
         this.vixel.display(this.fxaa);
         this.raf = requestAnimationFrame(() => this.loop());
     }
@@ -150,9 +147,5 @@ export class VoxelPathTracer extends Renderer {
     override dispose() {
         cancelAnimationFrame(this.raf);
         this.vixel.destroy();
-    }
-
-    public get sampleCount() {
-        return this.vixel.sampleCount;
     }
 }

@@ -277,11 +277,13 @@ const Renderer = (regl: Regl, colorType: FramebufferColorDataType) => {
     }
 
     function display(complete: number, fxaa: boolean) {
+        const fraction = Math.pow(Math.min(1.0, sampleCount / 512), 2);
+
         cmdDisplay({
             source: pingpong.ping,
             preview: TexCache.previewFBO,
             complete,
-            fraction: Math.pow(Math.min(1.0, sampleCount / 512), 2),
+            fraction,
             resolution: [canvas.width, canvas.height],
             enable_fxaa: fxaa,
             viewport: {
