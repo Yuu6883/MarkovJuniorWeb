@@ -1,11 +1,27 @@
 import seedrandom from "seedrandom";
+import { WasmInstance } from ".";
 import { HashMap, PriorityQueue } from "../helpers/datastructures";
 import { Program } from "../program";
 import { Rule } from "../rule";
 import { Optimization } from "./optimization";
 
 export class NativeSearch {
-    public static *run(
+    lib: WasmInstance;
+
+    readonly present: Uint8Array;
+    readonly future: Int32Array;
+    readonly rules: Rule[];
+    readonly MX: number;
+    readonly MY: number;
+    readonly MZ: number;
+    readonly C: number;
+    readonly all: boolean;
+    readonly limit: number;
+    readonly dcoeff: number;
+    readonly seed: number;
+    readonly viz?: boolean;
+
+    constructor(
         present: Uint8Array,
         future: Int32Array,
         rules: Rule[],
@@ -18,10 +34,43 @@ export class NativeSearch {
         dcoeff: number,
         seed: number,
         viz?: boolean
-    ): Generator<number, Uint8Array[]> {
+    ) {
+        this.present = present;
+        this.future = future;
+        this.rules = rules;
+        this.MX = MX;
+        this.MY = MY;
+        this.MZ = MZ;
+        this.C = C;
+        this.all = all;
+        this.limit = limit;
+        this.dcoeff = dcoeff;
+        this.seed = seed;
+        this.viz = viz;
+        Optimization.module.init().then((lib) => (this.lib = lib));
+    }
+
+    public *run(): Generator<number, Uint8Array[]> {
+        // ...
+        while (!this.lib) yield -1;
+
+        const {
+            lib,
+            present,
+            future,
+            rules,
+            MX,
+            MY,
+            MZ,
+            C,
+            all,
+            limit,
+            dcoeff,
+            seed,
+            viz,
+        } = this;
         const rng = seedrandom(seed.toString());
 
-        const lib = Optimization.obs_instance;
         lib.reset();
 
         const bin = lib.exports;
@@ -43,10 +92,10 @@ export class NativeSearch {
             hash,
         }: { [key: string]: Function } = bin;
 
-        const ptr_size: number = bin.ptr_size();
-        const board_size: number = bin.board_size();
+        const ptr_size = <number>bin.ptr_size();
+        const board_size = <number>bin.board_size();
 
-        const rule_ptrs = rules.map((r) => Optimization.load_rule(r));
+        const rule_ptrs = rules.map((r) => Optimization.load_rule(lib, r));
         const rule_tbl = lib.malloc(rule_ptrs.length * ptr_size);
         // wasm32
         if (ptr_size === 4) {
@@ -87,8 +136,8 @@ export class NativeSearch {
         const state = lib.malloc(present.byteLength);
         lib.copy_from_external(present, state);
 
-        const bp = lib.malloc(elem * C * Int16Array.BYTES_PER_ELEMENT);
-        const fp = lib.malloc(elem * C * Int16Array.BYTES_PER_ELEMENT);
+        const bp = lib.malloc(elem * C * Int32Array.BYTES_PER_ELEMENT);
+        const fp = lib.malloc(elem * C * Int32Array.BYTES_PER_ELEMENT);
 
         const queue = new_queue(4 * Uint16Array.BYTES_PER_ELEMENT, elem * C);
         const mask = new_bool_2d(elem, rule_len);
@@ -251,8 +300,6 @@ export class NativeSearch {
                 const result = this.allChildStates(
                     parent_board,
                     amounts_ptr,
-                    MX,
-                    MY,
                     elem,
                     rule_ptrs,
                     temp_board,
@@ -273,8 +320,6 @@ export class NativeSearch {
 
                 const result = this.oneChildStates(
                     parent_board,
-                    MX,
-                    MY,
                     elem,
                     rule_ptrs,
                     temp_board,
@@ -295,17 +340,15 @@ export class NativeSearch {
         return null;
     }
 
-    public static allChildStates(
+    public allChildStates(
         parent_board: number,
         amount_table: number,
-        MX: number,
-        MY: number,
         elem: number,
         rule_ptrs: number[],
         temp_board: { ptr: number },
         cb: (parent_board: number) => Uint8Array[]
     ) {
-        const lib = Optimization.obs_instance;
+        const { lib, MX, MY } = this;
         const bin = lib.exports;
 
         const board_size = bin.board_size();
@@ -401,16 +444,16 @@ export class NativeSearch {
         return enumerate();
     }
 
-    private static oneChildStates(
+    private oneChildStates(
         parent_board: number,
-        MX: number,
-        MY: number,
         elem: number,
         rule_ptrs: number[],
         temp_board: { ptr: number },
         match_and_apply: Function,
         cb: (parent_board: number) => Uint8Array[]
     ) {
+        const { MX, MY } = this;
+
         for (let y = 0; y < MY; y++) {
             for (let x = 0; x < MX; x++) {
                 for (let r = 0; r < rule_ptrs.length; r++) {

@@ -35,7 +35,10 @@ inline void* queue_data(queue_t* queue) {
 }
 
 inline void* queue_push(queue_t* queue) {
-    if (queue_full(queue)) abort();
+    if (queue_full(queue)) {
+        queue_overflow(queue->len, queue->capacity);
+        abort();
+    }
 
     void* data = queue_data(queue);
     void* ptr = (uint8_t*) data + queue->elem * ((queue->start + queue->len) % queue->capacity);

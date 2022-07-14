@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { ProgramContext } from ".";
 
 export const LeftPanel = observer(() => {
@@ -13,7 +13,8 @@ export const LeftPanel = observer(() => {
         Prog.listModels();
 
         const m = localStorage.getItem("last-mj-model");
-        if (m) Prog.load(m);
+        // let the page fully load
+        if (m) setTimeout(() => Prog.load(m), 500);
     }, []);
 
     const names = [...Prog.models.keys()];

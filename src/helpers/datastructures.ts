@@ -216,12 +216,18 @@ export class Array2D<T extends TypedArray> {
     }
 
     constructor(
-        type: TypedArrayConstructor<T>,
+        typeOrValue: TypedArrayConstructor<T> | T,
         MX: number,
         MY: number,
         funcOrValue?: number | ((x: number, y: number) => number)
     ) {
-        this.arr = new type(MX * MY);
+        if (typeof typeOrValue === "function") {
+            this.arr = new typeOrValue(MX * MY);
+        } else {
+            if (typeOrValue.length !== MX * MY)
+                throw new Error("Array2D value constructor dimension mismatch");
+            this.arr = typeOrValue;
+        }
 
         if (typeof funcOrValue === "number") {
             this.arr.fill(funcOrValue);

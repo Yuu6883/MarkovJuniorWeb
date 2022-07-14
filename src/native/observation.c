@@ -3,8 +3,32 @@
 #include "bool_2d.h"
 #include "pool.h"
 #include "board.h"
+#include "observation.h"
 
 size_t ptr_size() { return sizeof(void*); }
+
+bool compute_future_set_present(uint8_t* state, int32_t* future, obs_t* observations, 
+    uint32_t len, uint32_t C, uint8_t* mask) {
+
+    memset(mask, 0, C);
+    for (uint32_t k = 0; k < C; k++) {
+        if (!observations[k].valid) mask[k] = 1;
+    }
+
+    for (uint32_t i = 0; i < len; i++) {
+        uint8_t value = state[i];
+        obs_t obs = observations[value];
+        mask[value] = 1;
+
+        if (obs.valid) {
+            future[i] = obs.to;
+            state[i] = obs.from;
+        } else future[i] = 1 << value;
+    }
+
+    for (uint32_t k = 0; k < C; k++) if (!mask[k]) return false;
+    return true;
+}
 
 inline void push(queue_t* queue, uint16_t c, uint16_t x, uint16_t y, uint16_t z) {
     uint16_t* item = (uint16_t*) queue_push(queue);
@@ -15,7 +39,7 @@ inline void push(queue_t* queue, uint16_t c, uint16_t x, uint16_t y, uint16_t z)
 }
 
 inline bool match_potential(rule_t* rule, int32_t x, int32_t y, int32_t z,
-    int16_t* potentials, int32_t t, 
+    int32_t* potentials, int32_t t, 
     uint16_t MX, uint16_t MY, 
     uint32_t elem, bool bd) {
     
@@ -47,7 +71,7 @@ inline bool match_potential(rule_t* rule, int32_t x, int32_t y, int32_t z,
 }
 
 inline void apply_potential(rule_t* rule, int32_t x, int32_t y, int32_t z, 
-    int16_t* potential, int32_t t, 
+    int32_t* potential, int32_t t, 
     uint16_t MX, uint16_t MY, 
     uint32_t elem, queue_t* queue, bool bd) {
 
@@ -71,7 +95,7 @@ inline void apply_potential(rule_t* rule, int32_t x, int32_t y, int32_t z,
     }
 }
 
-void compute_fd(int16_t* potential, uint8_t* state, 
+void compute_fd(int32_t* potential, uint8_t* state, 
     queue_t* queue, bool_2d* mask,
     uint16_t MX, uint16_t MY, uint16_t MZ, uint16_t C, 
     rule_t** rules, uint16_t rule_len) {
@@ -125,7 +149,7 @@ void compute_fd(int16_t* potential, uint8_t* state,
     }
 }
 
-void compute_bd(int16_t* potential, int32_t* future, 
+void compute_bd(int32_t* potential, int32_t* future, 
     queue_t* queue, bool_2d* mask,
     uint16_t MX, uint16_t MY, uint16_t MZ, uint16_t C, 
     rule_t** rules, uint16_t rule_len) {
@@ -135,8 +159,8 @@ void compute_bd(int16_t* potential, int32_t* future,
     size_t elem = MX * MY * MZ;
 
     for (uint16_t c = 0; c < C; c++) {
-        int16_t* row = potential + elem * c;
-        for (uint16_t i = 0; i < elem; i++) {
+        int32_t* row = potential + elem * c;
+        for (uint32_t i = 0; i < elem; i++) {
             int32_t m = future[i] & (1 << c);
             row[i] = m != 0 ? 0 : -1;
             if (m) push(queue, c, i % MX, (i % (MX * MY)) / MX, i / (MX * MY));
@@ -181,7 +205,7 @@ void compute_bd(int16_t* potential, int32_t* future,
     }
 }
 
-int32_t fd_points(int16_t* potentials, int32_t* future, uint16_t C, uint32_t elem) {
+int32_t fd_points(int32_t* potentials, int32_t* future, uint16_t C, uint32_t elem) {
     int32_t sum = 0;
 
     for (uint32_t i = 0; i < elem; i++) {
@@ -204,7 +228,7 @@ int32_t fd_points(int16_t* potentials, int32_t* future, uint16_t C, uint32_t ele
     return sum;
 }
 
-int32_t bd_points(int16_t* potentials, uint8_t* present, uint16_t C, uint32_t elem) {
+int32_t bd_points(int32_t* potentials, uint8_t* present, uint16_t C, uint32_t elem) {
     int32_t sum = 0;
 
     for (uint32_t i = 0; i < elem; i++) {

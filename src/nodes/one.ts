@@ -72,15 +72,15 @@ export class OneNode extends RuleNode {
             return RunState.SUCCESS;
         }
 
-        const [R, X, Y, Z] = this.randomMatch(this.ip.rng);
-        if (R < 0) return RunState.FAIL;
+        const [r, x, y, z] = this.randomMatch(this.ip.rng);
+        if (r < 0) return RunState.FAIL;
         else {
-            this.last[R] = 1;
-            this.rules[R].jit_apply_one_kernel(
+            this.last |= 1 << r;
+            this.rules[r].jit_apply_one_kernel(
                 this.grid.state,
-                X,
-                Y,
-                Z,
+                x,
+                y,
+                z,
                 this.ip.changes
             );
             this.counter++;
@@ -107,10 +107,12 @@ export class OneNode extends RuleNode {
 
             for (let k = 0; k < this.matchCount; k++) {
                 const offset0 = k << 2;
-                const [r, x, y, z] = this.matches.subarray(
-                    offset0,
-                    offset0 + 4
-                );
+
+                const r = matches[offset0 + 0];
+                const x = matches[offset0 + 1];
+                const y = matches[offset0 + 2];
+                const z = matches[offset0 + 3];
+
                 let i = x + y * grid.MX + z * grid.MX * grid.MY;
                 if (!this.rules[r].jit_match_kernel(grid.state, x, y, z)) {
                     this.matchMask.set(i, r, false);

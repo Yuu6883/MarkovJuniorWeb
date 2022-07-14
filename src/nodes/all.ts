@@ -22,7 +22,7 @@ export class AllNode extends RuleNode {
         x: number,
         y: number,
         z: number,
-        newstate: Uint8Array,
+        mask: Uint8Array,
         MX: number,
         MY: number
     ) {
@@ -36,11 +36,11 @@ export class AllNode extends RuleNode {
                         ];
                     if (
                         value != 0xff &&
-                        newstate[x + dx + (y + dy) * MX + (z + dz) * MX * MY]
+                        mask[x + dx + (y + dy) * MX + (z + dz) * MX * MY]
                     )
                         return;
                 }
-        this.last[r] = 1;
+        this.last |= r << 1;
         for (let dz = 0; dz < rule.OMZ; dz++)
             for (let dy = 0; dy < rule.OMY; dy++)
                 for (let dx = 0; dx < rule.OMX; dx++) {
@@ -53,7 +53,7 @@ export class AllNode extends RuleNode {
                             sy = y + dy,
                             sz = z + dz;
                         let i = sx + sy * MX + sz * MX * MY;
-                        newstate[i] = 1;
+                        mask[i] = 1;
                         this.grid.state[i] = newvalue;
                         this.ip.changes.push([sx, sy, sz]);
                     }
@@ -64,7 +64,7 @@ export class AllNode extends RuleNode {
         const status = super.run();
         if (status !== RunState.SUCCESS) return status;
 
-        const grid = this.grid;
+        const { grid, matchMask, matches, temperature } = this;
         this.lastMatchedTurn = this.ip.counter;
 
         if (this.trajectory) {
@@ -85,7 +85,12 @@ export class AllNode extends RuleNode {
             const list: [number, number][] = [];
             for (let m = 0; m < this.matchCount; m++) {
                 const o = m << 2;
-                const [r, x, y, z] = this.matches.subarray(o, o + 4);
+
+                const r = matches[o + 0];
+                const x = matches[o + 1];
+                const y = matches[o + 2];
+                const z = matches[o + 3];
+
                 const heuristic = Field.deltaPointwise(
                     grid.state,
                     this.rules[r],
@@ -109,19 +114,25 @@ export class AllNode extends RuleNode {
                             ? Math.pow(
                                   u,
                                   Math.exp(
-                                      (heuristic - firstHeuristic) /
-                                          this.temperature
+                                      (heuristic - firstHeuristic) / temperature
                                   )
                               )
                             : -heuristic + 0.001 * u,
                     ]);
                 }
             }
+
             list.sort(([, a], [, b]) => b - a);
+
             for (const [k, _] of list) {
                 const o = k << 2;
-                const [r, x, y, z] = this.matches.subarray(o, o + 4);
-                this.matchMask.set(x + y * MX + z * MX * MY, r, false);
+
+                const r = matches[o + 0];
+                const x = matches[o + 1];
+                const y = matches[o + 2];
+                const z = matches[o + 3];
+
+                matchMask.set(x + y * MX + z * MX * MY, r, false);
                 this.fit(r, x, y, z, grid.mask, MX, MY);
             }
         } else {
@@ -129,8 +140,13 @@ export class AllNode extends RuleNode {
             Helper.shuffleFill(shuffle, this.ip.rng);
             for (const k of shuffle) {
                 const o = k << 2;
-                const [r, x, y, z] = this.matches.subarray(o, o + 4);
-                this.matchMask.set(x + y * MX + z * MX * MY, r, false);
+
+                const r = matches[o + 0];
+                const x = matches[o + 1];
+                const y = matches[o + 2];
+                const z = matches[o + 3];
+
+                matchMask.set(x + y * MX + z * MX * MY, r, false);
                 this.fit(r, x, y, z, grid.mask, MX, MY);
             }
         }

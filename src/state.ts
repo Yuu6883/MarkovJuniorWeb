@@ -258,6 +258,8 @@ export abstract class RuleState<T extends RuleNode> extends NodeState<T> {
     public search: boolean;
     @observable
     public searchedState: number;
+    @observable
+    public lastMatchedRuleIndices: number;
 
     constructor(node: T) {
         super(node);
@@ -266,6 +268,7 @@ export abstract class RuleState<T extends RuleNode> extends NodeState<T> {
         this.search = this.node.search;
         this.searchedState = this.node.visited;
         this.steps = this.node.steps || -1;
+        this.lastMatchedRuleIndices = 0;
 
         makeObservable(this);
     }
@@ -274,6 +277,36 @@ export abstract class RuleState<T extends RuleNode> extends NodeState<T> {
     sync() {
         this.node.steps = this.steps;
         this.counter = this.node.counter || 0;
+
+        const activeIndices = this.node.last;
+
+        if (activeIndices) {
+            let mapped = 0;
+
+            const rules = this.node.rules;
+            const RL = rules.length;
+
+            // Big brain way from og repo to map the incices
+            // since the sequence can be assumed
+            // code is modified to calculate all indices at once
+
+            for (let i = 0; i < RL; i++) {
+                if (activeIndices & (1 << i)) {
+                    mapped |= 1 << i;
+                    continue;
+                }
+
+                for (let r = i + 1; r < RL; r++) {
+                    if (rules[r].original) break;
+                    if (activeIndices & (1 << r)) {
+                        mapped |= 1 << i;
+                        break;
+                    }
+                }
+            }
+
+            this.lastMatchedRuleIndices = mapped;
+        }
 
         if (this.search) {
             this.searchedState = this.node.visited;

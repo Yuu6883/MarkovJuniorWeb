@@ -6,6 +6,7 @@ import { SymmetryHelper } from "../helpers/symmetry";
 import { Observation } from "../observation";
 import { Rule } from "../rule";
 import { Search } from "../search";
+import { NativeObserve } from "../wasm/observe";
 import { Optimization } from "../wasm/optimization";
 import { NativeSearch } from "../wasm/search";
 
@@ -35,13 +36,14 @@ export abstract class RuleNode extends Node {
     private limit: number;
     private depthCoefficient: number;
 
-    public last: Uint8Array;
+    public last: number;
 
-    public visited = 0;
+    public visited = NaN;
     private searching: Generator<number, Uint8Array[]>;
     private searchTries = 0;
 
     private preObserve: Uint8Array;
+    private native: NativeObserve;
 
     protected override async load(
         elem: Element,
@@ -83,7 +85,7 @@ export abstract class RuleNode extends Node {
             }
         }
         this.rules = ruleList.concat([]);
-        this.last = new Uint8Array(this.rules.length);
+        this.last = 0;
 
         this.steps = parseInt(elem.getAttribute("steps")) || 0;
         this.temperature = parseFloat(elem.getAttribute("temperature")) || 0;
@@ -125,15 +127,27 @@ export abstract class RuleNode extends Node {
                 this.limit = parseInt(elem.getAttribute("limit")) || -1;
                 this.depthCoefficient =
                     parseFloat(elem.getAttribute("depthCoefficient")) || 0.5;
-                this.rules.map((r) => Optimization.load_rule(r));
             } else if (!this.potentials) {
-                this.potentials = new Array2D(
-                    Int32Array,
-                    grid.state.length,
-                    grid.C
-                );
+                if (Optimization.supported) {
+                    const lib = await Optimization.module.init();
+                    this.native = new NativeObserve(lib, grid, this);
+
+                    this.potentials = new Array2D(
+                        this.native.potentials,
+                        grid.state.length,
+                        grid.C
+                    );
+                    this.future = this.native.future;
+                } else {
+                    this.potentials = new Array2D(
+                        Int32Array,
+                        grid.state.length,
+                        grid.C
+                    );
+                }
             }
-            this.future = new Int32Array(grid.state.length);
+
+            if (!this.future) this.future = new Int32Array(grid.state.length);
         }
 
         return true;
@@ -144,7 +158,7 @@ export abstract class RuleNode extends Node {
         this.counter = 0;
         this.futureComputed = false;
         this.searchTries = 0;
-        this.last.fill(0);
+        this.last = 0;
 
         this.searching?.throw(new Error("reset"));
         this.searching = null;
@@ -179,30 +193,48 @@ export abstract class RuleNode extends Node {
     }
 
     private observe() {
-        const { grid } = this;
+        const { grid, native } = this;
         const { MX, MY, MZ } = grid;
 
         if (this.observations && !this.futureComputed) {
             if (!this.search) {
-                if (
-                    !Observation.computeFutureSetPresent(
-                        this.future,
-                        grid.state,
-                        this.observations
-                    )
-                ) {
-                    return RunState.FAIL;
-                }
+                // const start = performance.now();
 
+                // Wasm version
+                if (native) {
+                    if (!native.computeFutureSetPresent(grid.state))
+                        return RunState.FAIL;
+
+                    native.computeBackwardPotentials(MX, MY, MZ);
+                } else {
+                    if (
+                        !Observation.computeFutureSetPresent(
+                            this.future,
+                            grid.state,
+                            this.observations
+                        )
+                    ) {
+                        return RunState.FAIL;
+                    }
+
+                    Observation.computeBackwardPotentials(
+                        this.potentials,
+                        this.future,
+                        MX,
+                        MY,
+                        MZ,
+                        this.rules
+                    );
+                }
                 this.futureComputed = true;
-                Observation.computeBackwardPotentials(
-                    this.potentials,
-                    this.future,
-                    MX,
-                    MY,
-                    MZ,
-                    this.rules
-                );
+
+                // wasm x2 speedup over js, tested on Island (seed=112716328)
+                // const end = performance.now();
+                // console.log(
+                //     `${this.native ? "wasm version: " : "js version: "} ${(
+                //         end - start
+                //     ).toFixed(2)}ms`
+                // );
             } else {
                 if (!this.searching) {
                     if (!this.preObserve) {
@@ -227,22 +259,35 @@ export abstract class RuleNode extends Node {
 
                     this.trajectory = null;
                     // start searching
-                    this.searching = (
-                        Optimization.supported ? NativeSearch : Search
-                    ).run(
-                        grid.state,
-                        this.future,
-                        this.rules,
-                        grid.MX,
-                        grid.MY,
-                        grid.MZ,
-                        grid.C,
-                        this instanceof AllNode,
-                        this.limit,
-                        this.depthCoefficient,
-                        this.ip.rng.int32(),
-                        true // viz
-                    );
+                    this.searching = Optimization.supported
+                        ? new NativeSearch(
+                              grid.state,
+                              this.future,
+                              this.rules,
+                              grid.MX,
+                              grid.MY,
+                              grid.MZ,
+                              grid.C,
+                              this instanceof AllNode,
+                              this.limit,
+                              this.depthCoefficient,
+                              this.ip.rng.int32(),
+                              true // viz
+                          ).run()
+                        : Search.run(
+                              grid.state,
+                              this.future,
+                              this.rules,
+                              grid.MX,
+                              grid.MY,
+                              grid.MZ,
+                              grid.C,
+                              this instanceof AllNode,
+                              this.limit,
+                              this.depthCoefficient,
+                              this.ip.rng.int32(),
+                              true // viz
+                          );
                 }
 
                 let result = this.searching.next();
@@ -284,7 +329,7 @@ export abstract class RuleNode extends Node {
     }
 
     public override run() {
-        this.last.fill(0);
+        this.last = 0;
 
         if (this.steps > 0 && this.counter >= this.steps) return RunState.FAIL;
 

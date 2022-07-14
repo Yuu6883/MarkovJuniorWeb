@@ -5,25 +5,22 @@ import ObsModuleURL from "../bin/rule.wasm";
 
 export class Optimization {
     static get supported() {
-        return !!this.obs_instance;
+        // return false; // for comparing js&wasm output
+        return !!this.module;
     }
 
-    static obs_instance: WasmInstance;
+    static module: WasmModule;
 
     static loadPromise = (async () => {
         {
             const res = await fetch(ObsModuleURL);
             const buffer = await res.arrayBuffer();
 
-            const vm = await WasmModule.load(buffer);
-            const vi = await vm.init();
-
-            this.obs_instance = vi;
+            this.module = await WasmModule.load(buffer);
         }
-    })().catch((_) => (this.obs_instance = null));
+    })().catch((_) => (this.module = null));
 
-    static load_rule(rule: Rule) {
-        const lib = this.obs_instance;
+    static load_rule(lib: WasmInstance, rule: Rule) {
         const bin = lib.exports;
 
         const { ishifts, oshifts, C } = rule;

@@ -21,6 +21,8 @@ export class WasmInstance {
             memory,
         };
 
+        const start = performance.now();
+
         const info_list = WebAssembly.Module.imports(module);
         for (const info of info_list) {
             if (!(info.name in env)) {
@@ -39,6 +41,9 @@ export class WasmInstance {
         });
         this.memory = memory;
         this.view = new DataView(this.memory.buffer);
+
+        const end = performance.now();
+        console.log(`WebAssembly init took ${(end - start).toFixed(2)}ms`);
     }
 
     private abort() {
@@ -60,12 +65,12 @@ export class WasmInstance {
 
         if (delta >= 0) {
             const grow_min = 16; // grow 1 MB at least
-            this.memory.grow(Math.min(grow_min, 1 + (delta >>> 16)));
+            this.memory.grow(Math.max(grow_min, 1 + (delta >>> 16)));
             this.view = new DataView(this.memory.buffer);
         }
 
         // console.log(
-        //     `malloc'd ${size} bytes (alignment = ${alignment}), ptr = ${old_ptr}`
+        //     `malloc'd ${size} bytes (alignment = ${alignment}), ptr = ${old_ptr}, mem.size = ${this.memory_size}`
         // );
         return old_ptr;
     }
