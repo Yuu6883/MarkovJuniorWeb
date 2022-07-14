@@ -507,6 +507,6 @@ export class Model {
         this.renderer.dispose();
         // point of this is to call RuleNode.searching.throw
         // which breaks the scope that keeps the webassembly instance "alive" (not gc'd)
-        this.ip.root.reset();
+        this.ip?.root.reset();
     }
 }
