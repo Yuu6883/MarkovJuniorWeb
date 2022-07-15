@@ -85,37 +85,4 @@ export class Grid {
             sum += 1 << this.values.get(values.charCodeAt(i));
         return sum;
     }
-
-    // Replaced by Rule.jit_match_kernel
-    /*
-    public matches(rule: Rule, x: number, y: number, z: number): boolean {
-        const { MX, MY, state } = this;
-        const { input, IMX, IMY } = rule;
-
-        let dz = 0,
-            dy = 0,
-            dx = 0;
-
-        for (let di = 0; di < input.length; di++) {
-            if (
-                (input[di] &
-                    (1 <<
-                        state[x + dx + (y + dy) * MX + (z + dz) * MX * MY])) ===
-                0
-            )
-                return false;
-
-            dx++;
-            if (dx === IMX) {
-                dx = 0;
-                dy++;
-                if (dy === IMY) {
-                    dy = 0;
-                    dz++;
-                }
-            }
-        }
-        return true;
-    }
-    */
 }

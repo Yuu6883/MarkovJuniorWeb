@@ -31,33 +31,6 @@ export class OneNode extends RuleNode {
         }
     }
 
-    // Replaced by rule.jit_apply_one_kernel
-    public apply(rule: Rule, x: number, y: number, z: number) {
-        const grid = this.grid;
-        const { MX, MY } = grid;
-        const changes = this.ip.changes;
-
-        for (let dz = 0; dz < rule.OMZ; dz++)
-            for (let dy = 0; dy < rule.OMY; dy++)
-                for (let dx = 0; dx < rule.OMX; dx++) {
-                    const newValue =
-                        rule.output[
-                            dx + dy * rule.OMX + dz * rule.OMX * rule.OMY
-                        ];
-                    if (newValue !== 0xff) {
-                        const sx = x + dx;
-                        const sy = y + dy;
-                        const sz = z + dz;
-                        const si = sx + sy * MX + sz * MX * MY;
-                        const oldValue = grid.state[si];
-                        if (newValue !== oldValue) {
-                            grid.state[si] = newValue;
-                            changes.push([sx, sy, sz]);
-                        }
-                    }
-                }
-    }
-
     public override run() {
         const status = super.run();
         if (status !== RunState.SUCCESS) return status;

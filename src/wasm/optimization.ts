@@ -9,6 +9,10 @@ export class Optimization {
         return !!this.module;
     }
 
+    static get inline_limit() {
+        return 128;
+    }
+
     static module: WasmModule;
 
     static loadPromise = (async () => {

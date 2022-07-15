@@ -3,6 +3,7 @@ import { SymmetryHelper } from "../helpers/symmetry";
 import { Branch, RunState } from "./";
 import { Rule } from "../rule";
 import { Helper } from "../helpers/helper";
+import { Optimization } from "../wasm/optimization";
 
 const readScale = (s: string): [number, number] => {
     if (!s.includes("/")) return [parseInt(s), 1];
@@ -90,71 +91,6 @@ export class MapNode extends Branch {
         return true;
     }
 
-    // Replaced by jit_map_match_kernel and jit_map_apply_kernel
-    /*
-    static matches(
-        rule: Rule,
-        x: number,
-        y: number,
-        z: number,
-        state: Uint8Array,
-        MX: number,
-        MY: number,
-        MZ: number
-    ) {
-        const { IMX, IMY, IMZ, input } = rule;
-        for (let dz = 0; dz < IMZ; dz++)
-            for (let dy = 0; dy < IMY; dy++)
-                for (let dx = 0; dx < IMX; dx++) {
-                    let sx = x + dx;
-                    let sy = y + dy;
-                    let sz = z + dz;
-
-                    if (sx >= MX) sx -= MX;
-                    if (sy >= MY) sy -= MY;
-                    if (sz >= MZ) sz -= MZ;
-
-                    const inputWave = input[dx + dy * IMX + dz * IMX * IMY];
-                    if (
-                        (inputWave &
-                            (1 << state[sx + sy * MX + sz * MX * MY])) ===
-                        0
-                    )
-                        return false;
-                }
-
-        return true;
-    }
-
-    static apply(
-        rule: Rule,
-        x: number,
-        y: number,
-        z: number,
-        state: Uint8Array,
-        MX: number,
-        MY: number,
-        MZ: number
-    ) {
-        const { OMZ, OMY, OMX, output } = rule;
-
-        for (let dz = 0; dz < OMZ; dz++)
-            for (let dy = 0; dy < OMY; dy++)
-                for (let dx = 0; dx < OMX; dx++) {
-                    let sx = x + dx;
-                    let sy = y + dy;
-                    let sz = z + dz;
-
-                    if (sx >= MX) sx -= MX;
-                    if (sy >= MY) sy -= MY;
-                    if (sz >= MZ) sz -= MZ;
-
-                    const o = output[dx + dy * OMX + dz * OMX * OMY];
-                    if (o != 0xff) state[sx + sy * MX + sz * MX * MY] = o;
-                }
-    }
-    */
-
     public override run() {
         if (this.n >= 0) return super.run();
 
@@ -202,7 +138,7 @@ export class MapNode extends Branch {
         const [IMX, IMY, IMZ, OMX, OMY, OMZ] = IO_DIM;
 
         // jit_map_match_kernel
-        {
+        if (rule.input.length < Optimization.inline_limit) {
             const code: string[] = [];
 
             for (let dz = 0; dz < IMZ; dz++) {
@@ -236,10 +172,42 @@ export class MapNode extends Branch {
                     code.map((line) => " ".repeat(4) + line).join("\n")
                 )
             );
+        } else {
+            rule.jit_map_match_kernel = (
+                state: Uint8Array,
+                x: number,
+                y: number,
+                z: number
+            ) => {
+                for (let dz = 0; dz < IMZ; dz++) {
+                    for (let dy = 0; dy < IMY; dy++) {
+                        for (let dx = 0; dx < IMX; dx++) {
+                            let sx = x + dx;
+                            let sy = y + dy;
+                            let sz = z + dz;
+
+                            if (sx >= MX) sx -= MX;
+                            if (sy >= MY) sy -= MY;
+                            if (sz >= MZ) sz -= MZ;
+
+                            const inputWave =
+                                input[dx + dy * IMX + dz * IMX * IMY];
+                            if (
+                                (inputWave &
+                                    (1 <<
+                                        state[sx + sy * MX + sz * MX * MY])) ===
+                                0
+                            )
+                                return false;
+                        }
+                    }
+                }
+                return true;
+            };
         }
 
         // jit_map_apply_kernel
-        {
+        if (output.length < Optimization.inline_limit) {
             const code: string[] = [];
 
             for (let dz = 0; dz < OMZ; dz++) {
@@ -267,6 +235,29 @@ export class MapNode extends Branch {
                     code.map((line) => " ".repeat(4) + line).join("\n")
                 )
             );
+        } else {
+            rule.jit_map_apply_kernel = (
+                state: Uint8Array,
+                x: number,
+                y: number,
+                z: number
+            ) => {
+                for (let dz = 0; dz < OMZ; dz++) {
+                    for (let dy = 0; dy < OMY; dy++) {
+                        for (let dx = 0; dx < OMX; dx++) {
+                            const o = output[dx + dy * OMX + dz * OMX * OMY];
+
+                            if (o != 0xff) {
+                                const sx = (x + dx) % NX;
+                                const sy = (y + dy) % NY;
+                                const sz = (z + dz) % NZ;
+
+                                state[sx + sy * NX + sz * NX * NY] = o;
+                            }
+                        }
+                    }
+                }
+            };
         }
     }
 }

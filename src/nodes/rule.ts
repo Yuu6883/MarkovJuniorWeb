@@ -1,3 +1,4 @@
+import { vec3 } from "gl-matrix";
 import { Field } from "../field";
 import { Grid } from "../grid";
 import { Array2D, BoolArray2D } from "../helpers/datastructures";
@@ -439,7 +440,7 @@ export abstract class RuleNode extends Node {
         const [IMX, IMY, IMZ, OMX, OMY, OMZ] = IO_DIM;
 
         // jit_match_kernel
-        {
+        if (input.length <= Optimization.inline_limit) {
             let dz = 0;
             let dy = 0;
             let dx = 0;
@@ -476,10 +477,44 @@ export abstract class RuleNode extends Node {
                     code.map((line) => " ".repeat(4) + line).join("\n")
                 )
             );
+        } else {
+            rule.jit_match_kernel = (
+                state: Uint8Array,
+                x: number,
+                y: number,
+                z: number
+            ) => {
+                let dz = 0,
+                    dy = 0,
+                    dx = 0;
+
+                for (let di = 0; di < input.length; di++) {
+                    if (
+                        (input[di] &
+                            (1 <<
+                                state[
+                                    x + dx + (y + dy) * MX + (z + dz) * MX * MY
+                                ])) ===
+                        0
+                    )
+                        return false;
+
+                    dx++;
+                    if (dx === IMX) {
+                        dx = 0;
+                        dy++;
+                        if (dy === IMY) {
+                            dy = 0;
+                            dz++;
+                        }
+                    }
+                }
+                return true;
+            };
         }
 
         // jit_apply_one_kernel
-        {
+        if (output.length <= Optimization.inline_limit) {
             const code: string[] = [];
             for (let dz = 0; dz < OMZ; dz++) {
                 for (let dy = 0; dy < OMY; dy++) {
@@ -505,6 +540,38 @@ export abstract class RuleNode extends Node {
             rule.jit_apply_one_kernel = <typeof rule.jit_apply_one_kernel>(
                 new Function("state", "x", "y", "z", "changes", code.join("\n"))
             );
+        } else {
+            rule.jit_apply_one_kernel = (
+                state: Uint8Array,
+                x: number,
+                y: number,
+                z: number,
+                changes: vec3[]
+            ) => {
+                for (let dz = 0; dz < rule.OMZ; dz++) {
+                    for (let dy = 0; dy < rule.OMY; dy++) {
+                        for (let dx = 0; dx < rule.OMX; dx++) {
+                            const newValue =
+                                rule.output[
+                                    dx +
+                                        dy * rule.OMX +
+                                        dz * rule.OMX * rule.OMY
+                                ];
+                            if (newValue !== 0xff) {
+                                const sx = x + dx;
+                                const sy = y + dy;
+                                const sz = z + dz;
+                                const si = sx + sy * MX + sz * MX * MY;
+                                const oldValue = state[si];
+                                if (newValue !== oldValue) {
+                                    state[si] = newValue;
+                                    changes.push([sx, sy, sz]);
+                                }
+                            }
+                        }
+                    }
+                }
+            };
         }
     }
 }
