@@ -29,8 +29,9 @@ export class Rule {
         z: number
     ) => boolean;
 
-    public jit_apply_one_kernel?: (
-        state: Uint8Array,
+    public jit_apply_kernel?: (
+        state_in: Uint8Array,
+        state_out: Uint8Array,
         x: number,
         y: number,
         z: number,

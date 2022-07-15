@@ -478,12 +478,7 @@ export abstract class RuleNode extends Node {
                 )
             );
         } else {
-            rule.jit_match_kernel = (
-                state: Uint8Array,
-                x: number,
-                y: number,
-                z: number
-            ) => {
+            rule.jit_match_kernel = (state: Uint8Array, x, y, z) => {
                 let dz = 0,
                     dy = 0,
                     dx = 0;
@@ -513,7 +508,7 @@ export abstract class RuleNode extends Node {
             };
         }
 
-        // jit_apply_one_kernel
+        // jit_apply_kernel
         if (output.length <= Optimization.inline_limit) {
             const code: string[] = [];
             for (let dz = 0; dz < OMZ; dz++) {
@@ -527,9 +522,9 @@ export abstract class RuleNode extends Node {
             const sy = y + ${dy};
             const sz = z + ${dz};
             const si = sx + sy * ${MX} + sz * ${MX * MY};
-            const oldValue = state[si];
+            const oldValue = state_in[si];
             if (oldValue != ${newValue}) {
-                state[si] = ${newValue};
+                state_out[si] = ${newValue};
                 changes.push([sx, sy, sz]);
             }
         }`);
@@ -537,17 +532,19 @@ export abstract class RuleNode extends Node {
                     }
                 }
             }
-            rule.jit_apply_one_kernel = <typeof rule.jit_apply_one_kernel>(
-                new Function("state", "x", "y", "z", "changes", code.join("\n"))
+            rule.jit_apply_kernel = <typeof rule.jit_apply_kernel>(
+                new Function(
+                    "state_in",
+                    "state_out",
+                    "x",
+                    "y",
+                    "z",
+                    "changes",
+                    code.join("\n")
+                )
             );
         } else {
-            rule.jit_apply_one_kernel = (
-                state: Uint8Array,
-                x: number,
-                y: number,
-                z: number,
-                changes: vec3[]
-            ) => {
+            rule.jit_apply_kernel = (state_in, state_out, x, y, z, changes) => {
                 for (let dz = 0; dz < rule.OMZ; dz++) {
                     for (let dy = 0; dy < rule.OMY; dy++) {
                         for (let dx = 0; dx < rule.OMX; dx++) {
@@ -562,9 +559,9 @@ export abstract class RuleNode extends Node {
                                 const sy = y + dy;
                                 const sz = z + dz;
                                 const si = sx + sy * MX + sz * MX * MY;
-                                const oldValue = state[si];
-                                if (newValue !== oldValue) {
-                                    state[si] = newValue;
+                                const oldValue = state_in[si];
+                                if (oldValue !== newValue) {
+                                    state_out[si] = newValue;
                                     changes.push([sx, sy, sz]);
                                 }
                             }

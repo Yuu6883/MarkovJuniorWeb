@@ -49,7 +49,8 @@ export class OneNode extends RuleNode {
         if (r < 0) return RunState.FAIL;
         else {
             this.last |= 1 << r;
-            this.rules[r].jit_apply_one_kernel(
+            this.rules[r].jit_apply_kernel(
+                this.grid.state,
                 this.grid.state,
                 x,
                 y,

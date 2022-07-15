@@ -21,22 +21,14 @@ export class ParallelNode extends RuleNode {
         const rule = this.rules[r];
         if (ip.rng.double() > rule.p) return;
         this.last |= 1 << r;
-        const { MX, MY } = grid;
-
-        for (let dz = 0; dz < rule.OMZ; dz++)
-            for (let dy = 0; dy < rule.OMY; dy++)
-                for (let dx = 0; dx < rule.OMX; dx++) {
-                    const newvalue =
-                        rule.output[
-                            dx + dy * rule.OMX + dz * rule.OMX * rule.OMY
-                        ];
-
-                    let idi = x + dx + (y + dy) * MX + (z + dz) * MX * MY;
-                    if (newvalue !== 0xff && newvalue !== grid.state[idi]) {
-                        this.newstate[idi] = newvalue;
-                        ip.changes.push([x + dx, y + dy, z + dz]);
-                    }
-                }
+        rule.jit_apply_kernel(
+            grid.state,
+            this.newstate,
+            x,
+            y,
+            z,
+            this.ip.changes
+        );
         this.matchCount++;
     }
 
