@@ -13,6 +13,13 @@ import "./style/index.css";
 makeObservable(Program);
 export const ProgramContext = createContext<typeof Program>(null);
 
+window.addEventListener("keydown", (e) => {
+    if (e.key === "F4") {
+        Program.instance?.benchmark();
+        e.preventDefault();
+    }
+});
+
 const App = () => {
     return (
         <ProgramContext.Provider value={Program}>

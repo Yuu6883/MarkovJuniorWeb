@@ -420,6 +420,38 @@ export class Model {
         }
     }
 
+    public async benchmark(runs = 10, rng_seed = true) {
+        const timings = new Float64Array(runs);
+
+        const ip = await Interpreter.load(
+            this.modelDoc,
+            this.DIM[0],
+            this.DIM[1],
+            this.DIM[2]
+        );
+
+        for (let i = 0; i < runs; i++) {
+            const seed = rng_seed ? Program.meta.int32() : this._seed;
+            const iter = ip?.run(seed, this._steps);
+
+            const start = performance.now();
+            let result = iter.next();
+            while (!result.done) result = iter.next();
+            const end = performance.now();
+
+            timings[i] = end - start;
+            console.log(`run[${i}] finished: ${(end - start).toFixed(2)}ms`);
+
+            await new Promise((resolve) => setTimeout(resolve, 250));
+        }
+
+        if (runs > 1) {
+            let sum = 0;
+            for (let i = 0; i < runs; i++) sum += timings[i];
+            console.log(`average runtime: ${(sum / runs).toFixed(6)}ms`);
+        }
+    }
+
     @computed
     public get MX() {
         return this.DIM[0];
