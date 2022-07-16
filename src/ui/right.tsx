@@ -382,7 +382,7 @@ const ConvChainViz = observer(({ state }: { state: ConvChainState }) => {
             Array.from({ length: SMY }, (_, y) => (
                 <tr key={y}>
                     {Array.from({ length: SMX }, (_, x) => (
-                        <Cell value={sample[x + y * SMX] ? c1 : c0} />
+                        <Cell key={x} value={sample[x + y * SMX] ? c1 : c0} />
                     ))}
                 </tr>
             )),

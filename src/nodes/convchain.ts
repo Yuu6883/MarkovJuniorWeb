@@ -116,8 +116,8 @@ export class ConvChainNode extends Node {
             let r = range(ip.rng, state.length);
             if (!substrate[r]) continue;
 
-            const x = r % MX,
-                y = ~~(r / MX);
+            const x = r % MX;
+            const y = ~~(r / MX);
             let q = 1;
 
             for (let sy = y - N + 1; sy <= y + N - 1; sy++)
@@ -126,18 +126,13 @@ export class ConvChainNode extends Node {
                         difference = 0;
                     for (let dy = 0; dy < N; dy++)
                         for (let dx = 0; dx < N; dx++) {
-                            let X = sx + dx;
-                            if (X < 0) X += MX;
-                            else if (X >= MX) X -= MX;
-
-                            let Y = sy + dy;
-                            if (Y < 0) Y += MY;
-                            else if (Y >= MY) Y -= MY;
+                            const X = (sx + dx + MX) % MX;
+                            const Y = (sy + dy + MY) % MY;
 
                             const value = state[X + Y * MX] == c1;
                             const power = 1 << (dy * N + dx);
                             ind += value ? power : 0;
-                            if (X == x && Y == y)
+                            if (X === x && Y === y)
                                 difference = value ? power : -power;
                         }
 
