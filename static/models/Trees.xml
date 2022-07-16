@@ -1,0 +1,42 @@
+<sequence values="BkAENgopq" symmetry="(xy)">
+    <prl in="B" out="A" />
+    <prl in="A * *" out="B * *" />
+    <prl in="A A" out="A N" />
+
+    <one>
+        <rule 
+             in="AAAAAAA/AAAAAAA/AAAAAAA/AAAAAAA/AAAAAAA/AAAAAAA/AAAAAAA"
+            out="EEEEEEE/EEEEEEE/EEEEEEE/EEEkEEE/EEEEEEE/EEEEEEE/EEEEEEE"
+        />
+        <rule 
+             in="AAAAAAAAA/AAAAAAAAA/AAAAAAAAA/AAAAAAAAA/AAAAAAAAA/AAAAAAAAA/AAAAAAAAA/AAAAAAAAA/AAAAAAAAA"
+            out="EEEEEEEEE/EEEEEEEEE/EEEEEEEEE/EEEEEEEEE/EEEEkEEEE/EEEEEEEEE/EEEEEEEEE/EEEEEEEEE/EEEEEEEEE"
+        />
+    </one>
+    <prl in="A" out="E" />
+
+    <markov>
+        <sequence>
+            <one in="k" out="p" steps="1" />
+            <one in="* p" out="p p" steps="10" p="0.5" />
+            <one in="B p" out="o p" />
+            <one steps="50">
+                <rule in="***/*B*/*** BBB/BoB/BBB" out="***/*o*/*** ***/*o*/***"></rule>
+                <rule in="***/*B*/*** BBB/BoB/BBB" out="***/***/*** ***/*oo/***"></rule>
+                <rule in="***/*B*/*** BBB/BoB/BBB" out="***/***/*o* ***/*o*/***"></rule>
+                <rule in="***/*B*/*** BBB/BoB/BBB" out="***/***/**o ***/*o*/***"></rule>
+            </one>
+            <one in="Bo" out="qo" />
+            <one in="Bq" out="qq" symmetry="(xyz)" steps="50" temperature="1.0" >
+                <field for="q" on="B" to="o" />
+            </one>
+            <prl in="Bo" out="Bq" symmetry="(xyz)" />
+            <prl>
+                <rule in="q" out="g" />
+                <rule in="p" out="N" />
+            </prl>
+        </sequence>
+    </markov>
+    
+    <prl in="g * * E" out="B B B E" />
+</sequence>
