@@ -98,12 +98,14 @@ export class EventNode extends ScopeNode<EventHandlerNode> {
         ip.current = current;
 
         this.flushEvents();
+        this.n = -1;
 
         return RunState.SUCCESS;
     }
 
     public override reset(): void {
         super.reset();
+        this.n = -1;
         this.start = 0;
         this.flushEvents();
     }
@@ -140,6 +142,11 @@ export abstract class EventHandlerNode extends ScopeNode {
     public break: boolean;
     public abstract active(): boolean;
 
+    constructor() {
+        super();
+        this.n = -1;
+    }
+
     public override run() {
         if (this.active()) return super.run();
         return RunState.FAIL;
@@ -156,7 +163,7 @@ class KeypressNode extends EventHandlerNode {
         this.ref = ref;
     }
 
-    protected active(): boolean {
+    public active(): boolean {
         return this.ref.has(this.key);
     }
 }
