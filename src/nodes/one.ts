@@ -11,7 +11,7 @@ import { RuleNode, RunState } from "./";
 const INVALID: vec4 = [-1, -1, -1, -1];
 
 export class OneNode extends RuleNode {
-    protected override async load(
+    public override async load(
         elem: Element,
         parentSymmetry: Uint8Array,
         grid: Grid

@@ -36,7 +36,7 @@ export class ConvolutionNode extends Node {
         ],
     ]);
 
-    protected override async load(elem: Element, _: Uint8Array, grid: Grid) {
+    public override async load(elem: Element, _: Uint8Array, grid: Grid) {
         const erules = [...Helper.childrenByTag(elem, "rule")];
         const elems = erules.length ? erules : [elem];
 

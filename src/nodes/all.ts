@@ -5,7 +5,7 @@ import { Helper } from "../helpers/helper";
 import { RuleNode, RunState } from "./";
 
 export class AllNode extends RuleNode {
-    protected override async load(
+    public override async load(
         elem: Element,
         parentSymmetry: Uint8Array,
         grid: Grid

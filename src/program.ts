@@ -22,7 +22,7 @@ import { Interpreter } from "./interpreter";
 import ModelsXML from "../static/models.xml";
 import PaletteXML from "../static/resources/palette.xml";
 import { NodeState, NodeStateInfo } from "./state";
-import { Node } from "./nodes";
+import { Branch, EventNode, Node, ScopeNode } from "./nodes";
 import { Optimization } from "./wasm/optimization";
 
 export type ProgramOutput = { name: string; buffer: ArrayBuffer };
@@ -360,11 +360,29 @@ export class Model {
 
         // Update UI hooks should not be timed
         this.curr_node_index = this.nodes.findIndex(({ state }) => {
-            const br = this.ip.current;
+            let br = this.ip.current;
             if (!br) return false;
-            if (br.n < 0 || br.n >= br.children.length)
+
+            if (br.n < 0 || br.n >= br.children.length) {
                 return state.node === br;
-            return state.node === br.children[br.n];
+            }
+
+            let cn = br.children[br.n];
+            while (cn instanceof ScopeNode) {
+                if (cn.n < 0 || cn.n >= br.children.length)
+                    return state.node === cn;
+                cn = cn.children[cn.n];
+            }
+
+            if (cn instanceof Branch) {
+                if (cn.n < 0 || cn.n >= cn.children.length) {
+                    return state.node === cn;
+                } else {
+                    return state.node === cn.children[cn.n];
+                }
+            }
+
+            return state.node === cn;
         });
 
         {
@@ -524,5 +542,13 @@ export class Model {
         // point of this is to call RuleNode.searching.throw
         // which breaks the scope that keeps the webassembly instance "alive" (not gc'd)
         this.ip?.root.reset();
+    }
+
+    @action
+    public event(name: string, key: string) {
+        const curr = this.ip?.listener;
+        if (!curr) return;
+
+        curr.event(name, key);
     }
 }

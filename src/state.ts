@@ -17,6 +17,7 @@ import {
     ParallelNode,
     TileNode,
     OverlapNode,
+    AndNode,
 } from "./nodes";
 
 export type NodeWithDepth = {
@@ -36,7 +37,7 @@ export type NodeStateInfo = {
     isLastChild: boolean;
 };
 
-export abstract class NodeState<T extends Node = Node> {
+export class NodeState<T extends Node = Node> {
     public node: T;
     @observable
     public isCurrent: boolean;
@@ -95,8 +96,9 @@ export abstract class NodeState<T extends Node = Node> {
 
     // well
     private static factory(node: Node): NodeState {
-        if (node instanceof SequenceNode) return new SequenceState(node);
+        if (node instanceof AndNode) return new AndState(node);
         if (node instanceof MarkovNode) return new MarkovState(node);
+        if (node instanceof SequenceNode) return new SequenceState(node);
         if (node instanceof ConvolutionNode) return new ConvolutionState(node);
         if (node instanceof ConvChainNode) return new ConvChainState(node);
         if (node instanceof MapNode) return new MapState(node);
@@ -107,15 +109,15 @@ export abstract class NodeState<T extends Node = Node> {
         if (node instanceof TileNode) return new TileState(node);
         if (node instanceof OverlapNode) return new OverlapState(node);
 
-        console.error(node);
-        throw new Error("unknown node");
-        return null;
+        return new NodeState(node);
     }
 
     @action
     sync() {}
 
-    abstract get name(): string;
+    get name(): string {
+        return this.node.source.tagName;
+    }
 }
 
 abstract class BranchState<T extends Branch> extends NodeState<T> {
@@ -140,6 +142,12 @@ export class SequenceState extends BranchState<SequenceNode> {
 export class MarkovState extends BranchState<MarkovNode> {
     get name(): string {
         return "markov";
+    }
+}
+
+export class AndState extends BranchState<AndNode> {
+    get name(): string {
+        return "and";
     }
 }
 

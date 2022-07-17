@@ -3,7 +3,7 @@ import { Grid } from "../grid";
 import { Array3D, BoolArray2D } from "../helpers/datastructures";
 import { Helper } from "../helpers/helper";
 
-import { Branch, RunState } from "./";
+import { Branch, SequenceNode, RunState } from "./";
 
 export abstract class WFCNode extends Branch {
     protected wave: Wave;
@@ -36,7 +36,7 @@ export abstract class WFCNode extends Branch {
     private firstgo = true;
     protected rng: PRNG;
 
-    protected override async load(
+    public override async load(
         elem: Element,
         parentSymmetry: Uint8Array,
         grid: Grid
@@ -86,7 +86,7 @@ export abstract class WFCNode extends Branch {
     }
 
     public override run() {
-        if (this.n >= 0) return super.run();
+        if (this.n >= 0) return SequenceNode.prototype.run.apply(this);
 
         if (this.firstgo) {
             this.wave.init(

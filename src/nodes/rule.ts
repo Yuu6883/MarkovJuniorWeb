@@ -46,7 +46,7 @@ export abstract class RuleNode extends Node {
     private preObserve: Uint8Array;
     private native: NativeObserve;
 
-    protected override async load(
+    public override async load(
         elem: Element,
         parentSymmetry: Uint8Array,
         grid: Grid

@@ -1,6 +1,6 @@
 import { Grid } from "../grid";
 import { SymmetryHelper } from "../helpers/symmetry";
-import { Branch, RunState } from "./";
+import { Branch, SequenceNode, RunState } from "./";
 import { Rule } from "../rule";
 import { Helper } from "../helpers/helper";
 import { Optimization } from "../wasm/optimization";
@@ -17,7 +17,7 @@ export class MapNode extends Branch {
     private newgrid: Grid;
     private ND = new Int32Array(6);
 
-    protected override async load(
+    public override async load(
         elem: Element,
         parentSymmetry: Uint8Array,
         grid: Grid
@@ -92,7 +92,7 @@ export class MapNode extends Branch {
     }
 
     public override run() {
-        if (this.n >= 0) return super.run();
+        if (this.n >= 0) return SequenceNode.prototype.run.apply(this);
 
         const { grid, newgrid } = this;
         const [NX, NY, NZ, DX, DY, DZ] = this.ND;

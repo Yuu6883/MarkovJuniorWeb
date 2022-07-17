@@ -21,7 +21,7 @@ export class TileNode extends WFCNode {
 
     private votes: Array2D<Uint32Array>;
 
-    protected override async load(
+    public override async load(
         elem: Element,
         parentSymmetry: Uint8Array,
         grid: Grid

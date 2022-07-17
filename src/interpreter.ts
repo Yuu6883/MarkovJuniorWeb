@@ -2,11 +2,13 @@ import seedrandom, { PRNG } from "seedrandom";
 import { Grid } from "./grid";
 import { vec3 } from "./helpers/helper";
 import { SymmetryHelper } from "./helpers/symmetry";
-import { Node, Branch, MarkovNode, WFCNode } from "./nodes/";
+import { Node, Branch, MarkovNode, WFCNode, EventNode } from "./nodes/";
 
 export class Interpreter {
     public root: Branch;
     public current: Branch;
+    public listener: EventNode;
+    public blocking = false;
 
     public grid: Grid;
     public startgrid: Grid;
@@ -81,17 +83,17 @@ export class Interpreter {
         this.counter = 0;
 
         while (this.current && (steps <= 0 || this.counter < steps)) {
-            yield [
-                this.grid.state,
-                this.grid.characters,
-                this.grid.MX,
-                this.grid.MY,
-                this.grid.MZ,
-            ];
+            if (!this.blocking)
+                yield [
+                    this.grid.state,
+                    this.grid.characters,
+                    this.grid.MX,
+                    this.grid.MY,
+                    this.grid.MZ,
+                ];
 
             this.current.run();
-            this.counter++;
-            this.first.push(this.changes.length);
+            this.increChanges();
         }
 
         yield [
@@ -101,6 +103,11 @@ export class Interpreter {
             this.grid.MY,
             this.grid.MZ,
         ];
+    }
+
+    public increChanges() {
+        this.counter++;
+        this.first.push(this.changes.length);
     }
 
     public onRender() {

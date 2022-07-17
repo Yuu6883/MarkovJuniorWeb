@@ -17,8 +17,12 @@ import {
     WFCNode,
 } from "./";
 
+interface NodeConstructor {
+    new (): Node;
+}
+
 export abstract class Node {
-    protected abstract load(
+    public abstract load(
         elem: Element,
         symmetry: Uint8Array,
         grid: Grid
@@ -29,8 +33,9 @@ export abstract class Node {
 
     public source: Element;
     public comment: string;
+    public sync: boolean;
 
-    protected ip: Interpreter;
+    public ip: Interpreter;
     public grid: Grid;
 
     public static async factory(
@@ -40,7 +45,7 @@ export abstract class Node {
         grid: Grid
     ) {
         const name = elem.tagName.toLowerCase();
-        if (!Node.VALID_TAGS.includes(name)) {
+        if (!Node.VALID_TAGS.has(name)) {
             console.error(elem, `unknown node type: ${name}`);
             return null;
         }
@@ -49,6 +54,8 @@ export abstract class Node {
             one: () => new OneNode(),
             all: () => new AllNode(),
             prl: () => new ParallelNode(),
+            and: () => new AndNode(),
+            scope: () => new ScopeNode(),
             markov: () => new MarkovNode(),
             sequence: () => new SequenceNode(),
             path: () => new PathNode(),
@@ -60,22 +67,27 @@ export abstract class Node {
                 if (elem.getAttribute("tileset")) return new TileNode();
                 return null;
             },
+            ...Node.EXT,
         }[name]();
 
         node.ip = ip;
         node.grid = grid;
         node.source = elem;
         node.comment = elem.getAttribute("comment");
+        node.sync = elem.getAttribute("sync") === "True";
 
         const success = await node.load(elem, symmetry, grid);
+        if (!success) console.error(elem, "failed to load");
 
         return success ? node : null;
     }
 
-    protected static VALID_TAGS = [
+    private static readonly VALID_TAGS = new Set([
         "one",
         "all",
         "prl",
+        "and",
+        "scope",
         "markov",
         "sequence",
         "path",
@@ -83,15 +95,27 @@ export abstract class Node {
         "convolution",
         "convchain",
         "wfc",
-    ];
+    ]);
+
+    private static readonly EXT: { [tag: string]: () => Node } = {};
+    public static registerExt(name: string, type: NodeConstructor) {
+        if (this.VALID_TAGS.has(name))
+            throw new Error(`Tag <${name}> already exists`);
+        this.VALID_TAGS.add(name);
+        this.EXT[name] = () => new type();
+    }
+
+    public static isValidTag(tag: string) {
+        return this.VALID_TAGS.has(tag);
+    }
 }
 
-export abstract class Branch extends Node {
+export abstract class Branch<T extends Node = Node> extends Node {
     public parent: Branch;
-    public readonly children: Node[] = [];
+    public readonly children: T[] = [];
     public n: number;
 
-    protected override async load(
+    public override async load(
         elem: Element,
         parentSymmetry: Uint8Array,
         grid: Grid
@@ -110,7 +134,7 @@ export abstract class Branch extends Node {
 
         const tasks: Promise<Node>[] = [];
         for (const child of Helper.collectionIter(elem.children)) {
-            if (!Node.VALID_TAGS.includes(child.tagName)) continue;
+            if (!Node.isValidTag(child.tagName)) continue;
             tasks.push(
                 (async () => {
                     const node = await Node.factory(
@@ -120,32 +144,20 @@ export abstract class Branch extends Node {
                         grid
                     );
                     if (!node) return null;
-                    if (node instanceof Branch)
+                    if (node instanceof Branch) {
                         node.parent =
                             node instanceof MapNode || node instanceof WFCNode
                                 ? null
                                 : this;
+                    }
                     return node;
                 })()
             );
         }
         const nodes = await Promise.all(tasks);
         if (nodes.some((n) => !n)) return false;
-        this.children.splice(0, this.children.length, ...nodes);
+        (<Node[]>this.children).splice(0, this.children.length, ...nodes);
         return true;
-    }
-
-    public override run() {
-        for (; this.n < this.children.length; this.n++) {
-            const node = this.children[this.n];
-            if (node instanceof Branch) this.ip.current = node;
-            const status = node.run();
-            if (status === RunState.SUCCESS) return RunState.SUCCESS;
-            if (status === RunState.HALT) return RunState.HALT;
-        }
-        this.ip.current = this.ip.current.parent;
-        this.reset();
-        return RunState.FAIL;
     }
 
     public override reset() {
@@ -154,19 +166,90 @@ export abstract class Branch extends Node {
     }
 }
 
-export class SequenceNode extends Branch {}
+export class SequenceNode<T extends Node = Node> extends Branch<T> {
+    public override run() {
+        for (; this.n < this.children.length; this.n++) {
+            const node = this.children[this.n];
 
-export class MarkovNode extends Branch {
+            if (node instanceof Branch) {
+                if (!(node instanceof ScopeNode)) this.ip.current = node;
+            } else {
+                this.ip.blocking = this.sync || node.sync;
+            }
+
+            const status = node.run();
+            if (status === RunState.SUCCESS || status === RunState.HALT)
+                return status;
+        }
+        this.ip.current = this.ip.current.parent;
+        this.reset();
+        return RunState.FAIL;
+    }
+}
+
+export class MarkovNode<T extends Node = Node> extends Branch<T> {
     constructor(child?: Node, ip?: Interpreter) {
         super();
 
-        if (child) this.children.push(child);
+        if (child) (<Node[]>this.children).push(child);
         this.ip = ip;
         this.grid = ip?.grid;
     }
 
     public override run() {
         this.n = 0;
-        return super.run();
+        return SequenceNode.prototype.run.apply(this);
+    }
+}
+
+export class ScopeNode<T extends Node = Node> extends Branch<T> {
+    public override run(): RunState {
+        const { current } = this.ip;
+        for (; this.n < this.children.length; this.n++) {
+            const node = this.children[this.n];
+
+            if (node instanceof Branch) {
+                if (!(node instanceof ScopeNode)) this.ip.current = node;
+            } else {
+                this.ip.blocking = this.sync || node.sync;
+            }
+
+            const status: RunState = node.run();
+            if (status === RunState.SUCCESS || status === RunState.HALT)
+                return status;
+        }
+        this.ip.current = current;
+        while (this.ip.current instanceof ScopeNode)
+            this.ip.current = this.ip.current.parent;
+        this.reset();
+        return RunState.FAIL;
+    }
+}
+
+export class AndNode extends Branch {
+    private nextBreak = true;
+
+    public override run() {
+        for (; this.n < this.children.length; this.n++) {
+            const node = this.children[this.n];
+            if (node instanceof Branch) this.ip.current = node;
+            const status = node.run();
+
+            if (status === RunState.SUCCESS || status === RunState.HALT) {
+                this.nextBreak = false;
+                return status;
+            }
+
+            if (this.nextBreak) break;
+            else this.nextBreak = true;
+        }
+        this.ip.current = this.ip.current.parent;
+        this.reset();
+        return RunState.FAIL;
+    }
+
+    public override reset() {
+        this.nextBreak = true;
+        super.reset();
     }
 }

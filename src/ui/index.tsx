@@ -18,6 +18,11 @@ window.addEventListener("keydown", (e) => {
         Program.instance?.benchmark();
         e.preventDefault();
     }
+    Program.instance?.event("keydown", e.key);
+});
+
+window.addEventListener("keyup", (e) => {
+    Program.instance?.event("keyup", e.key);
 });
 
 const App = () => {
