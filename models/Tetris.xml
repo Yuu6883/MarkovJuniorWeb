@@ -99,9 +99,12 @@
                     <prl in="g" out="r" />
                     <one in="IB" out="*I" />
                 </keypress>
-                <keypress key="x">
-                    <one symmetry="(xy+)" steps="1">
+                <keypress key="x" comment="rotate clockwise">
+                    <one symmetry="()" steps="1">
                         <rule in="**$*/rrrr/**$*/**$*" out="**r*/BBrB/**r*/**r*" />
+                        <rule in="**r*/$$r$/**r*/**r*" out="**B*/rrrr/**B*/**B*" />
+                    </one>
+                    <one symmetry="(xy+)" steps="1">
                         <rule in="*$*/rrr/$$r" out="*r*/BrB/rrB" />
                         <rule in="$$*/rrr/r$*" out="rr*/BrB/Br*" />
                         <rule in="$**/$rr/rr*" out="r**/rrB/Br*" />
@@ -109,9 +112,12 @@
                         <rule in="**$/rr$/*rr" out="**r/Brr/*rB" />
                     </one>
                 </keypress>
-                <keypress key="z">
-                    <one symmetry="(xy+)" steps="1">
+                <keypress key="z" comment="rotate counter-clockwise">
+                    <one symmetry="()" steps="1">
                         <rule in="**$*/rrrr/**$*/**$*" out="**r*/BBrB/**r*/**r*" />
+                        <rule in="**r*/$$r$/**r*/**r*" out="**B*/rrrr/**B*/**B*" />
+                    </one>
+                    <one symmetry="(xy+)" steps="1">
                         <rule in="*$$/rrr/*$r" out="*rr/BrB/*rB" />
                         <rule in="*$*/rrr/r$$" out="*r*/BrB/Brr" />
                         <rule in="$**/$rr/rr*" out="r**/rrB/Br*" />
@@ -119,7 +125,7 @@
                         <rule in="**$/rr$/*rr" out="**r/Brr/*rB" />
                     </one>
                 </keypress>
-                <keypress key="ArrowDown" break="True" />
+                <keypress key="ArrowDown" break="True" comment="soft drop" />
             </event>
             
             <sequence sync="True">
