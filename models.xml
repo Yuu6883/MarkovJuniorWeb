@@ -150,7 +150,7 @@
   <model name="StrangeGrowth" size="59" steps="700"/>
   <model name="SubmergedKnots" size="12" d="3"/>
   <model name="Surface" size="10" d="3"/>
-  <model name="Tetris" size="30" steps="1500"/>
+  <model name="Tetris" length="21" width="24" />
   <model name="Texture" size="240"/>
   <model name="TileDungeon" size="12" />
   <model name="Trail" size="59" steps="3000"/>

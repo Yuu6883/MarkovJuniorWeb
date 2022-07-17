@@ -1,29 +1,182 @@
-<sequence values="CIBWRAO" symmetry="(x)">
-  <union symbol="?" values="ICB"/>
-  <prl in="*/C" out="*/I"/>
-  <prl in="*/*/*/*/*/I" out="*/*/*/*/*/W"/>
-  <prl in="W/*" out="B/*"/>
-  <markov>
-    <one in="IB" out="*I"/>
-    <one in="AR" out="AA" symmetry="(xy)"/>
-    <one in="R/W" out="A/W"/>
-    <prl>
-      <rule in="R/B" out="*/R"/>
-      <rule in="R/I" out="*/R"/>
-      <rule in="?/R" out="*/B"/>
-    </prl>
-    <one in="A" out="W"/>
-    <one symmetry="(xy)">
-      <rule in="III/III" out="*R*/RRR"/>
-      <rule in="III/III" out="RR*/*RR"/>
-      <rule in="III/III" out="R**/RRR"/>
-      <rule in="III/III" out="RR*/RR*"/>
-      <rule in="IIII" out="RRRR"/>
-    </one>
-  </markov>
-  <all in="WI" out="O*"/>
-  <all symmetry="(xy)">
-    <rule in="O*" out="OO"/>
-    <rule in="OO" out="BB"/>
-  </all>
+<sequence values="bIBWRAOCSrg" symmetry="(x)">
+    <union symbol="?" values="ICBbW"/>
+    <union symbol="!" values="Wb" />
+    <union symbol="$" values="IB" />
+
+    <scope symmetry="()" sync="True">
+        <prl in="b*" out="C*"/>
+        <prl in="C***********" out="b***********"/>
+        <prl in="*/C" out="*/I"/>
+        <prl in="*/*/*/*/*/I" out="*/*/*/*/*/O"/>
+        <prl in="O/*" out="B/*"/>
+        <prl in="O" out="b" />
+        <one in="bbbbbbbbC/bbbbbbbb*/bbbbbbbb*/bbbbbbbb*/bbbbbbbb*/bbbbbbbb*/bbbbbbbb*/bbbbbbbb*"
+            out="*********/*********/SSSSSS***/S****S***/S****S***/S****S***/S****S***/SSSSSS***"/>
+
+        <one symmetry="(xy)" comment="generate next tile">
+            <rule in="SSSSSS/SbbbbS/SbbbbS/SbbbbS/SbbbbS/SSSSSS" 
+                out="SSSSSS/SbbbbS/SRRRRS/SbbbbS/SbbbbS/SSSSSS"/>
+            <rule in="SSSSSS/SbbbbS/SbbbbS/SbbbbS/SbbbbS/SSSSSS" 
+                out="SSSSSS/SbbbbS/SbRRbS/SbRRbS/SbbbbS/SSSSSS"/>
+            <rule in="SSSSSS/SbbbbS/SbbbbS/SbbbbS/SbbbbS/SSSSSS" 
+                out="SSSSSS/SbbbbS/SRbbbS/SRRRbS/SbbbbS/SSSSSS"/>
+            <rule in="SSSSSS/SbbbbS/SbbbbS/SbbbbS/SbbbbS/SSSSSS" 
+                out="SSSSSS/SbbbbS/SRRbbS/SbRRbS/SbbbbS/SSSSSS"/>
+            <rule in="SSSSSS/SbbbbS/SbbbbS/SbbbbS/SbbbbS/SSSSSS" 
+                out="SSSSSS/SbbbbS/SbRbbS/SRRRbS/SbbbbS/SSSSSS"/>
+        </one>
+    </scope>
+    
+    <scope>
+        <and symmetry="(xy)" comment="I" steps="1" sync="True">
+            <one in="SSSSSS/SbbbbS/SRRRRS/SbbbbS/SbbbbS/SSSSSS"
+                out="******/*bbbb*/*bbbb*/*bbbb*/*bbbb*/******" />
+            <one in="IIII" out="rrrr" steps="1"/>
+        </and>
+        <and symmetry="(xy)" comment="square" steps="1" sync="True">
+            <one in="SSSSSS/SbbbbS/SbRRbS/SbRRbS/SbbbbS/SSSSSS"
+                out="******/*bbbb*/*bbbb*/*bbbb*/*bbbb*/******" />
+            <one in="II/II" out="rr/rr" steps="1"/>
+        </and>
+        <and symmetry="(xy)" comment="L" steps="1" sync="True">
+            <one in="SSSSSS/SbbbbS/SRbbbS/SRRRbS/SbbbbS/SSSSSS"
+                out="******/*bbbb*/*bbbb*/*bbbb*/*bbbb*/******" />
+            <one in="III/III" out="r**/rrr" steps="1"/>
+        </and>
+        <and symmetry="(xy)" comment="Z" sync="True">
+            <one in="SSSSSS/SbbbbS/SRRbbS/SbRRbS/SbbbbS/SSSSSS"
+                out="******/*bbbb*/*bbbb*/*bbbb*/*bbbb*/******" />
+            <one in="III/III" out="rr*/*rr" steps="1"/>
+        </and>
+        <and symmetry="(xy)" comment="T" sync="True">
+            <one in="SSSSSS/SbbbbS/SbRbbS/SRRRbS/SbbbbS/SSSSSS"
+                out="******/*bbbb*/*bbbb*/*bbbb*/*bbbb*/******" />
+            <one in="III/III" out="*r*/rrr" steps="1"/>
+        </and>
+    </scope>
+
+    <markov>
+        <sequence>            
+            <one symmetry="(xy)" comment="generate next tile" sync="True">
+                <rule in="SSSSSS/SbbbbS/SbbbbS/SbbbbS/SbbbbS/SSSSSS" 
+                    out="SSSSSS/SbbbbS/SRRRRS/SbbbbS/SbbbbS/SSSSSS"/>
+                <rule in="SSSSSS/SbbbbS/SbbbbS/SbbbbS/SbbbbS/SSSSSS" 
+                    out="SSSSSS/SbbbbS/SbRRbS/SbRRbS/SbbbbS/SSSSSS"/>
+                <rule in="SSSSSS/SbbbbS/SbbbbS/SbbbbS/SbbbbS/SSSSSS" 
+                    out="SSSSSS/SbbbbS/SRbbbS/SRRRbS/SbbbbS/SSSSSS"/>
+                <rule in="SSSSSS/SbbbbS/SbbbbS/SbbbbS/SbbbbS/SSSSSS" 
+                    out="SSSSSS/SbbbbS/SRRbbS/SbRRbS/SbbbbS/SSSSSS"/>
+                <rule in="SSSSSS/SbbbbS/SbbbbS/SbbbbS/SbbbbS/SSSSSS" 
+                    out="SSSSSS/SbbbbS/SbRbbS/SRRRbS/SbbbbS/SSSSSS"/>
+            </one>
+
+            <event timeout="500">
+                <keypress key="ArrowLeft">
+                    <!-- <log message="move left" /> -->
+                    <sequence comment="freeze if tile can't be moved to left" symmetry="()" >
+                        <one in="!r" out="*g" />
+                        <one in="gr" out="gg" symmetry="(xy)" />
+                    </sequence>
+                    <prl symmetry="()" steps="1" >
+                        <rule in="Br" out="r*"/>
+                        <rule in="Ir" out="r*"/>
+                        <rule in="r?" out="B*"/>
+                    </prl>
+                    <prl in="g" out="r" />
+                    <one in="IB" out="*I" />
+                </keypress>
+                <keypress key="ArrowRight">
+                    <!-- <log message="move left" /> -->
+                    <sequence comment="freeze if tile can't be moved to right" symmetry="()" >
+                        <one in="r!" out="g*" />
+                        <one in="gr" out="gg" symmetry="(xy)" />
+                    </sequence>
+                    <prl symmetry="()" steps="1" >
+                        <rule in="rB" out="*r"/>
+                        <rule in="rI" out="*r"/>
+                        <rule in="?r" out="*B"/>
+                    </prl>
+                    <prl in="g" out="r" />
+                    <one in="IB" out="*I" />
+                </keypress>
+                <keypress key="x">
+                    <one symmetry="(xy+)" steps="1">
+                        <rule in="**$*/rrrr/**$*/**$*" out="**r*/BBrB/**r*/**r*" />
+                        <rule in="*$*/rrr/$$r" out="*r*/BrB/rrB" />
+                        <rule in="$$*/rrr/r$*" out="rr*/BrB/Br*" />
+                        <rule in="$**/$rr/rr*" out="r**/rrB/Br*" />
+                        <rule in="*$*/rrr/*r*" out="*r*/rrB/*r*" />
+                        <rule in="**$/rr$/*rr" out="**r/Brr/*rB" />
+                    </one>
+                </keypress>
+                <keypress key="z">
+                    <one symmetry="(xy+)" steps="1">
+                        <rule in="**$*/rrrr/**$*/**$*" out="**r*/BBrB/**r*/**r*" />
+                        <rule in="*$$/rrr/*$r" out="*rr/BrB/*rB" />
+                        <rule in="*$*/rrr/r$$" out="*r*/BrB/Brr" />
+                        <rule in="$**/$rr/rr*" out="r**/rrB/Br*" />
+                        <rule in="*$*/rrr/*r*" out="*r*/Brr/*r*" />
+                        <rule in="**$/rr$/*rr" out="**r/Brr/*rB" />
+                    </one>
+                </keypress>
+                <keypress key="ArrowDown" break="True" />
+            </event>
+            
+            <sequence sync="True">
+                <one in="Ar" out="AA" symmetry="(xy)" />
+                <one in="r/!" out="A/*" />
+            </sequence>
+
+            <prl steps="1">
+                <rule in="r/B" out="*/r"/>
+                <rule in="r/I" out="*/r"/>
+                <rule in="?/r" out="*/B"/>
+            </prl>
+            <one in="IB" out="*I" sync="True" />
+
+            <and>
+                <one in="A" out="W" sync="True" />
+                <sequence sync="True">
+                    <and sync="True">
+                        <prl in="WWWWWWWWWW" out="OOOOOOOOOO" />
+                        <scope symmetry="()">
+                            <log message="scored!" />
+                            <prl>
+                                <rule in="W/O" out="O/W"/>
+                                <rule in="B/O" out="O/B"/>
+                                <rule in="I/O" out="I/B"/>
+                            </prl>
+                        </scope>
+                    </and>
+                    
+                    <and symmetry="(xy)" comment="I" steps="1" sync="True">
+                        <one in="SSSSSS/SbbbbS/SRRRRS/SbbbbS/SbbbbS/SSSSSS"
+                            out="******/*bbbb*/*bbbb*/*bbbb*/*bbbb*/******" />
+                        <one in="IIII" out="rrrr" steps="1"/>
+                    </and>
+                    <and symmetry="(xy)" comment="square" steps="1" sync="True">
+                        <one in="SSSSSS/SbbbbS/SbRRbS/SbRRbS/SbbbbS/SSSSSS"
+                            out="******/*bbbb*/*bbbb*/*bbbb*/*bbbb*/******" />
+                        <one in="II/II" out="rr/rr" steps="1"/>
+                    </and>
+                    <and symmetry="(xy)" comment="L" steps="1" sync="True">
+                        <one in="SSSSSS/SbbbbS/SRbbbS/SRRRbS/SbbbbS/SSSSSS"
+                            out="******/*bbbb*/*bbbb*/*bbbb*/*bbbb*/******" />
+                        <one in="III/III" out="r**/rrr" steps="1"/>
+                    </and>
+                    <and symmetry="(xy)" comment="Z" sync="True">
+                        <one in="SSSSSS/SbbbbS/SRRbbS/SbRRbS/SbbbbS/SSSSSS"
+                            out="******/*bbbb*/*bbbb*/*bbbb*/*bbbb*/******" />
+                        <one in="III/III" out="rr*/*rr" steps="1"/>
+                    </and>
+                    <and symmetry="(xy)" comment="T" sync="True">
+                        <one in="SSSSSS/SbbbbS/SbRbbS/SRRRbS/SbbbbS/SSSSSS"
+                            out="******/*bbbb*/*bbbb*/*bbbb*/*bbbb*/******" />
+                        <one in="III/III" out="*r*/rrr" steps="1"/>
+                    </and>
+                </sequence>
+            </and>
+        </sequence>
+    </markov>
+    <!-- Game Over -->
 </sequence>
