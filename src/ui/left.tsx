@@ -2,11 +2,13 @@ import { observer } from "mobx-react-lite";
 import { useContext, useEffect, useState } from "react";
 import { ProgramContext } from ".";
 
+const qs = new URLSearchParams(location.search);
+
 export const LeftPanel = observer(() => {
     const Prog = useContext(ProgramContext);
     const model = Prog.instance;
 
-    const [search, setSearch] = useState("");
+    const [search, setSearch] = useState(qs.get("model") || "");
 
     useEffect(() => {
         Prog.loadPalette();
@@ -14,7 +16,10 @@ export const LeftPanel = observer(() => {
 
         const m = localStorage.getItem("last-mj-model");
         // let the page fully load
-        if (m) setTimeout(() => Prog.load(m), 500);
+        if (m)
+            setTimeout(() => {
+                if (!Prog.load(m)) localStorage.removeItem("last-mj-model");
+            }, 500);
     }, []);
 
     const names = [...Prog.models.keys()];

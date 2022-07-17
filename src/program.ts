@@ -83,7 +83,7 @@ export class Program {
     @action
     public static load(name: string) {
         const model = new Model(name);
-        if (!model) return null;
+        if (!model.load()) return null;
         runInAction(() => {
             if (this.instance) this.instance.stop();
             this.instance = model;
