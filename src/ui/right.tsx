@@ -531,6 +531,7 @@ const NodeStateViz = observer(({ state }: { state: NodeState }) => {
 
 const StateTree = observer(() => {
     const model = useContext(ProgramContext).instance;
+    const [autoscroll, setAutoscroll] = useState(true);
     const ref = useRef<HTMLDivElement>();
 
     useEffect(() => {
@@ -539,13 +540,15 @@ const StateTree = observer(() => {
         const elem = list.children[model.curr_node_index] as HTMLDivElement;
         if (!elem) return;
 
-        elem.scrollIntoView({
-            behavior:
-                Math.abs(list.scrollTop - elem.offsetTop) > 800
-                    ? "auto"
-                    : "smooth",
-        });
-    }, [model.curr_node_index]);
+        if (autoscroll) {
+            elem.scrollIntoView({
+                behavior:
+                    Math.abs(list.scrollTop - elem.offsetTop) > 800
+                        ? "auto"
+                        : "smooth",
+            });
+        }
+    }, [model.curr_node_index, autoscroll]);
 
     useEffect(() => {
         ReactTooltip.hide();
@@ -562,7 +565,17 @@ const StateTree = observer(() => {
                     <label data-selected={!viz} onClick={() => setViz(false)}>
                         XML
                     </label> */}
-                <h4>Node Tree</h4>
+                <h4>
+                    Node Tree{" "}
+                    <span style={{ float: "right", marginRight: "20px" }}>
+                        auto scroll{" "}
+                        <input
+                            type="checkbox"
+                            defaultChecked={autoscroll}
+                            onChange={(e) => setAutoscroll(e.target.checked)}
+                        />
+                    </span>
+                </h4>
                 <div id="state-viz" ref={ref}>
                     {model.nodes.map(
                         ({ state, depth, index, breakpoint }, i) => (
