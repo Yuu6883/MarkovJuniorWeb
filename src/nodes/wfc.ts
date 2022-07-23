@@ -175,22 +175,25 @@ export abstract class WFCNode extends Branch {
     }
 
     nextUnobservedNode(rng: PRNG) {
-        const { MX, MY, MZ } = this.grid;
+        const { grid, wave, periodic, shannon } = this;
+        const { MX, MY, MZ } = grid;
+        
         const N = this.N;
         let min = 1e4;
         let argmin = -1;
+
         for (let z = 0; z < MZ; z++)
             for (let y = 0; y < MY; y++)
                 for (let x = 0; x < MX; x++) {
                     if (
-                        !this.periodic &&
+                        !periodic &&
                         (x + N > MX || y + N > MY || z + 1 > MZ)
                     )
                         continue;
                     const i = x + y * MX + z * MX * MY;
-                    const remainingValues = this.wave.sumsOfOnes[i];
-                    const entropy = this.shannon
-                        ? this.wave.entropies[i]
+                    const remainingValues = wave.sumsOfOnes[i];
+                    const entropy = shannon
+                        ? wave.entropies[i]
                         : remainingValues;
                     if (remainingValues > 1 && entropy <= min) {
                         const noise = 1e-6 * rng.double();
@@ -212,13 +215,15 @@ export abstract class WFCNode extends Branch {
             if (w.get(t) !== (t === r)) this.ban(node, t);
     }
 
+    // Could be unrolled/rewrote in webassembly
+    // Very cache sensitive (context switch = runtime go boom)
     propagate(): boolean {
-        const { N, grid, periodic, propagator } = this;
+        const { N, grid, periodic, propagator, stack, wave } = this;
         const { MX, MY, MZ } = grid;
 
         while (this.stacksize > 0) {
-            const i1 = this.stack[this.stacksize - 2];
-            const p1 = this.stack[this.stacksize - 1];
+            const i1 = stack[this.stacksize - 2];
+            const p1 = stack[this.stacksize - 1];
             this.stacksize -= 2;
 
             const x1 = i1 % MX,
@@ -243,12 +248,9 @@ export abstract class WFCNode extends Branch {
                 )
                     continue;
 
-                if (x2 < 0) x2 += MX;
-                else if (x2 >= MX) x2 -= MX;
-                if (y2 < 0) y2 += MY;
-                else if (y2 >= MY) y2 -= MY;
-                if (z2 < 0) z2 += MZ;
-                else if (z2 >= MZ) z2 -= MZ;
+                x2 = (x2 + MX) % MX;
+                y2 = (y2 + MY) % MY;
+                z2 = (z2 + MZ) % MZ;
 
                 const i2 = x2 + y2 * MX + z2 * MX * MY;
                 const p = propagator[d][p1];
@@ -256,14 +258,13 @@ export abstract class WFCNode extends Branch {
                 for (let l = 0; l < p.length; l++) {
                     const t2 = p[l];
 
-                    const v = this.wave.compatible.get(d, t2, i2) - 1;
-                    this.wave.compatible.set(d, t2, i2, v);
+                    const v = wave.compatible.postDecre(d, t2, i2);
                     if (v === 0) this.ban(i2, t2);
                 }
             }
         }
 
-        return this.wave.sumsOfOnes[0] > 0;
+        return wave.sumsOfOnes[0] > 0;
     }
 
     ban(i: number, t: number) {
@@ -301,9 +302,9 @@ export abstract class WFCNode extends Branch {
 
 class Wave {
     readonly data: BoolArray2D;
-    readonly compatible: Array3D<Int32Array>;
+    readonly compatible: Array3D<Uint8Array | Uint16Array | Uint32Array>;
 
-    readonly sumsOfOnes: Int32Array;
+    readonly sumsOfOnes: Uint8Array | Uint16Array | Uint32Array;
     readonly sumsOfWeights: Float64Array;
     readonly sumsOfWeightLogWeights: Float64Array;
     readonly entropies: Float64Array;
@@ -312,10 +313,16 @@ class Wave {
         this.data = new BoolArray2D(P, length);
         this.data.fill();
 
-        this.compatible = new Array3D(Int32Array, D, P, length);
-        this.compatible.arr.fill(-1);
-
-        this.sumsOfOnes = new Int32Array(length);
+        if (P < 256) {
+            this.compatible = new Array3D(Uint8Array, D, P, length);
+            this.sumsOfOnes = new Uint8Array(length);
+        } else if (P < 65536) {
+            this.compatible = new Array3D(Uint16Array, D, P, length);
+            this.sumsOfOnes = new Uint16Array(length);
+        } else {
+            this.compatible = new Array3D(Uint32Array, D, P, length);
+            this.sumsOfOnes = new Uint32Array(length);
+        }
 
         if (shannon) {
             this.sumsOfWeights = new Float64Array(length);

@@ -7,6 +7,7 @@ import { SymmetryHelper } from "../helpers/symmetry";
 
 import { WFCNode } from "./";
 
+// A bit slower than C# (130ms vs 90ms, WaveFlower, ryzen 5800x)
 export class OverlapNode extends WFCNode {
     protected static state_rng = alea("", { entropy: true });
 
@@ -58,7 +59,7 @@ export class OverlapNode extends WFCNode {
             );
             return false;
         }
-        const W = Helper.intPower(C, N * N);
+        const W = BigInt(Helper.intPower(C, N * N));
 
         const pattern = (f: (a: number, b: number) => number) => {
             const result = new Uint8Array(N * N);
@@ -82,7 +83,7 @@ export class OverlapNode extends WFCNode {
             result = new Uint8Array(N * N)
         ) => {
             let residue = ind,
-                power = BigInt(W);
+                power = W;
             for (let i = 0; i < result.length; i++) {
                 power /= CLong;
                 let count = 0;
@@ -153,7 +154,7 @@ export class OverlapNode extends WFCNode {
                 ymax = dy < 0 ? dy + N : N;
             for (let y = ymin; y < ymax; y++)
                 for (let x = xmin; x < xmax; x++)
-                    if (p1[x + N * y] != p2[x - dx + N * (y - dy)])
+                    if (p1[x + N * y] !== p2[x - dx + N * (y - dy)])
                         return false;
             return true;
         };
@@ -206,7 +207,6 @@ export class OverlapNode extends WFCNode {
         return await super.load(elem, parentSymmetry, grid);
     }
 
-    // A bit slower than C# (130ms vs 90ms, WaveFlower)
     public override updateState() {
         const { newgrid, wave, patterns, P, N, votes } = this;
         const { MX, MY } = newgrid;
@@ -227,11 +227,9 @@ export class OverlapNode extends WFCNode {
                     y = ~~(i / MX);
                 if (wave.data.get(p, i)) {
                     for (let dy = 0; dy < N; dy++) {
-                        let ydy = y + dy;
-                        if (ydy >= MY) ydy -= MY;
+                        const ydy = (y + dy) % MY;
                         for (let dx = 0; dx < N; dx++) {
-                            let xdx = x + dx;
-                            if (xdx >= MX) xdx -= MX;
+                            const xdx = (x + dx) % MX;
                             const value = pattern[dx + dy * N];
                             buf[value + (xdx + ydy * MX) * cols]++;
                         }

@@ -350,6 +350,10 @@ export class Array3D<T extends TypedArray> {
         this.arr[z * this.MX * this.MY + y * this.MX + x] = value;
     }
 
+    postDecre(x: number, y: number, z: number) {
+        return --this.arr[z * this.MX * this.MY + y * this.MX + x];
+    }
+
     copy(other: Array3D<T>) {
         if (
             this.MX !== other.MX ||
