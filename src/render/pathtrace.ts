@@ -2,7 +2,7 @@ import { Renderer } from "./abstract";
 import regl from "regl";
 import { Vixel } from "./lib/vixel";
 import CameraRotator from "./lib/input";
-import { makeObservable, observable, override } from "mobx";
+import { makeObservable, override } from "mobx";
 
 export class VoxelPathTracer extends Renderer {
     private static readonly canvas = document.createElement("canvas");
@@ -19,6 +19,14 @@ export class VoxelPathTracer extends Renderer {
             preserveDrawingBuffer: true,
         },
     });
+    public static readonly gpu_spec = (() => {
+        const ext = this.gfx._gl?.getExtension("WEBGL_debug_renderer_info");
+        if (!ext) return null;
+
+        const spec = this.gfx._gl.getParameter(ext.UNMASKED_RENDERER_WEBGL);
+        console.log(`GPU: ${spec}`);
+        return spec;
+    })();
     private static readonly cam_ctrl = new CameraRotator(this.canvas);
 
     public static supported = false;
