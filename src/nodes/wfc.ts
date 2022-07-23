@@ -11,7 +11,7 @@ export abstract class WFCNode extends Branch {
     protected P = 1;
     protected N = 1;
 
-    private stack: Int32Array;
+    private stack: Uint16Array | Uint32Array;
     private stacksize = 0;
 
     protected weights: Float64Array;
@@ -58,7 +58,11 @@ export abstract class WFCNode extends Branch {
             this.shannon
         );
 
-        this.stack = new Int32Array(this.wave.data.ROWS * this.P * 2);
+        if (this.wave.data.ROWS >= 65536 || this.P >= 65536) {
+            this.stack = new Uint32Array(this.wave.data.ROWS * this.P * 2);
+        } else {
+            this.stack = new Uint16Array(this.wave.data.ROWS * this.P * 2);
+        }
 
         if (this.shannon) {
             this.weightLogWeights = new Float64Array(this.P);
@@ -177,7 +181,7 @@ export abstract class WFCNode extends Branch {
     nextUnobservedNode(rng: PRNG) {
         const { grid, wave, periodic, shannon } = this;
         const { MX, MY, MZ } = grid;
-        
+
         const N = this.N;
         let min = 1e4;
         let argmin = -1;
@@ -185,10 +189,7 @@ export abstract class WFCNode extends Branch {
         for (let z = 0; z < MZ; z++)
             for (let y = 0; y < MY; y++)
                 for (let x = 0; x < MX; x++) {
-                    if (
-                        !periodic &&
-                        (x + N > MX || y + N > MY || z + 1 > MZ)
-                    )
+                    if (!periodic && (x + N > MX || y + N > MY || z + 1 > MZ))
                         continue;
                     const i = x + y * MX + z * MX * MY;
                     const remainingValues = wave.sumsOfOnes[i];
@@ -255,11 +256,8 @@ export abstract class WFCNode extends Branch {
                 const i2 = x2 + y2 * MX + z2 * MX * MY;
                 const p = propagator[d][p1];
 
-                for (let l = 0; l < p.length; l++) {
-                    const t2 = p[l];
-
-                    const v = wave.compatible.postDecre(d, t2, i2);
-                    if (v === 0) this.ban(i2, t2);
+                for (const t2 of p) {
+                    if (!wave.compatible.postDecre(d, t2, i2)) this.ban(i2, t2);
                 }
             }
         }
@@ -268,24 +266,26 @@ export abstract class WFCNode extends Branch {
     }
 
     ban(i: number, t: number) {
-        const wave = this.wave;
+        const { wave, stack, weights, weightLogWeights, propagator, shannon } =
+            this;
         wave.data.set(t, i, false);
 
-        for (let d = 0; d < this.propagator.length; d++)
+        for (let d = 0; d < propagator.length; d++)
             wave.compatible.set(d, t, i, 0);
 
-        this.stack[this.stacksize + 0] = i;
-        this.stack[this.stacksize + 1] = t;
+        stack[this.stacksize + 0] = i;
+        stack[this.stacksize + 1] = t;
         this.stacksize += 2;
 
         wave.sumsOfOnes[i] -= 1;
-        if (this.shannon) {
+
+        if (shannon) {
             let sum = wave.sumsOfWeights[i];
             wave.entropies[i] +=
                 wave.sumsOfWeightLogWeights[i] / sum - Math.log(sum);
 
-            wave.sumsOfWeights[i] -= this.weights[t];
-            wave.sumsOfWeightLogWeights[i] -= this.weightLogWeights[t];
+            wave.sumsOfWeights[i] -= weights[t];
+            wave.sumsOfWeightLogWeights[i] -= weightLogWeights[t];
 
             sum = wave.sumsOfWeights[i];
             wave.entropies[i] -=
