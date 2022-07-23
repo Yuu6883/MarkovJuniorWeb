@@ -61,8 +61,11 @@ export class VoxelPathTracer extends Renderer {
     constructor() {
         super();
 
-        this.canvas.width = 512;
-        this.canvas.height = 512;
+        const resolution =
+            screen.width <= 1280 ? 256 : screen.width <= 1920 ? 512 : 1024;
+
+        this.canvas.width = resolution;
+        this.canvas.height = resolution;
 
         this.vixel = new Vixel(
             this.canvas,
