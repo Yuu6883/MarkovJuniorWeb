@@ -133,7 +133,7 @@ export abstract class Branch<T extends Node = Node> extends Node {
         }
 
         const tasks: Promise<Node>[] = [];
-        for (const child of Helper.collectionIter(elem.children)) {
+        for (const child of Helper.elemChildren(elem)) {
             if (!Node.isValidTag(child.tagName)) continue;
             tasks.push(
                 (async () => {

@@ -39,14 +39,26 @@ export class Helper {
         return 0;
     }
 
+    public static *elemChildren(e: Element) {
+        for (const n of Helper.collectionIter(e.childNodes)) {
+            if (n.nodeType !== 1) continue;
+            const c = <Element>n;
+            yield c;
+        }
+    }
+
     public static *childrenByTag(e: Element, tag: string) {
-        for (const c of Helper.collectionIter(e.children)) {
+        for (const n of Helper.collectionIter(e.childNodes)) {
+            if (n.nodeType !== 1) continue;
+            const c = <Element>n;
             if (c.tagName === tag) yield c;
         }
     }
 
     public static *childrenByTags(e: Element, tags: string[]) {
-        for (const c of Helper.collectionIter(e.children)) {
+        for (const n of Helper.collectionIter(e.childNodes)) {
+            if (n.nodeType !== 1) continue;
+            const c = <Element>n;
             if (tags.includes(c.tagName)) yield c;
         }
     }
@@ -76,7 +88,9 @@ export class Helper {
     }
 
     public static matchTag(e: Element, tag: string) {
-        for (const c of Helper.collectionIter(e.children)) {
+        for (const n of Helper.collectionIter(e.childNodes)) {
+            if (n.nodeType !== 1) continue;
+            const c = <Element>n;
             if (c.tagName === tag) return c;
         }
         return null;

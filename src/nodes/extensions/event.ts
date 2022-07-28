@@ -20,7 +20,7 @@ export class EventNode extends ScopeNode<EventHandlerNode> {
         }
 
         const tasks: Promise<EventHandlerNode>[] = [];
-        for (const child of Helper.collectionIter(elem.children)) {
+        for (const child of Helper.elemChildren(elem)) {
             if (!EventNode.VALID_EVENT_TAGS.has(child.tagName)) {
                 console.error(child, "Invalid tag in <event>");
                 return false;

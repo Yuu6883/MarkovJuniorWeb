@@ -1,4 +1,5 @@
 import { VoxHelper } from "./vox";
+import { DOMParser } from "@xmldom/xmldom";
 
 export class Loader {
     static async xml(path: string) {
@@ -16,9 +17,7 @@ export class Loader {
     static xmlParse(text: string) {
         const parser = new DOMParser();
         const doc = parser.parseFromString(text, "text/xml");
-        const node = doc.getRootNode();
-
-        return node.firstChild as Element;
+        return doc.documentElement;
     }
 
     static async vox(
