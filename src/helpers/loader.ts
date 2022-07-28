@@ -7,7 +7,7 @@ export class Loader {
         if (res.status !== 200) return null;
         const text = await res.text();
         try {
-            return this.xmlParse(text);
+            return { text, elem: this.xmlParse(text) };
         } catch (e) {
             console.error(e);
             return null;

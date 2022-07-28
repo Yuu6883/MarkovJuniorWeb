@@ -22,8 +22,12 @@ import { Interpreter } from "./interpreter";
 import ModelsXML from "../static/models.xml";
 import PaletteXML from "../static/resources/palette.xml";
 import { NodeState, NodeStateInfo } from "./state";
-import { Branch, EventNode, Node, ScopeNode } from "./nodes";
+import { Branch, Node, ScopeNode } from "./nodes";
 import { Optimization } from "./wasm/optimization";
+
+import ace from "ace-builds";
+import "ace-builds/src-noconflict/mode-xml";
+// import "ace-builds/src-noconflict/theme-monokai";
 
 export type ProgramOutput = { name: string; buffer: ArrayBuffer };
 
@@ -47,6 +51,15 @@ export class Program {
     public static palette: Map<string, Uint8ClampedArray> = new Map();
 
     public static meta = seedrandom();
+
+    public static readonly editor = ace.edit(null, {
+        wrap: true,
+        readOnly: true,
+        useWorker: false,
+        maxLines: Infinity,
+        mode: "ace/mode/xml",
+        theme: "ace/theme/monokai",
+    });
 
     @action
     public static loadPalette() {
@@ -82,12 +95,14 @@ export class Program {
 
     @action
     public static load(name: string) {
+        if (this.instance) {
+            this.instance.stop();
+            this.instance = null;
+        }
+
         const model = new Model(name);
         if (!model.load()) return null;
-        runInAction(() => {
-            if (this.instance) this.instance.stop();
-            this.instance = model;
-        });
+        runInAction(() => (this.instance = model));
         return model;
     }
 }
@@ -97,6 +112,7 @@ export class Model {
     public readonly name: string;
 
     private readonly modelDescriptor: Element;
+    public modelXML: string;
     private modelDoc: Element;
 
     private ip: Interpreter;
@@ -178,12 +194,18 @@ export class Model {
             await Optimization.loadPromise;
 
             const path = `models/${name}.xml`;
-            const mdoc = (this.modelDoc = await Loader.xml(path));
+            const result = await Loader.xml(path);
 
-            if (!mdoc) {
+            if (!result) {
                 console.error(`Failed to load ${path}`);
                 return false;
             }
+
+            this.modelXML = result.text;
+            this.modelDoc = result.elem;
+
+            Program.editor.setValue(this.modelXML);
+            Program.editor.clearSelection();
 
             const seedString = emodel.getAttribute("seeds");
             const seeds = seedString?.split(" ").map((s) => parseInt(s));
@@ -542,6 +564,9 @@ export class Model {
         // point of this is to call RuleNode.searching.throw
         // which breaks the scope that keeps the webassembly instance "alive" (not gc'd)
         this.ip?.root.reset();
+
+        Program.editor.setValue("");
+        Program.editor.resize(true);
     }
 
     @action

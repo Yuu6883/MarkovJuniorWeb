@@ -33,7 +33,7 @@ export class TileNode extends WFCNode {
         this.overlapz = parseInt(elem.getAttribute("overlapz")) || 0;
 
         const filepath = `resources/tilesets/${this.name}.xml`;
-        const root = await Loader.xml(filepath);
+        const root = (await Loader.xml(filepath)).elem;
         const fullSymmetry = root.getAttribute("fullSymmetry") === "True";
         const eFirstTile = Helper.matchTag(
             Helper.matchTag(root, "tiles"),

@@ -195,6 +195,20 @@ h1 {
     margin-left: 25px;
 }
 
+#right-column > h4 > label[data-selected] {
+    opacity: 0.5;
+    cursor: pointer;
+    transition: opacity 0.15s linear;
+}
+
+#right-column > h4 > label[data-selected]:hover {
+    opacity: 0.65;
+}
+
+#right-column > h4 > label[data-selected="true"] {
+    opacity: 1 !important;
+}
+
 #search-model {
     width: 100%;
     display: flex;
@@ -256,6 +270,7 @@ input[type="color"]::-webkit-color-swatch {
 }
 
 #state-viz {
+    height: 100%;
     max-height: 100%;
     overflow-x: hidden;
     overflow-y: scroll;
@@ -640,4 +655,53 @@ button.danger:hover {
     background-color: #2b2b2b;
     border-radius: 20px;
     margin: 5px;
+}
+
+.ace_editor {
+    background-color: rgb(23, 23, 23);
+    /* caret-color: #eee; */
+}
+
+.ace_editor .ace_gutter {
+    background-color: rgb(28, 28, 28);
+    color: #858585;
+}
+
+.ace-tm .ace_meta.ace_tag {
+    color: #569cd6;
+}
+
+.ace-tm .ace_meta.ace_tag-open,
+.ace-tm .ace_meta.ace_tag-close,
+.ace-tm .ace_meta.ace_end-tag-open {
+    color: #808080;
+}
+
+.ace-tm .ace_attribute-name.ace_xml {
+    color: #9cdcfe;
+}
+
+.ace-tm .ace_attribute-value.ace_xml {
+    color: #ce9178;
+}
+
+.ace-tm .ace_comment.ace_xml {
+    color: #6a9955;
+}
+
+.ace-tm .ace_gutter-active-line {
+    color: #c6c6c6;
+    background-color: rgb(39, 39, 39);
+}
+
+.ace_editor .ace_cursor {
+    color: #c6c6c6;
+}
+
+.ace-tm .ace_indent-guide {
+    opacity: 0.4;
+}
+
+.ace-tm .ace_marker-layer .ace_selection {
+    background-color: #264f78;
 }

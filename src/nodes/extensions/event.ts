@@ -41,7 +41,7 @@ export class EventNode extends ScopeNode<EventHandlerNode> {
 
             handler.ip = this.ip;
             handler.grid = grid;
-            handler.source = child;
+            handler.source = <typeof handler.source>child;
             handler.comment = child.getAttribute("comment");
             handler.break = child.getAttribute("break") === "True";
 

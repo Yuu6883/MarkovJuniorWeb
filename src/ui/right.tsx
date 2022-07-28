@@ -7,6 +7,7 @@ import { Field } from "../field";
 import { Helper } from "../helpers/helper";
 import { ConvolutionRule, RuleNode } from "../nodes";
 import { Observation } from "../observation";
+import { Program } from "../program";
 import { Rule } from "../rule";
 import {
     ConvChainState,
@@ -531,42 +532,76 @@ const NodeStateViz = observer(({ state }: { state: NodeState }) => {
 
 const StateTree = observer(() => {
     const model = useContext(ProgramContext).instance;
+
     const [autoscroll, setAutoscroll] = useState(true);
     const ref = useRef<HTMLDivElement>();
 
-    useEffect(() => {
-        const list = ref.current;
-        if (!list) return;
-        const elem = list.children[model.curr_node_index] as HTMLDivElement;
-        if (!elem) return;
-
-        if (autoscroll) {
-            elem.scrollIntoView({
-                behavior:
-                    Math.abs(list.scrollTop - elem.offsetTop) > 800
-                        ? "auto"
-                        : "smooth",
-            });
-        }
-    }, [model.curr_node_index, autoscroll]);
+    const [xml, setXML] = useState(false);
+    const editRef = useRef<HTMLDivElement>();
 
     useEffect(() => {
         ReactTooltip.hide();
         ReactTooltip.rebuild();
-    }, [model.nodes.length]);
+
+        if (!xml || !model || !editRef.current) return;
+
+        editRef.current.appendChild(Program.editor.container);
+        Program.editor.resize(true);
+    }, [model.nodes.length, xml]);
+
+    useEffect(() => {
+        const list = xml ? editRef.current : ref.current;
+        if (!list) return;
+
+        let elem: HTMLDivElement;
+
+        if (xml) {
+            const node = model.nodes[model.curr_node_index];
+            Program.editor.clearSelection();
+
+            if (node) {
+                const source = node.state.node.source;
+                // index starts at 1 really @xmldom
+                Program.editor.moveCursorTo(
+                    source.lineNumber - 1,
+                    source.columnNumber - 1
+                );
+
+                const lines =
+                    Program.editor.container.querySelectorAll(
+                        "div.ace_line_group"
+                    );
+                elem = lines[source.lineNumber] as HTMLDivElement;
+            }
+        } else {
+            elem = list.children[model.curr_node_index] as HTMLDivElement;
+        }
+
+        if (!elem) return;
+
+        if (autoscroll) {
+            list.scrollTo({
+                top: elem.offsetTop - 50,
+                behavior:
+                    Math.abs(list.scrollTop - elem.offsetTop) > 800 ||
+                    model.paused
+                        ? "auto"
+                        : "smooth",
+            });
+        }
+    }, [model.curr_node_index, autoscroll, model.paused, xml]);
 
     return (
         !!model.nodes.length && (
             <>
-                {/* <label data-selected={viz} onClick={() => setViz(true)}>
+                <h4>
+                    <label data-selected={!xml} onClick={() => setXML(false)}>
                         Visualized
                     </label>
                     <label> / </label>
-                    <label data-selected={!viz} onClick={() => setViz(false)}>
+                    <label data-selected={xml} onClick={() => setXML(true)}>
                         XML
-                    </label> */}
-                <h4>
-                    Node Tree{" "}
+                    </label>
                     <span style={{ float: "right", marginRight: "20px" }}>
                         auto scroll{" "}
                         <input
@@ -576,7 +611,22 @@ const StateTree = observer(() => {
                         />
                     </span>
                 </h4>
-                <div id="state-viz" ref={ref}>
+                <div
+                    ref={editRef}
+                    style={{
+                        width: "100%",
+                        height: "100%",
+                        maxHeight: "100%",
+                        overflowX: "hidden",
+                        overflowY: "scroll",
+                        display: xml ? "block" : "none",
+                    }}
+                ></div>
+                <div
+                    id="state-viz"
+                    ref={ref}
+                    style={{ display: xml ? "none" : "block" }}
+                >
                     {model.nodes.map(
                         ({ state, depth, index, breakpoint }, i) => (
                             <div

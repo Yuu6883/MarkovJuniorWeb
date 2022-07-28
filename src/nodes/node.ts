@@ -31,7 +31,7 @@ export abstract class Node {
     public abstract reset(): void;
     public abstract run(): RunState;
 
-    public source: Element;
+    public source: Element & { lineNumber: number; columnNumber: number };
     public comment: string;
     public sync: boolean;
 
@@ -72,7 +72,7 @@ export abstract class Node {
 
         node.ip = ip;
         node.grid = grid;
-        node.source = elem;
+        node.source = <typeof node.source>elem;
         node.comment = elem.getAttribute("comment");
         node.sync = elem.getAttribute("sync") === "True";
 
