@@ -68,13 +68,13 @@ export class EventNode extends ScopeNode<EventHandlerNode> {
         const { ip, timeout } = this;
 
         if (this.start > 0) {
-            if (Date.now() - this.start > timeout) {
+            if (this.ip.time - this.start > timeout) {
                 this.start = 0;
                 ip.listener = null;
                 return RunState.FAIL;
             }
         } else {
-            this.start = Date.now();
+            this.start = this.ip.time;
             ip.listener = this;
         }
 

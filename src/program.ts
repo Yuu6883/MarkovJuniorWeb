@@ -140,6 +140,7 @@ export class Model {
         ? "voxel"
         : "isometric";
     private rendered = 0;
+    private lastLoop = 0;
 
     @observable
     public loading = false;
@@ -336,6 +337,12 @@ export class Model {
         this._seed = Program.meta.int32();
     }
 
+    private scaleTime(t: number) {
+        if (this._speed > 0) {
+            return t * this._speed;
+        } else return t;
+    }
+
     private loop(once = false, render = true) {
         if (!once && this._paused) return;
 
@@ -363,20 +370,25 @@ export class Model {
             });
 
         let result = this._curr.next();
+        let dt = this.lastLoop ? start - this.lastLoop : 0;
+        this.ip.time += this.scaleTime(dt);
         const bp = checkBreakpoint();
 
-        if (!bp && !once && this._speed > 0) {
+        if (!bp && !once && this._speed > 0 && dt <= 20) {
             for (let i = 0; i < this._speed; i++) {
                 result = this._curr.next();
                 if (checkBreakpoint()) break;
 
+                dt = performance.now() - start;
+                this.ip.time += this.scaleTime(dt);
                 // Cap per frame execution to 20ms/50fps
-                if (performance.now() - start > 20) break;
+                if (dt > 20) break;
             }
         }
 
         const end = performance.now();
         this._timer += end - start;
+        this.lastLoop = end;
 
         // Update UI hooks should not be timed
         this.curr_node_index = this.nodes.findIndex(({ state }) => {
