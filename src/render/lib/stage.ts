@@ -55,12 +55,12 @@ export default class Stage {
         ) {
             this.textureSize *= 2;
         }
-        this.ind_buf = new Uint8Array(this.textureSize * this.textureSize * 2);
+        this.ind_buf = new Uint8Array(this.textureSize * this.textureSize);
 
         this.tIndex = regl.texture({
             width: this.textureSize,
             height: this.textureSize,
-            format: "luminance alpha",
+            format: "luminance",
         });
     }
 
@@ -86,9 +86,8 @@ export default class Stage {
     }
 
     setGrid(grid: Uint8Array) {
-        for (let i = 0; i < grid.length; i++) {
-            this.ind_buf[i * 2] = grid[i];
-        }
+        // TODO: pad grid to POT texture size to avoid extra copy here
+        this.ind_buf.set(grid);
         this.tIndex.subimage(this.ind_buf);
     }
 

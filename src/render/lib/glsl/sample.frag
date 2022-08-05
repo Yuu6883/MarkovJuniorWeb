@@ -115,7 +115,7 @@ VoxelData voxelData(vec3 v) {
         return airData(v);
     }
     vec2 s = samplePoint(v);
-    vd.index = texture2D(tIndex, s).ra;
+    vd.index = vec2(texture2D(tIndex, s).r, 0.0);
     if (vd.index == vec2(0.0)) return airData(v);
     vd.rgb = texture2D(tRGB, vd.index).rgb;
     vec4 rmet = texture2D(tRMET, vd.index);
