@@ -1,4 +1,3 @@
-import { makeObservable } from "mobx";
 import { createContext } from "react";
 import ReactTooltip from "react-tooltip";
 import { createRoot } from "react-dom/client";
@@ -10,7 +9,6 @@ import { RightPanel } from "./right";
 
 import "./style/index.css";
 
-makeObservable(Program);
 export const ProgramContext = createContext<typeof Program>(null);
 
 window.addEventListener("keydown", (e) => {

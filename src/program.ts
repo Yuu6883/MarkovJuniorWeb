@@ -105,6 +105,8 @@ export class Program {
     }
 }
 
+makeObservable(Program);
+
 export class Model {
     public readonly key: string;
     public readonly name: string;
