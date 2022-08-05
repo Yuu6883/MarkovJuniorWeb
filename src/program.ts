@@ -27,7 +27,6 @@ import { Optimization } from "./wasm/optimization";
 
 import ace from "ace-builds";
 import "ace-builds/src-noconflict/mode-xml";
-// import "ace-builds/src-noconflict/theme-monokai";
 
 export type ProgramOutput = { name: string; buffer: ArrayBuffer };
 
@@ -58,7 +57,6 @@ export class Program {
         useWorker: false,
         maxLines: Infinity,
         mode: "ace/mode/xml",
-        theme: "ace/theme/monokai",
     });
 
     @action
