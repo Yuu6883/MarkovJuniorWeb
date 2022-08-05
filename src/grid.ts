@@ -2,6 +2,8 @@ import { Helper } from "./helpers/helper";
 
 export class Grid {
     public state: Uint8Array;
+    public padded: Uint8Array;
+
     public mask: Uint8Array; // bool array
 
     public MX: number;
@@ -14,7 +16,7 @@ export class Grid {
     public folder: string;
 
     private transparent: number;
-    private statebuffer: Uint8Array;
+    // private statebuffer: Uint8Array;
 
     public static build(elem: Element, MX: number, MY: number, MZ: number) {
         const g = new Grid();
@@ -63,8 +65,11 @@ export class Grid {
             }
         }
 
-        g.state = new Uint8Array(MX * MY * MZ);
-        g.statebuffer = new Uint8Array(MX * MY * MZ);
+        let pot = 1;
+        while (pot < MX * MY * MZ) pot <<= 1;
+        g.padded = new Uint8Array(pot);
+        g.state = g.padded.subarray(0, MX * MY * MZ);
+        // g.statebuffer = new Uint8Array(MX * MY * MZ);
         g.mask = new Uint8Array(MX * MY * MZ);
         g.folder = elem.getAttribute("folder");
 

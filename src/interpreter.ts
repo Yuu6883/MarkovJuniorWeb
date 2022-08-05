@@ -68,9 +68,9 @@ export class Interpreter {
 
         if (this.origin) {
             const center =
-                ~~(this.grid.MX / 2) +
-                ~~(this.grid.MY / 2) * this.grid.MX +
-                ~~(this.grid.MZ / 2) * this.grid.MX * this.grid.MY;
+                (this.grid.MX >>> 1) +
+                (this.grid.MY >>> 1) * this.grid.MX +
+                (this.grid.MZ >>> 1) * this.grid.MX * this.grid.MY;
             this.grid.state[center] = 1;
         }
 
@@ -85,26 +85,13 @@ export class Interpreter {
         this.counter = 0;
 
         while (this.current && (steps <= 0 || this.counter < steps)) {
-            if (!this.blocking)
-                yield [
-                    this.grid.state,
-                    this.grid.characters,
-                    this.grid.MX,
-                    this.grid.MY,
-                    this.grid.MZ,
-                ];
+            if (!this.blocking) yield this.state();
 
             this.current.run();
             this.increChanges();
         }
 
-        yield [
-            this.grid.state,
-            this.grid.characters,
-            this.grid.MX,
-            this.grid.MY,
-            this.grid.MZ,
-        ];
+        yield this.state();
     }
 
     public increChanges() {
@@ -120,6 +107,6 @@ export class Interpreter {
 
     public state(): [Uint8Array, string, number, number, number] {
         const grid = this.grid;
-        return [grid.state, grid.characters, grid.MX, grid.MY, grid.MZ];
+        return [grid.padded, grid.characters, grid.MX, grid.MY, grid.MZ];
     }
 }

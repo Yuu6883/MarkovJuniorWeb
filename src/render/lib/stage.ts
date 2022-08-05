@@ -13,7 +13,6 @@ export default class Stage {
     tRMET: Texture2D;
     tRi: Texture2D;
 
-    private ind_buf: Uint8Array;
     private rgb_buf = new Uint8Array(256 * 256 * 3);
     private pbr_buf = new Float32Array(256 * 256 * 4);
     private ri_buf = new Float32Array(256 * 256 * 4);
@@ -53,9 +52,8 @@ export default class Stage {
             this.textureSize * this.textureSize <
             this.dim[0] * this.dim[1] * this.dim[2]
         ) {
-            this.textureSize *= 2;
+            this.textureSize <<= 1;
         }
-        this.ind_buf = new Uint8Array(this.textureSize * this.textureSize);
 
         this.tIndex = regl.texture({
             width: this.textureSize,
@@ -86,9 +84,7 @@ export default class Stage {
     }
 
     setGrid(grid: Uint8Array) {
-        // TODO: pad grid to POT texture size to avoid extra copy here
-        this.ind_buf.set(grid);
-        this.tIndex.subimage(this.ind_buf);
+        this.tIndex.subimage(grid);
     }
 
     updateBuffers() {
@@ -104,7 +100,8 @@ export default class Stage {
     }
 
     clearGrid() {
-        this.ind_buf.fill(0);
-        this.tIndex.subimage(this.ind_buf);
+        this.tIndex.subimage(
+            new Uint8Array(this.textureSize * this.textureSize)
+        );
     }
 }
