@@ -16,10 +16,11 @@ export const LeftPanel = observer(() => {
 
         const m = localStorage.getItem("last-mj-model");
         // let the page fully load
-        if (m)
+        if (m) {
             setTimeout(() => {
                 if (!Prog.load(m)) localStorage.removeItem("last-mj-model");
             }, 500);
+        }
     }, []);
 
     const names = [...Prog.models.keys()];

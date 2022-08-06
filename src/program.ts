@@ -91,17 +91,18 @@ export class Program {
         }
     }
 
-    @action
     public static load(name: string) {
-        if (this.instance) {
-            this.instance.stop();
-            this.instance = null;
-        }
+        return runInAction(() => {
+            if (this.instance) {
+                this.instance.stop();
+                this.instance = null;
+            }
 
-        const model = new Model(name);
-        if (!model.load()) return null;
-        runInAction(() => (this.instance = model));
-        return model;
+            const model = new Model(name);
+            if (!model.load()) return null;
+            this.instance = model;
+            return model;
+        });
     }
 }
 

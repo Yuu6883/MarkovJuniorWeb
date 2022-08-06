@@ -55,11 +55,15 @@ export default class Stage {
             this.textureSize <<= 1;
         }
 
-        this.tIndex = regl.texture({
-            width: this.textureSize,
-            height: this.textureSize,
-            format: "luminance",
-        });
+        if (this.tIndex) {
+            this.tIndex.resize(this.textureSize, this.textureSize);
+        } else {
+            this.tIndex = regl.texture({
+                width: this.textureSize,
+                height: this.textureSize,
+                format: "luminance",
+            });
+        }
     }
 
     setMaterial(
@@ -84,6 +88,7 @@ export default class Stage {
     }
 
     setGrid(grid: Uint8Array) {
+        if (grid.byteLength !== this.textureSize * this.textureSize) return;
         this.tIndex.subimage(grid);
     }
 
