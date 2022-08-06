@@ -66,7 +66,7 @@ export class Grid {
         }
 
         let pot = 1;
-        while (pot < MX * MY * MZ) pot <<= 1;
+        while (pot < MX * MY * MZ) pot <<= 2;
         g.padded = new Uint8Array(pot);
         g.state = g.padded.subarray(0, MX * MY * MZ);
         // g.statebuffer = new Uint8Array(MX * MY * MZ);
