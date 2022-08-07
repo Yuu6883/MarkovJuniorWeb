@@ -94,14 +94,10 @@ export class TileNode extends WFCNode {
         const zReflect = (p: Uint8Array) =>
             newtile((x, y, z) => p[x + y * S + (S - 1 - z) * S * S]);
 
-        const namedTileData: Map<string, Uint8Array[]> = new Map();
-        const tempStationary: number[] = [];
-
         const uniques: number[] = [];
         const etiles = [
             ...Helper.matchTags(Helper.matchTag(root, "tiles"), "tile"),
         ];
-        let ind = 0;
 
         const tasks = etiles.map(async (etile) => {
             const tilename = etile.getAttribute("name");
@@ -111,16 +107,27 @@ export class TileNode extends WFCNode {
             const [vox] = await Loader.vox(filename);
             if (!vox) {
                 console.error(`Failed to load tile ${filename}`);
-                return false;
+                return null;
             }
             const [flatTile, C] = Helper.ords(vox, uniques);
             if (C > this.newgrid.C) {
                 console.error(
                     `There're more than ${this.newgrid.C} colors in vox files`
                 );
-                return false;
+                return null;
             }
 
+            return { tilename, flatTile, weight };
+        });
+
+        const result = await Promise.all(tasks);
+        if (result.some((loaded) => !loaded)) return false;
+
+        const namedTileData: Map<string, Uint8Array[]> = new Map();
+        const tempStationary: number[] = [];
+        let ind = 0;
+
+        for (const { tilename, flatTile, weight } of result) {
             const localdata = fullSymmetry
                 ? SymmetryHelper.cubeSymmetries(
                       flatTile,
@@ -145,13 +152,7 @@ export class TileNode extends WFCNode {
                 ind++;
             }
             positions.set(tilename, position);
-            return true;
-        });
-
-        const result = await Promise.all(tasks);
-        if (result.some((loaded) => !loaded)) return false;
-
-        // console.log([...positions.keys()]);
+        }
 
         const P = (this.P = this.tiledata.length);
         console.log(`P = ${this.P}`);
