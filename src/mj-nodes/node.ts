@@ -15,7 +15,7 @@ import {
     RunState,
     TileNode,
     WFCNode,
-} from "./";
+} from ".";
 
 interface NodeConstructor {
     new (): Node;

@@ -2,7 +2,7 @@ import { Field } from "../field";
 import { Grid } from "../grid";
 import { BoolArray2D } from "../helpers/datastructures";
 import { Helper } from "../helpers/helper";
-import { RuleNode, RunState } from "./";
+import { RuleNode, RunState } from ".";
 
 export class AllNode extends RuleNode {
     public override async load(

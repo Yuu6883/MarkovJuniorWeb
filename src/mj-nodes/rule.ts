@@ -11,7 +11,7 @@ import { NativeObserve } from "../wasm/observe";
 import { Optimization } from "../wasm/optimization";
 import { NativeSearch } from "../wasm/search";
 
-import { Node, AllNode, RunState } from "./";
+import { Node, AllNode, RunState } from ".";
 
 export abstract class RuleNode extends Node {
     public readonly rules: Rule[] = [];

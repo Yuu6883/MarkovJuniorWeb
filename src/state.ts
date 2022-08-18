@@ -18,7 +18,7 @@ import {
     TileNode,
     OverlapNode,
     AndNode,
-} from "./nodes";
+} from "./mj-nodes";
 
 export type NodeWithDepth = {
     node: Node;

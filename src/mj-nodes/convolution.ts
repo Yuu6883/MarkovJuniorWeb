@@ -1,7 +1,7 @@
 import { Grid } from "../grid";
 import { Array2D } from "../helpers/datastructures";
 import { Helper } from "../helpers/helper";
-import { Node, RunState } from "./";
+import { Node, RunState } from ".";
 
 export class ConvolutionNode extends Node {
     public neighborhood: string;

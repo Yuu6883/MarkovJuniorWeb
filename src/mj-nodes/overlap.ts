@@ -5,7 +5,7 @@ import { Helper } from "../helpers/helper";
 import { Loader } from "../helpers/loader";
 import { SymmetryHelper } from "../helpers/symmetry";
 
-import { WFCNode } from "./";
+import { WFCNode } from ".";
 
 // A bit slower than C# (130ms vs 90ms, WaveFlower, ryzen 5800x)
 export class OverlapNode extends WFCNode {

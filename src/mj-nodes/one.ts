@@ -5,7 +5,7 @@ import { BoolArray2D } from "../helpers/datastructures";
 import { range, vec4 } from "../helpers/helper";
 import { Observation } from "../observation";
 
-import { RuleNode, RunState } from "./";
+import { RuleNode, RunState } from ".";
 
 const INVALID: vec4 = [-1, -1, -1, -1];
 

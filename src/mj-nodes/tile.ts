@@ -5,7 +5,7 @@ import { Helper } from "../helpers/helper";
 import { Loader } from "../helpers/loader";
 import { SymmetryHelper } from "../helpers/symmetry";
 
-import { WFCNode } from "./";
+import { WFCNode } from ".";
 
 const FALSE = (_) => false;
 

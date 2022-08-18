@@ -2,7 +2,7 @@ import seedrandom, { PRNG } from "seedrandom";
 import { Grid } from "../grid";
 import { Helper, vec3, vec4 } from "../helpers/helper";
 
-import { Node, RunState } from "./";
+import { Node, RunState } from ".";
 
 export class PathNode extends Node {
     public start: number;

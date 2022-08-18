@@ -22,7 +22,7 @@ import { Interpreter } from "./interpreter";
 import ModelsXML from "../static/models.xml";
 import PaletteXML from "../static/resources/palette.xml";
 import { NodeState, NodeStateInfo } from "./state";
-import { Branch, Node, ScopeNode } from "./nodes";
+import { Branch, Node, ScopeNode } from "./mj-nodes";
 import { Optimization } from "./wasm/optimization";
 
 import ace from "ace-builds";

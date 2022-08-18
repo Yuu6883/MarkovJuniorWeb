@@ -3,7 +3,7 @@ import { Grid } from "../grid";
 import { Array3D, BoolArray2D } from "../helpers/datastructures";
 import { Helper } from "../helpers/helper";
 
-import { Branch, SequenceNode, RunState } from "./";
+import { Branch, SequenceNode, RunState } from ".";
 
 export abstract class WFCNode extends Branch {
     protected wave: Wave;

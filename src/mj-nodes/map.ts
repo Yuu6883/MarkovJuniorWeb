@@ -1,6 +1,6 @@
 import { Grid } from "../grid";
 import { SymmetryHelper } from "../helpers/symmetry";
-import { Branch, SequenceNode, RunState } from "./";
+import { Branch, SequenceNode, RunState } from ".";
 import { Rule } from "../rule";
 import { Helper } from "../helpers/helper";
 import { Optimization } from "../wasm/optimization";

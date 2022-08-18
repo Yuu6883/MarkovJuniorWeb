@@ -1,6 +1,6 @@
 import { WasmInstance } from ".";
 import { Grid } from "../grid";
-import { RuleNode } from "../nodes";
+import { RuleNode } from "../mj-nodes";
 import { Optimization } from "./optimization";
 
 export class NativeObserve {
