@@ -7,7 +7,7 @@ import { Field } from "../field";
 import { Helper } from "../helpers/helper";
 import { ConvolutionRule, RuleNode } from "../nodes";
 import { Observation } from "../observation";
-import { Program } from "../program";
+import { Program } from "../web-program";
 import { Rule } from "../rule";
 import {
     ConvChainState,

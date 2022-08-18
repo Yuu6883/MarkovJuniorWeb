@@ -1,7 +1,7 @@
 import { createContext } from "react";
 import ReactTooltip from "react-tooltip";
 import { createRoot } from "react-dom/client";
-import { Program } from "../program";
+import { Program } from "../web-program";
 import { ControlPanel } from "./center";
 import { LeftPanel } from "./left";
 import { MobileSelect } from "./mobile";

@@ -11,6 +11,7 @@
     "author": "Yuu6883",
     "license": "MIT",
     "devDependencies": {
+        "@swc/cli": "^0.1.57",
         "@types/ace": "^0.0.48",
         "@types/file-saver": "^2.0.5",
         "@types/react": "^18.0.14",

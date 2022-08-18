@@ -2,10 +2,11 @@ import seedrandom, { PRNG } from "seedrandom";
 import { Array2D, HashMap, PriorityQueue } from "./helpers/datastructures";
 import { Helper } from "./helpers/helper";
 import { Observation } from "./observation";
-import { Program } from "./program";
 import { Rule } from "./rule";
 
 export class Search {
+    public static onRecordState: (state: Uint8Array) => void = null;
+
     public static *run(
         present: Uint8Array,
         future: Int32Array,
@@ -194,7 +195,7 @@ export class Search {
                             database
                         ).reverse();
 
-                        if (viz) Program.instance.renderer.forcedState = null;
+                        if (viz) this.onRecordState?.(null);
                         yield visited.size;
                         return trajectory.map((b) => b.state);
                     } else {
@@ -210,9 +211,7 @@ export class Search {
                             console.debug(log);
                             // PrintState(childState, MX, MY);
 
-                            if (viz)
-                                Program.instance.renderer.forcedState =
-                                    childState;
+                            if (viz) this.onRecordState?.(childState);
                         }
 
                         frontier.enqueue({

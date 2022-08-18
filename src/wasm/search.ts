@@ -1,11 +1,12 @@
 import seedrandom from "seedrandom";
 import { WasmInstance } from ".";
 import { HashMap, PriorityQueue } from "../helpers/datastructures";
-import { Program } from "../program";
 import { Rule } from "../rule";
 import { Optimization } from "./optimization";
 
 export class NativeSearch {
+    public static onRecordState: (state: Uint8Array) => void = null;
+
     lib: WasmInstance;
 
     readonly present: Uint8Array;
@@ -270,7 +271,7 @@ export class NativeSearch {
                 if (childFD === 0) {
                     const path = traverse(child_board).reverse();
                     // Reset render state
-                    if (viz) Program.instance.renderer.forcedState = null;
+                    if (viz) NativeSearch.onRecordState?.(null);
 
                     return path.map((ptr) =>
                         lib.typed_array(Uint8Array, ptr, elem)
@@ -309,7 +310,7 @@ export class NativeSearch {
                 if (result) return result;
 
                 if (viz && Date.now() - now > 50) {
-                    Program.instance.renderer.forcedState = recordState;
+                    NativeSearch.onRecordState?.(recordState);
                     yield visited.size;
                     now = Date.now();
                 }
@@ -329,7 +330,7 @@ export class NativeSearch {
 
                 if (result) return result;
                 if (viz && Date.now() - now > 50) {
-                    Program.instance.renderer.forcedState = recordState;
+                    NativeSearch.onRecordState?.(recordState);
 
                     yield visited.size;
                     now = Date.now();

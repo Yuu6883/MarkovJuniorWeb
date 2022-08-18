@@ -28,6 +28,20 @@ import { Optimization } from "./wasm/optimization";
 import ace from "ace-builds";
 import "ace-builds/src-noconflict/mode-xml";
 
+import ObsModuleURL from "./bin/rule.wasm";
+import { WasmModule } from "./wasm";
+import { Search } from "./search";
+import { NativeSearch } from "./wasm/search";
+
+Optimization.loadPromise = (async () => {
+    {
+        const res = await fetch(ObsModuleURL);
+        const buffer = await res.arrayBuffer();
+
+        Optimization.module = await WasmModule.load(buffer);
+    }
+})().catch((_) => (Optimization.module = null));
+
 export type ProgramOutput = { name: string; buffer: ArrayBuffer };
 
 export interface ProgramParams {
@@ -107,6 +121,9 @@ export class Program {
 }
 
 makeObservable(Program);
+
+Search.onRecordState = NativeSearch.onRecordState = (state) =>
+    (Program.instance.renderer.forcedState = state);
 
 export class Model {
     public readonly key: string;

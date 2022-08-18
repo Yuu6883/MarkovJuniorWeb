@@ -4,7 +4,6 @@ import { Grid } from "../grid";
 import { BoolArray2D } from "../helpers/datastructures";
 import { range, vec4 } from "../helpers/helper";
 import { Observation } from "../observation";
-import { Rule } from "../rule";
 
 import { RuleNode, RunState } from "./";
 

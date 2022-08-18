@@ -1,8 +1,6 @@
 import { WasmInstance, WasmModule } from ".";
 import { Rule } from "../rule";
 
-import ObsModuleURL from "../bin/rule.wasm";
-
 export class Optimization {
     static get supported() {
         // return false; // for comparing js&wasm output
@@ -14,15 +12,7 @@ export class Optimization {
     }
 
     static module: WasmModule;
-
-    static loadPromise = (async () => {
-        {
-            const res = await fetch(ObsModuleURL);
-            const buffer = await res.arrayBuffer();
-
-            this.module = await WasmModule.load(buffer);
-        }
-    })().catch((_) => (this.module = null));
+    static loadPromise: Promise<void>;
 
     static load_rule(lib: WasmInstance, rule: Rule) {
         const bin = lib.exports;
@@ -78,30 +68,6 @@ export class Optimization {
                 p++;
             }
         }
-
-        // Compare wasm memory with js
-        /*
-        console.log(shift_size, ishift_count, oshift_count);
-
-        bin.log_rule_ishift(ptr);
-        console.log(
-            ishifts
-                .map((v, i) =>
-                    v.map((vv) => `shift: [${i},${vv.join(",")}]`).join()
-                )
-                .join("\n")
-        );
-        
-        bin.log_rule_oshift(ptr);
-        console.log(
-            oshifts
-                .map((v, i) =>
-                    v.map((vv) => `shift: [${i},${vv.join(",")}]`).join()
-                )
-                .join("\n")
-        );
-
-        */
         return ptr;
     }
 }
