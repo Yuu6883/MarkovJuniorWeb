@@ -6,7 +6,7 @@
     "scripts": {
         "start": "webpack serve --mode=development",
         "build": "webpack build --mode=production",
-        "run": "node -r @swc-node/register src/node/index.ts"
+        "cli": "node -r @swc-node/register src/node/index.ts"
     },
     "keywords": [],
     "author": "Yuu6883",
