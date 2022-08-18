@@ -7,7 +7,7 @@ import { Field } from "../field";
 import { Helper } from "../helpers/helper";
 import { ConvolutionRule, RuleNode } from "../mj-nodes";
 import { Observation } from "../observation";
-import { Program } from "../web-program";
+import { Program } from "./program";
 import { Rule } from "../rule";
 import {
     ConvChainState,
@@ -16,7 +16,7 @@ import {
     NodeState,
     PathState,
     RuleState,
-} from "../state";
+} from "./state";
 
 const Palette = observer(() => {
     const model = useContext(ProgramContext).instance;

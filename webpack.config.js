@@ -3,7 +3,7 @@ const CopyPlugin = require("copy-webpack-plugin");
 const path = require("path");
 
 module.exports = (_, argv) => ({
-    entry: "./src/ui/index.tsx",
+    entry: "./src/web/index.tsx",
     output: {
         filename: "index.js",
         path: path.resolve(__dirname, "build"),
@@ -76,7 +76,7 @@ module.exports = (_, argv) => ({
     },
     plugins: [
         new HtmlWebpackPlugin({
-            template: path.resolve(__dirname, "src", "ui", "index.html"),
+            template: path.resolve(__dirname, "src", "web", "index.html"),
             filename: "index.html",
         }),
         new CopyPlugin({

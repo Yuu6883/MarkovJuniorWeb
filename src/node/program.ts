@@ -1,44 +1,24 @@
 import seedrandom from "seedrandom";
-import {
-    action,
-    computed,
-    makeObservable,
-    observable,
-    runInAction,
-} from "mobx";
 
-import {
-    BitmapRenderer,
-    IsometricRenderer,
-    VoxelPathTracer,
-    Renderer,
-} from "./render";
-
-import { Helper } from "./helpers/helper";
-import { Loader } from "./helpers/loader";
-import { VoxHelper } from "./helpers/vox";
-import { Interpreter } from "./interpreter";
+import { Helper } from "../helpers/helper";
+import { Loader } from "../helpers/loader";
+import { VoxHelper } from "../helpers/vox";
+import { Interpreter } from "../interpreter";
 
 import ModelsXML from "../static/models.xml";
 import PaletteXML from "../static/resources/palette.xml";
-import { NodeState, NodeStateInfo } from "./state";
-import { Branch, Node, ScopeNode } from "./mj-nodes";
-import { Optimization } from "./wasm/optimization";
 
-import ace from "ace-builds";
-import "ace-builds/src-noconflict/mode-xml";
+import { Optimization } from "../wasm/optimization";
 
-import ObsModuleURL from "./bin/rule.wasm";
-import { WasmModule } from "./wasm";
-import { Search } from "./search";
-import { NativeSearch } from "./wasm/search";
+import ObsModuleURL from "../bin/rule.wasm";
+import { WasmModule } from "../wasm";
+
+import * as fsp from "fs/promises";
 
 Optimization.loadPromise = (async () => {
     {
-        const res = await fetch(ObsModuleURL);
-        const buffer = await res.arrayBuffer();
-
-        Optimization.module = await WasmModule.load(buffer);
+        const buf = await fsp.readFile(ObsModuleURL);
+        Optimization.module = await WasmModule.load(buf);
     }
 })().catch((_) => (Optimization.module = null));
 
@@ -48,32 +28,15 @@ export interface ProgramParams {
     steps?: number;
 }
 
-const Render3DTypes = {
-    isometric: IsometricRenderer,
-    voxel: VoxelPathTracer,
-};
-
 export class Program {
-    @observable.ref
     public static instance: Model = null;
 
-    @observable
     public static models: Map<string, Element> = new Map();
 
-    @observable
     public static palette: Map<string, Uint8ClampedArray> = new Map();
 
     public static meta = seedrandom();
 
-    public static readonly editor = ace.edit(null, {
-        wrap: true,
-        readOnly: true,
-        useWorker: false,
-        maxLines: Infinity,
-        mode: "ace/mode/xml",
-    });
-
-    @action
     public static loadPalette() {
         const ep = Loader.xmlParse(PaletteXML);
         const ecolors = [...Helper.childrenByTag(ep, "color")];
@@ -85,7 +48,6 @@ export class Program {
         );
     }
 
-    @action
     public static listModels() {
         const doc = Loader.xmlParse(ModelsXML);
         this.models.clear();
@@ -101,29 +63,22 @@ export class Program {
                 } else tryInsert(suffix ? suffix + 1 : 1);
             };
 
-            runInAction(tryInsert);
+            tryInsert();
         }
     }
 
     public static load(name: string) {
-        return runInAction(() => {
-            if (this.instance) {
-                this.instance.stop();
-                this.instance = null;
-            }
+        if (this.instance) {
+            this.instance.stop();
+            this.instance = null;
+        }
 
-            const model = new Model(name);
-            if (!model.load()) return null;
-            this.instance = model;
-            return model;
-        });
+        const model = new Model(name);
+        if (!model.load()) return null;
+        this.instance = model;
+        return model;
     }
 }
-
-makeObservable(Program);
-
-Search.onRecordState = NativeSearch.onRecordState = (state) =>
-    (Program.instance.renderer.forcedState = state);
 
 export class Model {
     public readonly key: string;
@@ -134,46 +89,25 @@ export class Model {
     private modelDoc: Element;
 
     private ip: Interpreter;
-    private breakpoints: Set<Node> = new Set();
 
-    @observable
-    public renderer: Renderer;
-
-    @observable
     private _curr: Generator<[Uint8Array, string, number, number, number]> =
         null;
 
-    @observable
     private _seed: number = null;
-    @observable
     private _speed = 0;
-    @observable
     private _delay = 0;
-    @observable
     private _paused = false;
 
     private _loadPromise: Promise<boolean>;
     private _timer = 0;
     private _steps = -1;
 
-    private default3DrenderType = VoxelPathTracer.supported
-        ? "voxel"
-        : "isometric";
-    private rendered = 0;
     private lastLoop = 0;
-
-    @observable
     public loading = false;
-
-    @observable
     public output: ProgramOutput = null;
 
-    @observable.deep
-    public nodes: NodeStateInfo[] = [];
-    @observable
-    public curr_node_index = -1;
-
     public readonly DIM = new Int32Array([-1, -1, -1]);
+    public palette: typeof Program.palette;
 
     constructor(key: string) {
         this.key = key;
@@ -197,18 +131,6 @@ export class Model {
             parseInt(emodel.getAttribute("height")) ||
             (dimension === 2 ? 1 : size);
 
-        this.renderer =
-            this.DIM[2] === 1
-                ? new BitmapRenderer()
-                : new Render3DTypes[this.default3DrenderType]();
-
-        this.renderer.clear();
-
-        document
-            .getElementById("model-canvas")
-            .replaceWith(this.renderer.canvas);
-        this.renderer.canvas.id = "model-canvas";
-
         this._loadPromise = (async () => {
             await Optimization.loadPromise;
 
@@ -223,15 +145,11 @@ export class Model {
             this.modelXML = result.text;
             this.modelDoc = result.elem;
 
-            Program.editor.setValue(this.modelXML);
-            Program.editor.clearSelection();
-
             const seedString = emodel.getAttribute("seeds");
-            const seeds = seedString?.split(" ").map((s) => parseInt(s));
 
-            const customPalette = new Map(Program.palette.entries());
+            this.palette = new Map(Program.palette.entries());
             for (const ec of Helper.childrenByTag(emodel, "color")) {
-                customPalette.set(
+                this.palette.set(
                     ec.getAttribute("symbol").charAt(0),
                     Helper.hex2rgba(ec.getAttribute("value"))
                 );
@@ -244,43 +162,14 @@ export class Model {
                 this.DIM[2]
             );
 
-            runInAction(() => {
-                this.nodes = NodeState.traverse(this.ip);
-                for (const { state } of this.nodes) state.sync();
-
-                this.renderer.palette = customPalette;
-
-                const qs = new URLSearchParams(location.search);
-                const qsSeed = parseInt(qs.get("seed"));
-
-                this._seed = isNaN(qsSeed)
-                    ? seeds?.[0] || Program.meta.int32()
-                    : qsSeed;
-            });
-
-            const [state, chars, FX, FY, FZ] = this.ip.state();
-
-            this.renderer.setCharacters(chars);
-            this.renderer.update(FX, FY, FZ);
-            this.renderer.render(state);
-
             return true;
         })();
-
-        makeObservable(this);
     }
 
-    @action
-    public debug() {
-        debugger;
-    }
-
-    @action
     public load() {
         return this._loadPromise;
     }
 
-    @computed
     public get paused() {
         return this._paused;
     }
@@ -295,22 +184,18 @@ export class Model {
         }
     }
 
-    @computed
     public get speed() {
         return this._delay ? -this._delay : this._speed;
     }
 
-    @computed
     public get running() {
         return !!this._curr;
     }
 
-    @computed
     public get seed() {
         return this._seed;
     }
 
-    @action
     public start(params?: ProgramParams) {
         if (this._curr) this._curr.throw(new Error("Interrupt"));
         this._curr = null;
@@ -324,35 +209,29 @@ export class Model {
 
             this._steps = params?.steps || -1;
 
-            runInAction(() => {
-                this.loading = false;
-                this._timer = 0;
-                this._paused = false;
-                this.loop();
-            });
+            this.loading = false;
+            this._timer = 0;
+            this._paused = false;
+            this.loop();
 
             return true;
         });
     }
 
-    @action
     public pause() {
         this._paused = true;
     }
 
-    @action
     public resume() {
         this._paused = false;
         this.loop();
     }
 
-    @action
     public step() {
         this._paused = true;
         this.loop(true);
     }
 
-    @action
     public randomize() {
         this._seed = Program.meta.int32();
     }
@@ -371,33 +250,13 @@ export class Model {
         if (!this._curr) this._curr = this.ip?.run(this._seed, this._steps);
         if (!this._curr) return;
 
-        const checkBreakpoint = () =>
-            runInAction(() => {
-                if (once) return false;
-
-                const br = this.ip.current;
-                if (!br) return false;
-                if (br.n < 0 || br.n >= br.children.length) return false;
-
-                if (
-                    this.breakpoints.has(br) ||
-                    this.breakpoints.has(br.children[br.n])
-                ) {
-                    this._paused = true;
-                    return true;
-                }
-                return false;
-            });
-
         let result = this._curr.next();
         let dt = this.lastLoop ? start - this.lastLoop : 0;
         this.ip.time += this.scaleTime(dt);
-        const bp = checkBreakpoint();
 
-        if (!bp && !once && this._speed > 0 && dt <= 20) {
+        if (!once && this._speed > 0 && dt <= 20) {
             for (let i = 0; i < this._speed; i++) {
                 result = this._curr.next();
-                if (checkBreakpoint()) break;
 
                 dt = performance.now() - start;
                 this.ip.time += this.scaleTime(dt);
@@ -410,55 +269,16 @@ export class Model {
         this._timer += end - start;
         this.lastLoop = end;
 
-        // Update UI hooks should not be timed
-        this.curr_node_index = this.nodes.findIndex(({ state }) => {
-            let br = this.ip.current;
-            if (!br) return false;
-
-            if (br.n < 0 || br.n >= br.children.length) {
-                return state.node === br;
-            }
-
-            let cn = br.children[br.n];
-            while (cn instanceof ScopeNode) {
-                if (cn.n < 0 || cn.n >= br.children.length)
-                    return state.node === cn;
-                cn = cn.children[cn.n];
-            }
-
-            if (cn instanceof Branch) {
-                if (cn.n < 0 || cn.n >= cn.children.length) {
-                    return state.node === cn;
-                } else {
-                    return state.node === cn.children[cn.n];
-                }
-            }
-
-            return state.node === cn;
-        });
-
-        {
-            const highlightState = this.nodes[this.curr_node_index]?.state;
-            for (const { state } of this.nodes) {
-                state.isCurrent = state === highlightState;
-                state.sync();
-            }
-        }
-
         if (result.done) {
             this._curr = null;
 
             const [state, chars, FX, FY, FZ] = this.ip.state();
 
             this.ip.onRender();
-            this.renderer.setCharacters(chars);
-            this.renderer.update(FX, FY, FZ);
-            this.renderer.render(state);
-            this.rendered++;
+            // TODO: pass state
 
             if (FZ > 1) {
-                const palette = this.renderer.palette;
-                const colors = chars.split("").map((c) => palette.get(c));
+                const colors = chars.split("").map((c) => this.palette.get(c));
 
                 this.output = {
                     name: `${this.name}_${this._seed}.vox`,
@@ -468,24 +288,17 @@ export class Model {
 
             console.log(`Time: ${this._timer.toFixed(2)}ms`);
         } else {
-            if (!once)
+            if (!once) {
                 this._delay
-                    ? setTimeout(
-                          () => runInAction(() => this.loop()),
-                          this._delay
-                      )
-                    : requestAnimationFrame(() =>
-                          runInAction(() => this.loop())
-                      );
+                    ? setTimeout(() => this.loop(), this._delay)
+                    : setImmediate(() => this.loop());
+            }
 
             if (render) {
                 const [state, chars, FX, FY, FZ] = result.value;
 
                 this.ip.onRender();
-                this.renderer.setCharacters(chars);
-                this.renderer.update(FX, FY, FZ);
-                this.renderer.render(state);
-                this.rendered++;
+                // TODO: pass state
             }
         }
     }
@@ -522,88 +335,30 @@ export class Model {
         }
     }
 
-    @computed
     public get MX() {
         return this.DIM[0];
     }
 
-    @computed
     public get MY() {
         return this.DIM[1];
     }
 
-    @computed
     public get MZ() {
         return this.DIM[2];
     }
 
-    @computed
-    public get renderType() {
-        const r = this.renderer;
-
-        if (r instanceof BitmapRenderer) return "bitmap";
-        if (r instanceof IsometricRenderer) return "isometric";
-        if (r instanceof VoxelPathTracer) return "voxel";
-
-        return null;
-    }
-
-    @action
-    public toggleBreakpoint(index: number) {
-        const node = this.nodes[index];
-        if (!node) return;
-        node.breakpoint = !node.breakpoint;
-
-        if (node.breakpoint) {
-            this.breakpoints.add(node.state.node);
-        } else {
-            this.breakpoints.delete(node.state.node);
-        }
-    }
-
-    @action
-    public toggleRender(type: "isometric" | "voxel") {
-        const palette = this.renderer.palette;
-
-        const oldCanvas = this.renderer.canvas;
-        this.renderer.dispose();
-        this.rendered = 0;
-
-        this.renderer = new Render3DTypes[type]();
-        this.renderer.palette = palette;
-        this.renderer.clear();
-
-        oldCanvas.replaceWith(this.renderer.canvas);
-        this.renderer.canvas.id = oldCanvas.id;
-
-        if (!this.ip) return;
-
-        const [state, chars, FX, FY, FZ] = this.ip.state();
-
-        this.ip.onRender();
-        this.renderer.setCharacters(chars);
-        this.renderer.update(FX, FY, FZ);
-        this.renderer.render(state);
-        this.rendered++;
-    }
-
-    @action
     public stop() {
         this.pause();
-        this.renderer.dispose();
         // point of this is to call RuleNode.searching.throw
         // which breaks the scope that keeps the webassembly instance "alive" (not gc'd)
         this.ip?.root.reset();
-
-        Program.editor.setValue("");
-        Program.editor.resize(true);
     }
 
-    @action
-    public event(name: string, key: string) {
-        const curr = this.ip?.listener;
-        if (!curr) return;
+    // Not needed for now
+    // public event(name: string, key: string) {
+    //     const curr = this.ip?.listener;
+    //     if (!curr) return;
 
-        curr.event(name, key);
-    }
+    //     curr.event(name, key);
+    // }
 }

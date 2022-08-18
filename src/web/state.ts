@@ -1,6 +1,6 @@
 import { action, makeObservable, observable, override } from "mobx";
-import { Helper } from "./helpers/helper";
-import { Interpreter } from "./interpreter";
+import { Helper } from "../helpers/helper";
+import { Interpreter } from "../interpreter";
 import {
     AllNode,
     ConvChainNode,
@@ -18,7 +18,7 @@ import {
     TileNode,
     OverlapNode,
     AndNode,
-} from "./mj-nodes";
+} from "../mj-nodes";
 
 export type NodeWithDepth = {
     node: Node;
