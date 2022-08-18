@@ -3,9 +3,10 @@ import regl from "regl";
 import { Vixel } from "./lib/vixel";
 import CameraRotator from "./lib/input";
 import { makeObservable, override } from "mobx";
+import { Loader } from "../loader";
 
 export class VoxelPathTracer extends Renderer {
-    private static readonly canvas = document.createElement("canvas");
+    private static readonly canvas = Loader.makeCanvas();
     public static readonly gfx = regl({
         canvas: VoxelPathTracer.canvas,
         optionalExtensions: [

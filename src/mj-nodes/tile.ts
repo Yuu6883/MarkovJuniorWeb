@@ -1,8 +1,8 @@
 import { alea } from "seedrandom";
 import { Grid } from "../grid";
+import { Loader } from "../loader";
 import { Array2D, Array3Dflat, BoolArray3D } from "../helpers/datastructures";
 import { Helper } from "../helpers/helper";
-import { Loader } from "../helpers/loader";
 import { SymmetryHelper } from "../helpers/symmetry";
 
 import { WFCNode } from ".";

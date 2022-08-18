@@ -1,7 +1,8 @@
-import { Renderer } from ".";
+import { Renderer } from "./abstract";
+import { Loader } from "../loader";
 
 export class BitmapRenderer extends Renderer {
-    private static _canvas = document.createElement("canvas");
+    private static _canvas = Loader.makeCanvas();
     private static _ctx = BitmapRenderer._canvas.getContext("2d");
 
     private MX: number;
@@ -27,7 +28,7 @@ export class BitmapRenderer extends Renderer {
 
         this.MX = MX;
         this.MY = MY;
-        this.img = new ImageData(MX, MY);
+        this.img = Loader.makeImageData(MX, MY);
     }
 
     // IDEA: use wasm to speed up? or just color it on GPU w shaders

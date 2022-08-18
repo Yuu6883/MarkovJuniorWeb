@@ -1,6 +1,6 @@
 import { Grid } from "../grid";
+import { Loader } from "../loader";
 import { Helper, range } from "../helpers/helper";
-import { Loader } from "../helpers/loader";
 import { SymmetryHelper } from "../helpers/symmetry";
 import { Node, RunState } from ".";
 

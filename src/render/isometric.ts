@@ -1,9 +1,10 @@
-import { Renderer } from ".";
+import { Renderer } from "./abstract";
 import { BoolArray, BoolArray2D } from "../helpers/datastructures";
+import { Loader } from "../loader";
 
 export class IsometricRenderer extends Renderer {
     public static readonly BLOCK_SIZE = 6;
-    private static _canvas = document.createElement("canvas");
+    private static _canvas = Loader.makeCanvas();
     private static _ctx = IsometricRenderer._canvas.getContext("2d");
 
     public override get canvas(): HTMLCanvasElement {

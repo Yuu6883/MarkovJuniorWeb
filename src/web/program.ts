@@ -14,8 +14,8 @@ import {
     Renderer,
 } from "../render";
 
+import { Loader } from "../loader";
 import { Helper } from "../helpers/helper";
-import { Loader } from "../helpers/loader";
 import { VoxHelper } from "../helpers/vox";
 import { Interpreter } from "../interpreter";
 
@@ -312,7 +312,10 @@ export class Model {
 
     @action
     public start(params?: ProgramParams) {
-        if (this._curr) this._curr.throw(new Error("Interrupt"));
+        try {
+            if (this._curr) this._curr.throw(new Error("Interrupt"));
+        } catch {}
+
         this._curr = null;
         this.output = null;
 

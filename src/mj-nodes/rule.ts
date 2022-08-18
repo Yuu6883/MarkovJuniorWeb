@@ -169,7 +169,9 @@ export abstract class RuleNode extends Node {
         this.searchTries = 0;
         this.last = 0;
 
-        this.searching?.throw(new Error("reset"));
+        try {
+            this.searching?.throw(new Error("reset"));
+        } catch {}
         this.searching = null;
         this.preObserve = null;
     }

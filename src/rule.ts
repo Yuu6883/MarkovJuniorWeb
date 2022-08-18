@@ -1,7 +1,7 @@
 import { Grid } from "./grid";
 import { Array3Dflat } from "./helpers/datastructures";
 import { Helper, vec3 } from "./helpers/helper";
-import { Loader } from "./helpers/loader";
+import { Loader } from "./loader";
 import { SymmetryHelper } from "./helpers/symmetry";
 
 declare type Shift = vec3[][];
