@@ -7,6 +7,8 @@ import { Canvas } from "canvas";
 import { Program } from "./program";
 import { BitmapRenderer } from "../render/bitmap";
 import { VoxHelper } from "../helpers/vox";
+import { Renderer } from "../render/abstract";
+import { IsometricRenderer } from "../render/isometric";
 
 const outDir = path.resolve(__dirname, "..", "..", "output");
 
@@ -38,7 +40,7 @@ if (!fs.existsSync(outDir)) fs.mkdirSync(outDir);
                 buffer: null,
             };
 
-            if (FZ > 1) {
+            if (FZ > 1 && !i) {
                 const colors = chars.split("").map((c) => model.palette.get(c));
 
                 output.name = `${name}_${model.seed}.vox`;
@@ -46,13 +48,14 @@ if (!fs.existsSync(outDir)) fs.mkdirSync(outDir);
                     VoxHelper.serialize(state, FX, FY, FZ, colors)
                 );
             } else {
-                const bitmap = new BitmapRenderer();
-                bitmap.palette = model.palette;
-                bitmap.setCharacters(chars);
-                bitmap.update(FX, FY, FZ);
-                bitmap.render(state);
+                const renderer: Renderer =
+                    FZ > 1 ? new IsometricRenderer() : new BitmapRenderer();
+                renderer.palette = model.palette;
+                renderer.setCharacters(chars);
+                renderer.update(FX, FY, FZ);
+                renderer.render(state);
 
-                const canvas = bitmap.canvas as unknown as Canvas;
+                const canvas = renderer.canvas as unknown as Canvas;
 
                 output.name = `${name}_${model.seed}.png`;
                 output.buffer = canvas.toBuffer("image/png");

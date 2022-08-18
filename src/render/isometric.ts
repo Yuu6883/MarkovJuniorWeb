@@ -64,7 +64,7 @@ export class IsometricRenderer extends Renderer {
         const W = FITWIDTH + 2 * this.sprite.size;
         const H = FITHEIGHT + 2 * this.sprite.size;
 
-        this.img = new ImageData(W, H);
+        this.img = Loader.makeImageData(W, H);
     }
 
     override _render(state: Uint8Array) {
