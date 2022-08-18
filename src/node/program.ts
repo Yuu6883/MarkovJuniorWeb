@@ -1,23 +1,33 @@
 import seedrandom from "seedrandom";
 
+import * as path from "path";
+import * as fs from "fs";
+import * as fsp from "fs/promises";
+
+const ModelsXML = fs.readFileSync(
+    path.resolve(__dirname, "..", "..", "static", "models.xml"),
+    "utf-8"
+);
+const PaletteXML = fs.readFileSync(
+    path.resolve(__dirname, "..", "..", "static", "resources", "palette.xml"),
+    "utf-8"
+);
+
+import { patchForNode } from "./patch";
+
+patchForNode();
+
+import { Optimization } from "../wasm/optimization";
+import { WasmModule } from "../wasm";
+
+import { Loader } from "../loader";
 import { Helper } from "../helpers/helper";
-import { Loader } from "../helpers/loader";
 import { VoxHelper } from "../helpers/vox";
 import { Interpreter } from "../interpreter";
 
-import ModelsXML from "../static/models.xml";
-import PaletteXML from "../static/resources/palette.xml";
-
-import { Optimization } from "../wasm/optimization";
-
-import ObsModuleURL from "../bin/rule.wasm";
-import { WasmModule } from "../wasm";
-
-import * as fsp from "fs/promises";
-
 Optimization.loadPromise = (async () => {
     {
-        const buf = await fsp.readFile(ObsModuleURL);
+        const buf = await fsp.readFile(path.resolve("..", "bin", "rule.wasm"));
         Optimization.module = await WasmModule.load(buf);
     }
 })().catch((_) => (Optimization.module = null));
@@ -107,6 +117,9 @@ export class Model {
     public output: ProgramOutput = null;
 
     public readonly DIM = new Int32Array([-1, -1, -1]);
+    public readonly amount = 2;
+    public readonly maxSteps: number;
+
     public palette: typeof Program.palette;
 
     constructor(key: string) {
@@ -130,6 +143,8 @@ export class Model {
         this.DIM[2] =
             parseInt(emodel.getAttribute("height")) ||
             (dimension === 2 ? 1 : size);
+
+        this.maxSteps = parseInt(emodel.getAttribute("steps")) || 1000;
 
         this._loadPromise = (async () => {
             await Optimization.loadPromise;
@@ -233,7 +248,7 @@ export class Model {
     }
 
     public randomize() {
-        this._seed = Program.meta.int32();
+        this._seed = Math.abs(Program.meta.int32());
     }
 
     private scaleTime(t: number) {
@@ -275,7 +290,6 @@ export class Model {
             const [state, chars, FX, FY, FZ] = this.ip.state();
 
             this.ip.onRender();
-            // TODO: pass state
 
             if (FZ > 1) {
                 const colors = chars.split("").map((c) => this.palette.get(c));
@@ -298,15 +312,36 @@ export class Model {
                 const [state, chars, FX, FY, FZ] = result.value;
 
                 this.ip.onRender();
-                // TODO: pass state
+                // TODO: pass state to listener?
             }
+        }
+    }
+
+    public state() {
+        return this.ip.state();
+    }
+
+    public run(rng_seed = false) {
+        if (rng_seed) this.randomize();
+        const iter = this.ip?.run(this.seed, this._steps);
+
+        let steps = 0;
+
+        let result = iter.next();
+        while (!result.done && (this.maxSteps < 0 || steps++ < this.maxSteps))
+            result = iter.next();
+
+        if (!result.done) {
+            try {
+                iter.throw("Max step exceeded");
+            } catch {}
         }
     }
 
     public async benchmark(runs = 10, rng_seed = true) {
         const timings = new Float64Array(runs);
 
-        const ip = await Interpreter.load(
+        this.ip = await Interpreter.load(
             this.modelDoc,
             this.DIM[0],
             this.DIM[1],
@@ -314,16 +349,12 @@ export class Model {
         );
 
         for (let i = 0; i < runs; i++) {
-            const seed = rng_seed ? Program.meta.int32() : this._seed;
-            const iter = ip?.run(seed, this._steps);
-
             const start = performance.now();
-            let result = iter.next();
-            while (!result.done) result = iter.next();
+            this.run(rng_seed);
             const end = performance.now();
 
             timings[i] = end - start;
-            console.log(`run[${i}] finished: ${(end - start).toFixed(2)}ms`);
+            console.log(`run[${i}]: ${(end - start).toFixed(2)}ms`);
 
             await new Promise((resolve) => setTimeout(resolve, 250));
         }

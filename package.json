@@ -5,19 +5,18 @@
     "main": "index.js",
     "scripts": {
         "start": "webpack serve --mode=development",
-        "build": "webpack build --mode=production"
+        "build": "webpack build --mode=production",
+        "run": "node -r @swc-node/register src/node/index.ts"
     },
     "keywords": [],
     "author": "Yuu6883",
     "license": "MIT",
     "devDependencies": {
-        "@swc/cli": "^0.1.57",
         "@types/ace": "^0.0.48",
         "@types/file-saver": "^2.0.5",
         "@types/react": "^18.0.14",
         "@types/react-dom": "^18.0.5",
         "@types/seedrandom": "^3.0.2",
-        "@types/three": "^0.141.0",
         "@xmldom/xmldom": "^0.8.2",
         "ace-builds": "^1.8.1",
         "copy-webpack-plugin": "^11.0.0",
@@ -36,13 +35,16 @@
         "react-tooltip": "^4.2.21",
         "regl": "^2.1.0",
         "regl-atmosphere-envmap": "^1.0.5",
-        "seedrandom": "^3.0.5",
         "style-loader": "^3.3.1",
         "swc-loader": "^0.2.3",
         "typescript": "^4.7.4",
         "url-loader": "^4.1.1",
         "webpack-cli": "^4.10.0",
-        "webpack-dev-server": "^4.9.2",
-        "webpack-node-externals": "^3.0.0"
+        "webpack-dev-server": "^4.9.2"
+    },
+    "dependencies": {
+        "@swc-node/register": "^1.5.1",
+        "canvas": "^2.9.3",
+        "seedrandom": "^3.0.5"
     }
 }
