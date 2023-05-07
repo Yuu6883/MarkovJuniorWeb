@@ -228,7 +228,8 @@ const Renderer = (regl: Regl, colorType: FramebufferColorDataType) => {
             groundMetalness: number;
             dofDist: number;
             dofMag: number;
-        }
+        },
+        previewOnly = false
     ) {
         const sp = calculateSunPosition(opts.time, opts.azimuth);
         if (vec3.distance(sp, sunPosition) > 0.001) {
@@ -238,7 +239,7 @@ const Renderer = (regl: Regl, colorType: FramebufferColorDataType) => {
                 cubeFBO: skyMap,
             });
         }
-        for (let i = 0; i < opts.count; i++) {
+        for (let i = 0; i < (previewOnly ? 1 : opts.count); i++) {
             cmdSample({
                 eye: camera.position,
                 invpv: camera.inverse,
@@ -258,7 +259,7 @@ const Renderer = (regl: Regl, colorType: FramebufferColorDataType) => {
                 groundMetalness: opts.groundMetalness,
                 dofDist: opts.dofDist,
                 dofMag: opts.dofMag,
-                renderPreview: sampleCount === 0,
+                renderPreview: previewOnly || sampleCount === 0,
                 source: pingpong.ping,
                 destination: sampleCount ? pingpong.pong : TexCache.previewFBO,
                 viewport: {
