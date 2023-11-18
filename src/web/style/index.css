@@ -705,3 +705,9 @@ button.danger:hover {
 .ace-tm .ace_marker-layer .ace_selection {
     background-color: #264f78;
 }
+.debug-line {
+    background-color: yellow;
+    position: absolute;
+    left: 0!important;
+    opacity: 0.2;
+}

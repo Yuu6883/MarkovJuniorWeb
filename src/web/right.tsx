@@ -562,10 +562,13 @@ const StateTree = observer(() => {
             if (node) {
                 const source = node.state.node.source;
                 // index starts at 1 really @xmldom
-                Program.editor.moveCursorTo(
-                    source.lineNumber - 1,
-                    source.columnNumber - 1
-                );
+                Program.debugLineHighlighter.setLineNo(source.lineNumber -1, Program.editor);
+                //@ts-ignore
+                // Program.editor.session._emit("changeBackMarker");
+                // Program.editor.moveCursorTo(
+                //     source.lineNumber - 1,
+                //     source.columnNumber - 1
+                // );
 
                 const lines =
                     Program.editor.container.querySelectorAll(
