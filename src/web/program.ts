@@ -274,6 +274,7 @@ export class Model {
                     //     return node.state.node.source.lineNumber == row
                     // })
                     const nodeIndex = this.nodes.findIndex((node,i) =>{
+                        return node.state.node.source.lineNumber == row +1
                         return node.state.node.source.lineNumber - 1 == row
                     })
                     this.toggleBreakpoint(nodeIndex)
