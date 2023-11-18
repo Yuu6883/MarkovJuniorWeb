@@ -264,8 +264,29 @@ export class Model {
 
             Program.editor.setValue(this.modelXML);
             Program.editor.clearSelection();
+            Program.editor.session.clearBreakpoints();
             if(!Program.debugLineHighlighter.id){
-                Program.editor.session.addDynamicMarker(Program.debugLineHighlighter, false)
+                Program.editor.session.addDynamicMarker(Program.debugLineHighlighter, false);
+                //@ts-ignore
+                Program.editor.on("guttermousedown", (ev) => {
+                    const row = ev.getDocumentPosition().row;
+                    // const node = this.nodes.find((node,i) =>{
+                    //     return node.state.node.source.lineNumber == row
+                    // })
+                    const nodeIndex = this.nodes.findIndex((node,i) =>{
+                        return node.state.node.source.lineNumber - 1 == row
+                    })
+                    this.toggleBreakpoint(nodeIndex)
+
+                    // console.log(row)
+                    // var s = ev.editor.session;
+                    // //debugger;
+                    // if(s.getBreakpoints()[row]=='debug-breakpoint'){
+                    //     s.setBreakpoint(row, false)
+                    // } else {
+                    //     s.setBreakpoint(row, 'debug-breakpoint')
+                    // }
+                })
             }
 
             const seedString = emodel.getAttribute("seeds");
@@ -598,11 +619,15 @@ export class Model {
         const node = this.nodes[index];
         if (!node) return;
         node.breakpoint = !node.breakpoint;
+        const editor = Program.editor.session;
+        const lineNo = node.state.node.source.lineNumber -1
 
         if (node.breakpoint) {
             this.breakpoints.add(node.state.node);
+            editor.setBreakpoint(lineNo, 'debug-breakpoint')
         } else {
             this.breakpoints.delete(node.state.node);
+            editor.clearBreakpoint(lineNo)
         }
     }
 
