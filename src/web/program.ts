@@ -275,18 +275,11 @@ export class Model {
                     // })
                     const nodeIndex = this.nodes.findIndex((node,i) =>{
                         return node.state.node.source.lineNumber == row +1
-                        return node.state.node.source.lineNumber - 1 == row
                     })
-                    this.toggleBreakpoint(nodeIndex)
-
-                    // console.log(row)
-                    // var s = ev.editor.session;
-                    // //debugger;
-                    // if(s.getBreakpoints()[row]=='debug-breakpoint'){
-                    //     s.setBreakpoint(row, false)
-                    // } else {
-                    //     s.setBreakpoint(row, 'debug-breakpoint')
-                    // }
+                    // console.log('gutter.row:', row, 'nodeIndex:', nodeIndex)
+                    if(nodeIndex >=0){
+                        this.toggleBreakpoint(nodeIndex)
+                    }
                 })
             }
 
@@ -618,6 +611,7 @@ export class Model {
     @action
     public toggleBreakpoint(index: number) {
         const node = this.nodes[index];
+        // console.log('Breakpoint: nodeIndex:',index, 'Node:',node)
         if (!node) return;
         node.breakpoint = !node.breakpoint;
         const editor = Program.editor.session;
