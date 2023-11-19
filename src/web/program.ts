@@ -282,6 +282,7 @@ export class Model {
                     }
                 })
             }
+            Program.debugLineHighlighter.setLineNo(-1, Program.editor);
 
             const seedString = emodel.getAttribute("seeds");
             const seeds = seedString?.split(" ").map((s) => parseInt(s));
