@@ -53,6 +53,42 @@ const Render3DTypes = {
     voxel: VoxelPathTracer,
 };
 
+class DebugLineHighlighter implements ace.Ace.MarkerLike {
+    range: ace.Ace.Range;
+    type: string;
+    renderer?: ace.Ace.MarkerRenderer;
+    clazz: string = 'debug-line';
+    inFront: boolean;
+    id: number;
+    lineNo: number = -1;
+    public setLineNo(lineNo, editor:ace.Ace.Editor) {
+        if(lineNo != this.lineNo){
+            this.lineNo = lineNo;
+            this.range = new ace.Range(this.lineNo,0, this.lineNo+1, 0);
+            //@ts-ignore
+            editor.session._emit("changeBackMarker");
+        }
+    }
+    //constructor(editor: ace.Ace.edit)
+    public update (html, markerLayer, session:ace.Ace.EditSession, config) {
+        if(this.lineNo<0) return;
+
+        // let y = getRandomInt(26)
+        let dynR = new ace.Range(this.lineNo,0, this.lineNo+1, 10);
+        // dynR=range3
+        //range2 = dynR;
+        const w = dynR.clipRows(config.firstRow, config.lastRow);
+        if(w.isEmpty()) return;
+        debugger
+        
+        // var rangeToAddMarkerTo = dynR.toScreenRange(session);
+        // var rangeAsString = rangeToAddMarkerTo.toString();
+        // console.log(config.firstRow,  config.lastRow);
+        //console.log('halo',rangeAsString)// JSON.stringify({html, markerLayer, session, config}, null, 3))
+        markerLayer.drawSingleLineMarker(html, dynR, 'debug-line', config)
+    }
+}
+
 export class Program {
     @observable.ref
     public static instance: Model = null;
@@ -72,6 +108,9 @@ export class Program {
         maxLines: Infinity,
         mode: "ace/mode/xml",
     });
+
+    public static readonly debugLineHighlighter = new DebugLineHighlighter();
+
 
     @action
     public static loadPalette() {
@@ -225,6 +264,25 @@ export class Model {
 
             Program.editor.setValue(this.modelXML);
             Program.editor.clearSelection();
+            Program.editor.session.clearBreakpoints();
+            if(!Program.debugLineHighlighter.id){
+                Program.editor.session.addDynamicMarker(Program.debugLineHighlighter, false);
+                //@ts-ignore
+                Program.editor.on("guttermousedown", (ev) => {
+                    const row = ev.getDocumentPosition().row;
+                    // const node = this.nodes.find((node,i) =>{
+                    //     return node.state.node.source.lineNumber == row
+                    // })
+                    const nodeIndex = this.nodes.findIndex((node,i) =>{
+                        return node.state.node.source.lineNumber == row +1
+                    })
+                    // console.log('gutter.row:', row, 'nodeIndex:', nodeIndex)
+                    if(nodeIndex >=0){
+                        this.toggleBreakpoint(nodeIndex)
+                    }
+                })
+            }
+            Program.debugLineHighlighter.setLineNo(-1, Program.editor);
 
             const seedString = emodel.getAttribute("seeds");
             const seeds = seedString?.split(" ").map((s) => parseInt(s));
@@ -554,13 +612,18 @@ export class Model {
     @action
     public toggleBreakpoint(index: number) {
         const node = this.nodes[index];
+        // console.log('Breakpoint: nodeIndex:',index, 'Node:',node)
         if (!node) return;
         node.breakpoint = !node.breakpoint;
+        const editor = Program.editor.session;
+        const lineNo = node.state.node.source.lineNumber -1
 
         if (node.breakpoint) {
             this.breakpoints.add(node.state.node);
+            editor.setBreakpoint(lineNo, 'debug-breakpoint')
         } else {
             this.breakpoints.delete(node.state.node);
+            editor.clearBreakpoint(lineNo)
         }
     }
 
